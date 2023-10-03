@@ -1,0 +1,15 @@
+C:\Users\Martin\source\repos\2DGameEngineSTC\Test Apka STC Engine\bin\Debug\net6.0\Test Apka STC Engine.exe
+C:\Users\Martin\source\repos\2DGameEngineSTC\Test Apka STC Engine\bin\Debug\net6.0\Test Apka STC Engine.deps.json
+C:\Users\Martin\source\repos\2DGameEngineSTC\Test Apka STC Engine\bin\Debug\net6.0\Test Apka STC Engine.runtimeconfig.json
+C:\Users\Martin\source\repos\2DGameEngineSTC\Test Apka STC Engine\bin\Debug\net6.0\Test Apka STC Engine.dll
+C:\Users\Martin\source\repos\2DGameEngineSTC\Test Apka STC Engine\bin\Debug\net6.0\Test Apka STC Engine.pdb
+C:\Users\Martin\source\repos\2DGameEngineSTC\Test Apka STC Engine\obj\Debug\net6.0\Test Apka STC Engine.csproj.AssemblyReference.cache
+C:\Users\Martin\source\repos\2DGameEngineSTC\Test Apka STC Engine\obj\Debug\net6.0\Test Apka STC Engine.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Martin\source\repos\2DGameEngineSTC\Test Apka STC Engine\obj\Debug\net6.0\Test Apka STC Engine.AssemblyInfoInputs.cache
+C:\Users\Martin\source\repos\2DGameEngineSTC\Test Apka STC Engine\obj\Debug\net6.0\Test Apka STC Engine.AssemblyInfo.cs
+C:\Users\Martin\source\repos\2DGameEngineSTC\Test Apka STC Engine\obj\Debug\net6.0\Test Apka STC Engine.csproj.CoreCompileInputs.cache
+C:\Users\Martin\source\repos\2DGameEngineSTC\Test Apka STC Engine\obj\Debug\net6.0\Test Apka STC Engine.dll
+C:\Users\Martin\source\repos\2DGameEngineSTC\Test Apka STC Engine\obj\Debug\net6.0\refint\Test Apka STC Engine.dll
+C:\Users\Martin\source\repos\2DGameEngineSTC\Test Apka STC Engine\obj\Debug\net6.0\Test Apka STC Engine.pdb
+C:\Users\Martin\source\repos\2DGameEngineSTC\Test Apka STC Engine\obj\Debug\net6.0\Test Apka STC Engine.genruntimeconfig.cache
+C:\Users\Martin\source\repos\2DGameEngineSTC\Test Apka STC Engine\obj\Debug\net6.0\ref\Test Apka STC Engine.dll
