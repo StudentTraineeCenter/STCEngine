@@ -7,17 +7,24 @@ using System.Threading;
 
 
 namespace STCEngine.Engine
-{
-    public abstract class Engine
+{   
+    /// <summary>
+    /// The main class of the engine, the Game class derives off this one
+    /// </summary>
+    public abstract class EngineClass
     {
         private Vector2 screenSize;
         private string title;
         private Canvas window;
         public Thread gameLoopThread;
 
-        public static List<GameObject> gameObjects = new List<GameObject>();
+        public static List<GameObject> registeredGameObjects = new List<GameObject>();
         public Color backgroundColor;
-        public Engine(Vector2 screenSize, string title)
+
+        /// <summary>
+        /// Starts the game loop and the game window
+        /// </summary>
+        public EngineClass(Vector2 screenSize, string title)
         {
             this.screenSize = screenSize;
             this.title = title;
@@ -34,9 +41,13 @@ namespace STCEngine.Engine
 
             OnExit();
         }
+        /// <summary>
+        /// The main game loop thread, calls the Update funcions
+        /// </summary>
         private void GameLoop()
         {
-            while (gameLoopThread.IsAlive)
+            bool cancelationToken = false;
+            while (!cancelationToken && gameLoopThread.IsAlive)
             {
                 try
                 {
@@ -48,22 +59,38 @@ namespace STCEngine.Engine
                 }
                 catch
                 {
-                    Console.WriteLine("Loading...");
+                    Debug.LogWarning("Window not found, exiting thread...");
+                    cancelationToken = true;
                 }
             }
         }
+        /// <summary>
+        /// Takes care of rendering things inside the game window
+        /// </summary>
         private void Renderer(object sender, PaintEventArgs args)
         {
             Graphics graphics = args.Graphics;
+            
             graphics.Clear(backgroundColor);
+
+            foreach(GameObject gameObject in registeredGameObjects)
+            {
+                graphics.FillRectangle(new SolidBrush(Color.Green), gameObject.transform.position.x, gameObject.transform.position.y, gameObject.transform.size.x, gameObject.transform.size.y);
+            }
         }
         public abstract void Update();
         public abstract void LateUpdate();
         public abstract void OnLoad();
         public abstract void OnExit();
-        public static void AddGameObject(GameObject gameObject) { gameObjects.Add(gameObject); }
+        /// <summary>
+        /// Registers the GameObject to the list of existing GameObjects
+        /// </summary>
+        public static void RegisterGameObject(GameObject gameObject) { registeredGameObjects.Add(gameObject); }
+        /// <summary>
+        /// Unregisters the GameObject from the list of existing GameObjects
+        /// </summary>
+        public static void UnregisterGameObject(GameObject gameObject) { registeredGameObjects.Remove(gameObject); }
     }
-
     public class Canvas : Form
     {
         public Canvas()
@@ -71,8 +98,6 @@ namespace STCEngine.Engine
             this.DoubleBuffered = true;
         }
     }
-
-
 }
 namespace STCEngine
 {
@@ -91,23 +116,42 @@ namespace STCEngine
         }
     }
 
+    /// <summary>
+    /// An ordered pair of floats
+    /// </summary>
     public class Vector2
     {
         public float x { get; set; }
         public float y { get; set; }
 
+        /// <summary>
+        /// (0, 0)
+        /// </summary>
         public static Vector2 zero { get => new Vector2(0, 0); }
+        /// <summary>
+        /// (1, 1)
+        /// </summary>
+        public static Vector2 one { get => new Vector2(1, 1); }
+        /// <summary>
+        /// (0, 1)
+        /// </summary>
         public static Vector2 up { get => new Vector2(0, 1); }
+        /// <summary>
+        /// (1, 0)
+        /// </summary>
         public static Vector2 right { get => new Vector2(1, 0); }
+        /// <summary>
+        /// Length of the vector as a float
+        /// </summary>
         public float length { get => MathF.Sqrt(x*x + y*y); }
 
 
 
-        public Vector2()
-        {
-            x = 0;
-            y = 0;
-        }
+        //public Vector2()
+        //{
+        //    x = 0;
+        //    y = 0;
+        //}
         public Vector2(float x, float y)
         {
             this.x = x;
@@ -115,27 +159,5 @@ namespace STCEngine
         }
 
     }
-    public class GameObject
-    {
-        public Vector2 position;
-        public float rotation;
-        public Vector2 size;
-
-        public GameObject(Vector2 position = null, float rotation = 0, Vector2 size = null)
-        {
-            this.position = position == null ? Vector2.zero : position;
-            this.rotation = rotation;
-            this.size = size == null ? Vector2.zero : size;
-        }
-        //public 
-        //public GameObject() { }
-    }
-    public class Sprite : GameObject
-    {
-        public Image image;
-        public Sprite(Image image)
-        {
-            this.image = image;
-        }
-    }
+    
 }

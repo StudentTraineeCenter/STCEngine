@@ -13,9 +13,9 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Martin\\source\\repos\\2DGameEngineSTC\\Test Apka STC Engine\\Test Apka STC Engine.csproj",
-      "projectName": "Test Apka STC Engine",
-      "projectPath": "C:\\Users\\Martin\\source\\repos\\2DGameEngineSTC\\Test Apka STC Engine\\Test Apka STC Engine.csproj",
+      "projectUniqueName": "C:\\Users\\Martin\\source\\repos\\2DGameEngineSTC\\Test Apka STC Engine\\STCEngine.csproj",
+      "projectName": "STCEngine",
+      "projectPath": "C:\\Users\\Martin\\source\\repos\\2DGameEngineSTC\\Test Apka STC Engine\\STCEngine.csproj",
       "packagesPath": "C:\\Users\\Martin\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\Martin\\source\\repos\\2DGameEngineSTC\\Test Apka STC Engine\\obj\\",
       "projectStyle": "PackageReference",
