@@ -18,7 +18,8 @@ namespace STCEngine.Engine
         private Canvas window;
         public Thread gameLoopThread;
 
-        public static List<GameObject> registeredGameObjects = new List<GameObject>();
+        public static Dictionary<string, GameObject> registeredGameObjects = new Dictionary<string, GameObject>();
+        public static List<GameObject> spritesToRender = new List<GameObject>();
         public Color backgroundColor;
 
         /// <summary>
@@ -73,9 +74,14 @@ namespace STCEngine.Engine
             
             graphics.Clear(backgroundColor);
 
-            foreach(GameObject gameObject in registeredGameObjects)
+            //foreach(KeyValuePair<string, GameObject> stringGameObject in registeredGameObjects)
+            //{
+            //    graphics.FillRectangle(new SolidBrush(Color.Green), stringGameObject.Value.transform.position.x, stringGameObject.Value.transform.position.y, stringGameObject.Value.transform.size.x, stringGameObject.Value.transform.size.y);
+            //}
+            foreach (GameObject gameObject in spritesToRender)
             {
-                graphics.FillRectangle(new SolidBrush(Color.Green), gameObject.transform.position.x, gameObject.transform.position.y, gameObject.transform.size.x, gameObject.transform.size.y);
+                Sprite image = gameObject.GetComponent<Sprite>();
+                graphics.DrawImage(image.image, gameObject.transform.position.x, gameObject.transform.position.y, image.image.Width*gameObject.transform.size.x, image.image.Height * gameObject.transform.size.y);
             }
         }
         public abstract void Update();
@@ -85,11 +91,21 @@ namespace STCEngine.Engine
         /// <summary>
         /// Registers the GameObject to the list of existing GameObjects
         /// </summary>
-        public static void RegisterGameObject(GameObject gameObject) { registeredGameObjects.Add(gameObject); }
+        public static void RegisterGameObject(GameObject GameObject) { registeredGameObjects.Add(GameObject.name, GameObject); }
         /// <summary>
         /// Unregisters the GameObject from the list of existing GameObjects
         /// </summary>
-        public static void UnregisterGameObject(GameObject gameObject) { registeredGameObjects.Remove(gameObject); }
+        public static void UnregisterGameObject(GameObject GameObject) { registeredGameObjects.Remove(GameObject.name); }
+        /// <summary>
+        /// Registers the GameObject with a Sprite to the render queue
+        /// </summary>
+        public static void AddSpriteToRender(GameObject GameObject) { spritesToRender.Add(GameObject); }
+        /// <summary>
+        /// Unregisters the GameObject with a Sprite from the render queue
+        /// </summary>
+        public static void RemoveSpriteToRender(GameObject GameObject) { spritesToRender.Remove(GameObject); }
+        public static void Destroy(GameObject GameObject) { GameObject.DestroySelf(); UnregisterGameObject(GameObject); }
+        public static void Destroy(Component component) { component.DestroySelf(); }
     }
     public class Canvas : Form
     {

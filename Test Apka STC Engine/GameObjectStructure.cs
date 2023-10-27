@@ -10,9 +10,11 @@ namespace STCEngine
     /// <summary>
     /// Base for all components, components define the properties of GameObjects
     /// </summary>
-    public class Component 
+    public abstract class Component 
     {
         public bool enabled;
+        public GameObject gameObject;
+        public abstract void DestroySelf();
     }
 
     /// <summary>
@@ -31,7 +33,12 @@ namespace STCEngine
         {
             this.position = position == null ? Vector2.zero : position;
             this.rotation = rotation;
-            this.size = size == null ? Vector2.zero : size;
+            this.size = size == null ? Vector2.one : size;
+        }
+        public override void DestroySelf()
+        {
+            Debug.LogWarning("Tried to destroy Transform component, destroying the whole GameObject");
+            gameObject.DestroySelf();
         }
     }
     /// <summary>
@@ -40,7 +47,17 @@ namespace STCEngine
     public class Sprite : Component
     {
         public Image image;
-        public Sprite(Image image) => this.image = image;
+        public Sprite(string fileSourceDirectory, GameObject gameObject)
+        {
+            this.image = Image.FromFile(fileSourceDirectory);
+            EngineClass.AddSpriteToRender(gameObject);
+        }
+
+        public override void DestroySelf()
+        {
+            EngineClass.RemoveSpriteToRender(gameObject);
+            gameObject.RemoveComponent<Sprite>();
+        }
     }
 
     /// <summary>
@@ -56,14 +73,15 @@ namespace STCEngine
         public bool isActive;
         public Transform transform;
 
+        #region Constructors
         /// <summary>
         /// Creates a GameObject with given components
         /// </summary>
         public GameObject(string name, List<Component> components, bool isActive = true)
         {
-            this.components = components;
             this.name = name;
             this.isActive = isActive;
+            foreach (Component c in components) { AddComponent(c); }
             GameObjectCreated();
         }
 
@@ -72,9 +90,9 @@ namespace STCEngine
         /// </summary>
         public GameObject(string name, Vector2 position, bool isActive = true)
         {
-            this.components = new List<Component>(){new Transform(position, 0, Vector2.zero)};
             this.name = name;
             this.isActive = isActive;
+            AddComponent(new Transform(position, 0, Vector2.zero));
             GameObjectCreated();
         }
         /// <summary>
@@ -82,14 +100,15 @@ namespace STCEngine
         /// </summary>
         public GameObject(string name, Transform transform, bool isActive = true)
         {
-            this.components = new List<Component>() { transform };
             this.name = name;
             this.isActive = isActive;
+            AddComponent(transform);
             GameObjectCreated();
         }
         /// <summary>
         /// Called upon creating a GameObject, registers the object in the Engine class and prints a debug
         /// </summary>
+        #endregion
         private void GameObjectCreated()
         {
             try
@@ -104,5 +123,34 @@ namespace STCEngine
             EngineClass.RegisterGameObject(this);
             Debug.LogInfo($"GameObject \"{name}\" Registered");
         }
+        public void DestroySelf()
+        {
+            foreach(Component c in components) { if(c.GetType() != typeof(Transform)){ DestroySelf(); } }
+            Debug.LogInfo($"GameObject {name} should be destroyed. (remove all references to this object)");
+        }
+
+        #region Component Managment
+        public void AddComponent(Component component)
+        {
+            components.Add(component);
+            component.gameObject = this;
+            Debug.LogInfo($"Component {component} has been added onto GameObject {this.name}");
+        }
+        public void RemoveComponent<T>() where T : Component
+        {
+            Type targetType = typeof(T);
+            if (targetType == typeof(Transform)) { Debug.LogWarning("Can't remove Transform component from GameObject!"); return; }
+            components.Remove(GetComponent<T>());
+            Debug.LogInfo($"Component {targetType} has been removed from GameObject {this.name}");
+        }
+        public T GetComponent<T>() where T : Component
+        {
+            Type targetType = typeof(T);
+            var foundComponent = components.FirstOrDefault(c => targetType.IsAssignableFrom(c.GetType()));
+            
+            // Use reflection to create an instance of the specified type and cast the found component to it.
+            return foundComponent != null ? (T)Convert.ChangeType(foundComponent, targetType) : null;
+        }
+        #endregion
     }
 }

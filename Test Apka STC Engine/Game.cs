@@ -23,7 +23,8 @@ namespace STCEngine
             backgroundColor = Color.Black;
 
             //spawn player
-            player = new GameObject("Player",new Transform(new Vector2(10, 10), 0, new Vector2(10, 10)));
+            player = new GameObject("Player",new Transform(new Vector2(10, 10), 0, new Vector2(0.6f, 0.6f)));
+            player.AddComponent(new Sprite("Assets/BasicEnemyWhite2.png", player));
         }
 
         /// <summary>
@@ -40,7 +41,7 @@ namespace STCEngine
         /// </summary>
         public override void Update()
         {
-            player.transform.position.x += 1;
+            //player.transform.position.x += 1;
         }
 
         /// <summary>
