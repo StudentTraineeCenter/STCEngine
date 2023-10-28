@@ -24,7 +24,16 @@ namespace STCEngine
 
             //spawn player
             player = new GameObject("Player",new Transform(new Vector2(10, 10), 0, new Vector2(0.6f, 0.6f)));
-            player.AddComponent(new Sprite("Assets/BasicEnemyWhite2.png", player));
+            player.AddComponent(new Sprite("Assets/Basic Enemy White 1.png", player));
+
+            AnimationFrame[] animFrames = {
+                new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 1.png"), 100),
+                new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 2.png"), 100),
+                new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 3.png"), 500)
+            };
+            Animation anim = new Animation("TestAnimation", animFrames);
+            player.AddComponent(new Animator(anim));
+            player.GetComponent<Animator>().Play("TestAnimation");
         }
 
         /// <summary>

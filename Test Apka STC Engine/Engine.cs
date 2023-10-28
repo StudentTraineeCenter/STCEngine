@@ -20,6 +20,7 @@ namespace STCEngine.Engine
 
         public static Dictionary<string, GameObject> registeredGameObjects = new Dictionary<string, GameObject>();
         public static List<GameObject> spritesToRender = new List<GameObject>();
+        public static List<Animation> runningAnimations = new List<Animation>();
         public Color backgroundColor;
 
         /// <summary>
@@ -55,6 +56,8 @@ namespace STCEngine.Engine
                     Update();
                     window.BeginInvoke((MethodInvoker)delegate { window.Refresh(); });
                     LateUpdate();
+
+                    RunAnimations();
                 
                     Thread.Sleep(1);
                 }
@@ -84,6 +87,10 @@ namespace STCEngine.Engine
                 graphics.DrawImage(image.image, gameObject.transform.position.x, gameObject.transform.position.y, image.image.Width*gameObject.transform.size.x, image.image.Height * gameObject.transform.size.y);
             }
         }
+        private void RunAnimations()
+        {
+            foreach(Animation anim in runningAnimations) { anim.RunAnimation(); }
+        }
         public abstract void Update();
         public abstract void LateUpdate();
         public abstract void OnLoad();
@@ -104,6 +111,14 @@ namespace STCEngine.Engine
         /// Unregisters the GameObject with a Sprite from the render queue
         /// </summary>
         public static void RemoveSpriteToRender(GameObject GameObject) { spritesToRender.Remove(GameObject); }
+        /// <summary>
+        /// Registers the Animation to the animation queue
+        /// </summary>
+        public static void AddSpriteAnimation(Animation Animation) { runningAnimations.Add(Animation); }
+        /// <summary>
+        /// Unregisters the Animation from the animation queue
+        /// </summary>
+        public static void RemoveSpriteAnimation(Animation Animation) { runningAnimations.Remove(Animation); }
         public static void Destroy(GameObject GameObject) { GameObject.DestroySelf(); UnregisterGameObject(GameObject); }
         public static void Destroy(Component component) { component.DestroySelf(); }
     }

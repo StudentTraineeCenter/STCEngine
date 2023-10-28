@@ -10,10 +10,17 @@ namespace STCEngine
     /// <summary>
     /// Base for all components, components define the properties of GameObjects
     /// </summary>
-    public abstract class Component 
+    public abstract class Component
     {
         public bool enabled;
+        /// <summary>
+        /// the GameObject this component is attached to
+        /// </summary>
         public GameObject gameObject;
+
+        /// <summary>
+        /// Function that gets called upon destroying this component or the GameObject its attached to
+        /// </summary>
         public abstract void DestroySelf();
     }
 
@@ -55,8 +62,102 @@ namespace STCEngine
 
         public override void DestroySelf()
         {
+            if (gameObject.GetComponent<Sprite>() != null) { gameObject.RemoveComponent<Sprite>(); return; }
             EngineClass.RemoveSpriteToRender(gameObject);
-            gameObject.RemoveComponent<Sprite>();
+        }
+    }
+
+    public class Animator : Component
+    {
+        public Sprite? sprite;
+        public Dictionary<string, Animation> animations { get; private set; }
+        public float playBackSpeed;
+        public static bool isPlaying { get; private set; }
+        public Animator(Animation animation, float playBackSpeed = 1)
+        {
+            this.animations = new Dictionary<string, Animation>();
+            animations.Add(animation.name, animation);
+
+            this.playBackSpeed = Math.Clamp(playBackSpeed, 0, float.PositiveInfinity);
+        }
+        
+        /// <summary>
+        /// Adds an animation to the animator, which can later be played using the Play function
+        /// </summary>
+        /// <param name="animation"></param>
+        public void AddAnimation(Animation animation) { animations.Add(animation.name, animation); }
+        /// <summary>
+        /// Plays the animation of the given name
+        /// </summary>
+        /// <param name="animationName"></param>
+        public void Play(string animationName) 
+        { 
+            if(sprite == null) { sprite = gameObject.GetComponent<Sprite>(); }
+            if (animations.TryGetValue(animationName, out Animation? animation)) { EngineClass.runningAnimations.Add(animation); animation.sprite = sprite; } 
+            else { Debug.LogError($"Animation {animationName} not found and couldnt be played."); }     
+        }
+        
+
+        public override void DestroySelf()
+        {
+            if(gameObject.GetComponent<Animator>() != null) { gameObject.RemoveComponent<Animator>(); return; }
+        }
+    }
+    public class AnimationFrame
+    {
+        public Image image;
+        /// <summary>
+        /// Delay in ms from the last frame
+        /// </summary>
+        public int time;
+        /// <summary>
+        /// Delay in ms after the previous frame
+        /// </summary>
+        /// <param name="image"></param>
+        /// <param name="time"></param>
+        public AnimationFrame(Image image, int time)
+        {
+            this.image = image;
+            this.time = time;
+        }
+    }
+    public class Animation
+    {
+        public string name;
+        public AnimationFrame[] animationFrames;
+        private int timer, nextFrameTimer, animationFrame;
+        public Sprite? sprite;
+
+        public void RunAnimation()
+        {
+            if(timer > nextFrameTimer)
+            {
+                sprite.image = animationFrames[animationFrame].image;
+
+                if(animationFrame < animationFrames.Count() - 2)
+                {
+                    nextFrameTimer += animationFrames[animationFrame + 1].time;
+                    animationFrame++;
+                }
+                else if(animationFrame == animationFrames.Count() - 1)
+                {
+                    nextFrameTimer = animationFrames[0].time;
+                }
+                else
+                {
+                    nextFrameTimer = animationFrames[1].time;
+                    timer = 0;
+                    animationFrame = 0;
+                }
+            }
+            timer++;
+        }
+
+        public Animation(string name, AnimationFrame[] animationFrames)
+        {
+            this.name = name;
+            this.animationFrames = animationFrames;
+            timer = 0; nextFrameTimer = animationFrames[1].time; animationFrame = 0;
         }
     }
 
@@ -123,6 +224,9 @@ namespace STCEngine
             EngineClass.RegisterGameObject(this);
             Debug.LogInfo($"GameObject \"{name}\" Registered");
         }
+        /// <summary>
+        /// Self destructs this GameObject and all its components
+        /// </summary>
         public void DestroySelf()
         {
             foreach(Component c in components) { if(c.GetType() != typeof(Transform)){ DestroySelf(); } }
@@ -130,20 +234,38 @@ namespace STCEngine
         }
 
         #region Component Managment
+        /// <summary>
+        /// Adds the given component to the GameObject
+        /// </summary>
+        /// <param name="component"></param>
         public void AddComponent(Component component)
         {
             components.Add(component);
             component.gameObject = this;
             Debug.LogInfo($"Component {component} has been added onto GameObject {this.name}");
         }
+        /// <summary>
+        /// Removes the component of given type from the GameObject
+        /// </summary>
+        /// <typeparam name="Component Type"></typeparam>
         public void RemoveComponent<T>() where T : Component
         {
+            var component = GetComponent<T>();
+            if(component == null) { Debug.LogError($"Tried removing a non-existing component {typeof(T)} from GameObject {name}!"); return; }
+
             Type targetType = typeof(T);
             if (targetType == typeof(Transform)) { Debug.LogWarning("Can't remove Transform component from GameObject!"); return; }
-            components.Remove(GetComponent<T>());
+            
+            components.Remove(component);
+            component.DestroySelf();
             Debug.LogInfo($"Component {targetType} has been removed from GameObject {this.name}");
         }
-        public T GetComponent<T>() where T : Component
+        /// <summary>
+        /// Returns a reference to the component of given type on the GameObject
+        /// </summary>
+        /// <typeparam name="Component Type"></typeparam>
+        /// <returns>Reference to the specified component</returns>
+        public T? GetComponent<T>() where T : Component
         {
             Type targetType = typeof(T);
             var foundComponent = components.FirstOrDefault(c => targetType.IsAssignableFrom(c.GetType()));
