@@ -34,6 +34,7 @@ namespace STCEngine.Engine
             window.Size = new Size((int)this.screenSize.x, (int)this.screenSize.y);
             window.Text = this.title;
             window.Paint += Renderer;
+            window.Initialize();
 
             OnLoad();
             gameLoopThread = new Thread(GameLoop);
@@ -42,6 +43,7 @@ namespace STCEngine.Engine
             Application.Run(window);
 
             OnExit();
+            window.Exit();
         }
         /// <summary>
         /// The main game loop thread, calls the Update funcions
@@ -87,7 +89,7 @@ namespace STCEngine.Engine
                 graphics.DrawImage(image.image, gameObject.transform.position.x, gameObject.transform.position.y, image.image.Width*gameObject.transform.size.x, image.image.Height * gameObject.transform.size.y);
             }
         }
-        private void RunAnimations()
+        public static void RunAnimations()
         {
             foreach(Animation anim in runningAnimations) { anim.RunAnimation(); }
         }
@@ -124,10 +126,22 @@ namespace STCEngine.Engine
     }
     public class Canvas : Form
     {
+        private static System.Windows.Forms.Timer animationTimer = new System.Windows.Forms.Timer();
+        public void AnimationTimer(object? sender, EventArgs e)
+        {
+            EngineClass.RunAnimations();
+        }
         public Canvas()
         {
             this.DoubleBuffered = true;
         }
+        public void Initialize()
+        {
+            animationTimer.Tick += new EventHandler(AnimationTimer);
+            animationTimer.Interval = 10;
+            animationTimer.Start();
+        }
+        public void Exit() { animationTimer.Stop(); }
     }
 }
 namespace STCEngine

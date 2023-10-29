@@ -27,9 +27,9 @@ namespace STCEngine
             player.AddComponent(new Sprite("Assets/Basic Enemy White 1.png", player));
 
             AnimationFrame[] animFrames = {
-                new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 1.png"), 100),
-                new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 2.png"), 100),
-                new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 3.png"), 500)
+                new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 1.png"), 1000),
+                new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 2.png"), 2000),
+                new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 3.png"), 3000)
             };
             Animation anim = new Animation("TestAnimation", animFrames);
             player.AddComponent(new Animator(anim));

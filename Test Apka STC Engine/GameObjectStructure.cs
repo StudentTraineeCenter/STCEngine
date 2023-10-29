@@ -107,11 +107,11 @@ namespace STCEngine
     {
         public Image image;
         /// <summary>
-        /// Delay in ms from the last frame
+        /// How long the frame stays in ms
         /// </summary>
         public int time;
         /// <summary>
-        /// Delay in ms after the previous frame
+        /// How long the frame stays in ms
         /// </summary>
         /// <param name="image"></param>
         /// <param name="time"></param>
@@ -132,25 +132,20 @@ namespace STCEngine
         {
             if(timer > nextFrameTimer)
             {
-                sprite.image = animationFrames[animationFrame].image;
-
-                if(animationFrame < animationFrames.Count() - 2)
+                if(animationFrame < animationFrames.Count() - 1)
                 {
+                    sprite.image = animationFrames[animationFrame+1].image;
                     nextFrameTimer += animationFrames[animationFrame + 1].time;
                     animationFrame++;
                 }
-                else if(animationFrame == animationFrames.Count() - 1)
-                {
-                    nextFrameTimer = animationFrames[0].time;
-                }
                 else
                 {
-                    nextFrameTimer = animationFrames[1].time;
+                    sprite.image = animationFrames[0].image;
+                    nextFrameTimer = animationFrames[0].time;
                     timer = 0;
                     animationFrame = 0;
-                }
-            }
-            timer++;
+                }            }
+            timer+=10;
         }
 
         public Animation(string name, AnimationFrame[] animationFrames)
