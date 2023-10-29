@@ -17,11 +17,14 @@ namespace STCEngine.Engine
         private string title;
         private Canvas window;
         public Thread gameLoopThread;
+        private static System.Windows.Forms.Timer animationTimer = new System.Windows.Forms.Timer();
 
         public static Dictionary<string, GameObject> registeredGameObjects = new Dictionary<string, GameObject>();
         public static List<GameObject> spritesToRender = new List<GameObject>();
         public static List<Animation> runningAnimations = new List<Animation>();
         public Color backgroundColor;
+
+        public Vector2 cameraPosition = Vector2.zero;
 
         /// <summary>
         /// Starts the game loop and the game window
@@ -31,10 +34,20 @@ namespace STCEngine.Engine
             this.screenSize = screenSize;
             this.title = title;
             window = new Canvas();
+
+            //Rendering
             window.Size = new Size((int)this.screenSize.x, (int)this.screenSize.y);
             window.Text = this.title;
             window.Paint += Renderer;
-            window.Initialize();
+
+            //Animations
+            animationTimer.Tick += new EventHandler(RunAnimations);
+            animationTimer.Interval = 10;
+            animationTimer.Start();
+
+            //Input
+            window.KeyDown += Window_KeyDown;
+            window.KeyUp += Window_KeyUp;
 
             OnLoad();
             gameLoopThread = new Thread(GameLoop);
@@ -43,7 +56,7 @@ namespace STCEngine.Engine
             Application.Run(window);
 
             OnExit();
-            window.Exit();
+            animationTimer.Stop();
         }
         /// <summary>
         /// The main game loop thread, calls the Update funcions
@@ -58,8 +71,6 @@ namespace STCEngine.Engine
                     Update();
                     window.BeginInvoke((MethodInvoker)delegate { window.Refresh(); });
                     LateUpdate();
-
-                    RunAnimations();
                 
                     Thread.Sleep(1);
                 }
@@ -70,10 +81,12 @@ namespace STCEngine.Engine
                 }
             }
         }
+
+
         /// <summary>
         /// Takes care of rendering things inside the game window
         /// </summary>
-        private void Renderer(object sender, PaintEventArgs args)
+        private void Renderer(object? sender, PaintEventArgs args)
         {
             Graphics graphics = args.Graphics;
             
@@ -88,13 +101,16 @@ namespace STCEngine.Engine
                 Sprite image = gameObject.GetComponent<Sprite>();
                 graphics.DrawImage(image.image, gameObject.transform.position.x, gameObject.transform.position.y, image.image.Width*gameObject.transform.size.x, image.image.Height * gameObject.transform.size.y);
             }
+            graphics.TranslateTransform(cameraPosition.x, cameraPosition.y);
         }
-        public static void RunAnimations()
+        public static void RunAnimations(object? sender, EventArgs e)
         {
             foreach(Animation anim in runningAnimations) { anim.RunAnimation(); }
         }
         public abstract void Update();
         public abstract void LateUpdate();
+        private void Window_KeyDown(object? sender, KeyEventArgs e) { GetKeyDown(e); } public abstract void GetKeyDown(KeyEventArgs e);
+        private void Window_KeyUp(object? sender, KeyEventArgs e) { GetKeyUp(e); } public abstract void GetKeyUp(KeyEventArgs e);
         public abstract void OnLoad();
         public abstract void OnExit();
         /// <summary>
@@ -126,22 +142,10 @@ namespace STCEngine.Engine
     }
     public class Canvas : Form
     {
-        private static System.Windows.Forms.Timer animationTimer = new System.Windows.Forms.Timer();
-        public void AnimationTimer(object? sender, EventArgs e)
-        {
-            EngineClass.RunAnimations();
-        }
         public Canvas()
         {
             this.DoubleBuffered = true;
         }
-        public void Initialize()
-        {
-            animationTimer.Tick += new EventHandler(AnimationTimer);
-            animationTimer.Interval = 10;
-            animationTimer.Start();
-        }
-        public void Exit() { animationTimer.Stop(); }
     }
 }
 namespace STCEngine
@@ -189,20 +193,32 @@ namespace STCEngine
         /// Length of the vector as a float
         /// </summary>
         public float length { get => MathF.Sqrt(x*x + y*y); }
-
-
-
-        //public Vector2()
-        //{
-        //    x = 0;
-        //    y = 0;
-        //}
+        public Vector2 normalized { get => length == 0 ? Vector2.zero : new Vector2(x / length, y / length); }
         public Vector2(float x, float y)
         {
             this.x = x;
             this.y = y;
         }
-
+        public static Vector2 operator +(Vector2 a, Vector2 b)
+        {
+            return new Vector2(a.x + b.x, a.y + b.y);
+        }
+        public static Vector2 operator -(Vector2 a, Vector2 b)
+        {
+            return new Vector2(a.x - b.x, a.y - b.y);
+        }
+        public static Vector2 operator *(Vector2 a, float b)
+        {
+            return new Vector2(a.x * b, a.y * b);
+        }
+        public static Vector2 operator /(Vector2 a, float b)
+        {
+            return new Vector2(a.x / b, a.y / b);
+        }
+        public static Vector2 operator ^(Vector2 a, float b)
+        {
+            return new Vector2((float)Math.Pow(a.x, b), (float)Math.Pow(a.y, b));
+        }
     }
     
 }

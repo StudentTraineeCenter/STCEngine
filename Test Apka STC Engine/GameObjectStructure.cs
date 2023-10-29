@@ -72,7 +72,8 @@ namespace STCEngine
         public Sprite? sprite;
         public Dictionary<string, Animation> animations { get; private set; }
         public float playBackSpeed;
-        public static bool isPlaying { get; private set; }
+        public static Animation? currentlyPlayingAnimation { get; private set; }
+        public bool isPlaying { get; private set; }
         public Animator(Animation animation, float playBackSpeed = 1)
         {
             this.animations = new Dictionary<string, Animation>();
@@ -93,10 +94,19 @@ namespace STCEngine
         public void Play(string animationName) 
         { 
             if(sprite == null) { sprite = gameObject.GetComponent<Sprite>(); }
-            if (animations.TryGetValue(animationName, out Animation? animation)) { EngineClass.runningAnimations.Add(animation); animation.sprite = sprite; } 
+            if (animations.TryGetValue(animationName, out Animation? animation)) { EngineClass.runningAnimations.Add(animation); animation.sprite = sprite; currentlyPlayingAnimation = animation; isPlaying = true; } 
             else { Debug.LogError($"Animation {animationName} not found and couldnt be played."); }     
         }
-        
+        public void Stop()
+        {
+            try
+            {
+                EngineClass.runningAnimations.Remove(currentlyPlayingAnimation??throw new Exception("Trying to stop animator that isnt playing!"));
+                currentlyPlayingAnimation = null;
+                isPlaying = false;
+            }catch(Exception e) { Debug.LogError(e.Message); }
+        }
+
 
         public override void DestroySelf()
         {
@@ -128,14 +138,21 @@ namespace STCEngine
         private int timer, nextFrameTimer, animationFrame;
         public Sprite? sprite;
 
+        /// <summary>
+        /// Internal function, should NEVER be called by the user!
+        /// To start an animation, call the "Play" function in the animator component!
+        /// </summary>
         public void RunAnimation()
         {
+            if(sprite == null) { Debug.LogError("Animation sprite not found (was the RunAnimation function called manually? To play an animation, use the \"Play\" function in the Animator component!)"); }
             if(timer > nextFrameTimer)
             {
+                //Debug.Log(timer.ToString() + ", " + animationFrame);
                 if(animationFrame < animationFrames.Count() - 1)
                 {
                     sprite.image = animationFrames[animationFrame+1].image;
-                    nextFrameTimer += animationFrames[animationFrame + 1].time;
+                    nextFrameTimer = animationFrames[animationFrame + 1].time;
+                    timer = 0;
                     animationFrame++;
                 }
                 else
@@ -152,7 +169,7 @@ namespace STCEngine
         {
             this.name = name;
             this.animationFrames = animationFrames;
-            timer = 0; nextFrameTimer = animationFrames[1].time; animationFrame = 0;
+            timer = 0; nextFrameTimer = animationFrames[0].time; animationFrame = 0;
         }
     }
 
@@ -233,11 +250,13 @@ namespace STCEngine
         /// Adds the given component to the GameObject
         /// </summary>
         /// <param name="component"></param>
-        public void AddComponent(Component component)
+        /// <returns>The newly added componnent</returns>
+        public Component AddComponent(Component component)
         {
             components.Add(component);
             component.gameObject = this;
             Debug.LogInfo($"Component {component} has been added onto GameObject {this.name}");
+            return component;
         }
         /// <summary>
         /// Removes the component of given type from the GameObject

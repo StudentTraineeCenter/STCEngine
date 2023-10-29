@@ -10,6 +10,10 @@ namespace STCEngine
     class Game : EngineClass
     {
         public GameObject player;
+        private float movementSpeed = 10;
+        private Animator playerAnim;
+
+        private float horizontalInput, verticalInput;
 
         //starts the game
         public Game() : base(new Vector2(512, 512), "Hraaa :)") { } 
@@ -27,13 +31,12 @@ namespace STCEngine
             player.AddComponent(new Sprite("Assets/Basic Enemy White 1.png", player));
 
             AnimationFrame[] animFrames = {
-                new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 1.png"), 1000),
-                new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 2.png"), 2000),
-                new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 3.png"), 3000)
+                new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 1.png"), 100),
+                new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 2.png"), 100),
+                new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 3.png"), 100)
             };
             Animation anim = new Animation("TestAnimation", animFrames);
-            player.AddComponent(new Animator(anim));
-            player.GetComponent<Animator>().Play("TestAnimation");
+            playerAnim = player.AddComponent(new Animator(anim)) as Animator;
         }
 
         /// <summary>
@@ -50,7 +53,16 @@ namespace STCEngine
         /// </summary>
         public override void Update()
         {
-            //player.transform.position.x += 1;
+            if (horizontalInput != 0 || verticalInput != 0)
+            {
+                player.transform.position += new Vector2(horizontalInput, verticalInput).normalized * movementSpeed;
+
+                if (!playerAnim.isPlaying) { playerAnim.Play("TestAnimation"); }
+            }
+            else if (playerAnim.isPlaying)
+            {
+                playerAnim.Stop();
+            }
         }
 
         /// <summary>
@@ -59,6 +71,55 @@ namespace STCEngine
         public override void LateUpdate()
         {
             
+        }
+
+        private bool up = false, down = false, left = false, right = false;
+        public override void GetKeyDown(KeyEventArgs e)
+        {
+            if(e.KeyCode == Keys.A || e.KeyCode == Keys.Left)
+            {
+                left = true;
+            }
+            if (e.KeyCode == Keys.D || e.KeyCode == Keys.Right)
+            {
+                right = true;
+            }
+            if (e.KeyCode == Keys.W || e.KeyCode == Keys.Up)
+            {
+                up = true;
+            }
+            if (e.KeyCode == Keys.S || e.KeyCode == Keys.Down)
+            {
+                down = true;
+            }
+            if ((left && right) || (!left && !right)) { horizontalInput = 0; }
+            else { horizontalInput = left ? -1 : 1; }
+            if ((up && down) || (!up && !down)) { verticalInput = 0; }
+            else { verticalInput = down ? 1 : -1; }
+        }
+
+        public override void GetKeyUp(KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.A || e.KeyCode == Keys.Left)
+            {
+                left = false;
+            }
+            if (e.KeyCode == Keys.D || e.KeyCode == Keys.Right)
+            {
+                right = false;
+            }
+            if (e.KeyCode == Keys.W || e.KeyCode == Keys.Up)
+            {
+                up = false;
+            }
+            if (e.KeyCode == Keys.S || e.KeyCode == Keys.Down)
+            {
+                down = false;
+            }
+            if ((left && right) || (!left && !right)) { horizontalInput = 0; }
+            else { horizontalInput = left ? -1 : 1; }
+            if ((up && down) || (!up && !down)) { verticalInput = 0; }
+            else { verticalInput = down ? 1 : -1; }
         }
     }
 }
