@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using STCEngine.Engine;
+using System.Text.Json;
 
 namespace STCEngine
 {
@@ -54,10 +55,10 @@ namespace STCEngine
     public class Sprite : Component
     {
         public Image image;
-        public Sprite(string fileSourceDirectory, GameObject gameObject)
+        public Sprite(string fileSourceDirectory)
         {
             this.image = Image.FromFile(fileSourceDirectory);
-            EngineClass.AddSpriteToRender(gameObject);
+            Task.Delay(1).ContinueWith(t => EngineClass.AddSpriteToRender(gameObject));
         }
 
         public override void DestroySelf()
@@ -170,6 +171,87 @@ namespace STCEngine
             this.name = name;
             this.animationFrames = animationFrames;
             timer = 0; nextFrameTimer = animationFrames[0].time; animationFrame = 0;
+        }
+    }
+    class Tilemap : Component
+    {
+        private Dictionary<string, string> tileSources;
+        public string[] tilemapString;
+        public string[] dictStringKeys;
+        public string[] dictStringPaths;
+        public Image[,] tiles;
+        public Vector2 tileSize;
+        public Vector2 mapSize;
+
+        //to edit the origin, move the gameObject the tilemap is attached to
+        public Tilemap(string jsonSourcePath)
+        {
+            //loads the json into a new object
+            string text = File.ReadAllText(jsonSourcePath);
+            var tilemapValues = JsonSerializer.Deserialize<TilemapValues>(text);
+
+            //copies all the values from that object
+            tilemapString = tilemapValues.tilemapString;
+            dictStringKeys = tilemapValues.dictStringKeys;
+            dictStringPaths = tilemapValues.dictStringPaths;
+            tileSize = new Vector2(tilemapValues.tileWidth, tilemapValues.tileHeight);
+            mapSize = new Vector2(tilemapValues.mapWidth, tilemapValues.mapHeight);
+
+            //creates the tilemap
+            CreateTilemap();
+            Task.Delay(1).ContinueWith(t => EngineClass.AddSpriteToRender(gameObject));
+        }
+        /// <summary>
+        /// Creates tiles array and adds it to the render queue
+        /// </summary>
+        private void CreateTilemap()
+        {
+            try
+            {
+                tiles = new Image[(int)mapSize.x, (int)mapSize.y];
+                //creates the user key + path dictionary (ex. grass -> Assets/GrassTexture.png)
+                CreateDictionary();
+                for (int y = 0; y < mapSize.y; y++)
+                {
+                    for (int x = 0; x < mapSize.x; x++)
+                    {
+                        tiles[x, y] = tileSources.TryGetValue(tilemapString[x + y * (int)mapSize.x], out string? value) ? Image.FromFile(value) : throw new Exception("bambusovina");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("Error creating tilemap, error message: " + e.Message);
+            }
+        }
+        /// <summary>
+        /// Creates the user key + path dictionary (ex. grass -> Assets/GrassTexture.png), is called upon creating a new tilemap
+        /// </summary>
+        private void CreateDictionary()
+        {
+            tileSources = new Dictionary<string, string>();
+
+            if (dictStringKeys.Length != dictStringPaths.Length) { throw new Exception("Wrong json input dictStringKeys and dictStringPaths, both arrays must contain the same amount of elements!"); }
+
+            for (int i = 0; i < dictStringKeys.Length; i++)
+            {
+                tileSources.Add(dictStringKeys[i], dictStringPaths[i]);
+            }
+        }
+        public override void DestroySelf()
+        {
+            EngineClass.RemoveSpriteToRender(gameObject);
+        }
+
+        private class TilemapValues
+        {
+            public string[] tilemapString { get; set; }
+            public string[] dictStringKeys { get; set; }
+            public string[] dictStringPaths { get; set; }
+            public float mapWidth { get; set; }
+            public float mapHeight { get; set; }
+            public float tileWidth { get; set; }
+            public float tileHeight { get; set; }
         }
     }
 
@@ -287,6 +369,26 @@ namespace STCEngine
             // Use reflection to create an instance of the specified type and cast the found component to it.
             return foundComponent != null ? (T)Convert.ChangeType(foundComponent, targetType) : null;
         }
+        /// <summary>
+        /// Returns references to all of the components of the given type on the GameObject
+        /// </summary>
+        /// <typeparam name="Component Type"></typeparam>
+        /// <returns>Array of references to the components of the specified type</returns>
+        public T[]? GetComponents<T>() where T : Component
+        {
+            Type targetType = typeof(T);
+            var foundComponents = components.FindAll(c => targetType.IsAssignableFrom(c.GetType()));
+
+            List<T>? convertedComponents = new List<T>();
+            
+            foreach(Component a in foundComponents)
+            {
+                // Use reflection to create an instance of the specified type and cast the found component to it.
+                convertedComponents.Add((T)Convert.ChangeType(a, targetType));
+            }
+            return convertedComponents.Count != 0 ? convertedComponents.ToArray() : null;
+        }
+
         #endregion
     }
 }

@@ -82,7 +82,6 @@ namespace STCEngine.Engine
             }
         }
 
-
         /// <summary>
         /// Takes care of rendering things inside the game window
         /// </summary>
@@ -92,14 +91,29 @@ namespace STCEngine.Engine
             
             graphics.Clear(backgroundColor);
 
-            //foreach(KeyValuePair<string, GameObject> stringGameObject in registeredGameObjects)
-            //{
-            //    graphics.FillRectangle(new SolidBrush(Color.Green), stringGameObject.Value.transform.position.x, stringGameObject.Value.transform.position.y, stringGameObject.Value.transform.size.x, stringGameObject.Value.transform.size.y);
-            //}
             foreach (GameObject gameObject in spritesToRender)
             {
-                Sprite image = gameObject.GetComponent<Sprite>();
-                graphics.DrawImage(image.image, gameObject.transform.position.x, gameObject.transform.position.y, image.image.Width*gameObject.transform.size.x, image.image.Height * gameObject.transform.size.y);
+                Sprite? sprite = gameObject.GetComponent<Sprite>();
+                if(sprite != null)
+                {
+                    //foreach(Sprite sprite in gameObject.GetComponents<Sprite>()) //pro vice spritu na jednom objektu by to teoreticky fungovat mohlo, ale pak by nesel odstranit specificky sprite
+                    //{ 
+                        graphics.DrawImage(sprite.image, gameObject.transform.position.x, gameObject.transform.position.y, sprite.image.Width*gameObject.transform.size.x, sprite.image.Height * gameObject.transform.size.y);
+                    //}
+                    
+                }
+
+                Tilemap? tilemap = gameObject.GetComponent<Tilemap>();
+                if(tilemap != null)
+                {
+                    for(int y = 0; y < tilemap.mapSize.y; y++)
+                    {
+                        for (int x = 0; x < tilemap.mapSize.x; x++)
+                        {
+                            graphics.DrawImage(tilemap.tiles[x, y], gameObject.transform.position.x + x * tilemap.tileSize.x, gameObject.transform.position.y + y * tilemap.tileSize.y, tilemap.tileSize.x, tilemap.tileSize.x);
+                        }
+                    }
+                }
             }
             graphics.TranslateTransform(cameraPosition.x, cameraPosition.y);
         }
@@ -155,7 +169,7 @@ namespace STCEngine
     {
         static void Main(string[] args)
         {
-            Game testGame = new Game();
+            STCEngine.Game.Game testGame = new Game.Game();
             //var a = new Vector2();
             //a.x = 1;
             //a.y = 23;
@@ -172,7 +186,6 @@ namespace STCEngine
     {
         public float x { get; set; }
         public float y { get; set; }
-
         /// <summary>
         /// (0, 0)
         /// </summary>
@@ -218,6 +231,10 @@ namespace STCEngine
         public static Vector2 operator ^(Vector2 a, float b)
         {
             return new Vector2((float)Math.Pow(a.x, b), (float)Math.Pow(a.y, b));
+        }
+        public override string ToString()
+        {
+            return "(" + x + ", " + y + ")";
         }
     }
     

@@ -4,14 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using STCEngine.Engine;
+using System.Text.Json;
 
-namespace STCEngine
+namespace STCEngine.Game
 {
     class Game : EngineClass
     {
-        public GameObject player;
+        public GameObject? player;
+        public GameObject? tilemap;
+        private Animator? playerAnim;
         private float movementSpeed = 10;
-        private Animator playerAnim;
 
         private float horizontalInput, verticalInput;
 
@@ -28,7 +30,7 @@ namespace STCEngine
 
             //spawn player
             player = new GameObject("Player",new Transform(new Vector2(10, 10), 0, new Vector2(0.6f, 0.6f)));
-            player.AddComponent(new Sprite("Assets/Basic Enemy White 1.png", player));
+            player.AddComponent(new Sprite("Assets/Basic Enemy White 1.png"));
 
             AnimationFrame[] animFrames = {
                 new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 1.png"), 100),
@@ -37,6 +39,9 @@ namespace STCEngine
             };
             Animation anim = new Animation("TestAnimation", animFrames);
             playerAnim = player.AddComponent(new Animator(anim)) as Animator;
+
+            tilemap = new GameObject("Tilemap", new Vector2(50, 100));
+            tilemap.AddComponent(new Tilemap("Assets/Tilemap.json"));
         }
 
         /// <summary>
@@ -74,6 +79,10 @@ namespace STCEngine
         }
 
         private bool up = false, down = false, left = false, right = false;
+        /// <summary>
+        /// Called the frame a key is pressed down
+        /// </summary>
+        /// <param name="e"></param>
         public override void GetKeyDown(KeyEventArgs e)
         {
             if(e.KeyCode == Keys.A || e.KeyCode == Keys.Left)
@@ -98,6 +107,11 @@ namespace STCEngine
             else { verticalInput = down ? 1 : -1; }
         }
 
+
+        /// <summary>
+        /// Called the frame a key is released
+        /// </summary>
+        /// <param name="e"></param>
         public override void GetKeyUp(KeyEventArgs e)
         {
             if (e.KeyCode == Keys.A || e.KeyCode == Keys.Left)
@@ -121,5 +135,8 @@ namespace STCEngine
             if ((up && down) || (!up && !down)) { verticalInput = 0; }
             else { verticalInput = down ? 1 : -1; }
         }
+
     }
+    
+
 }

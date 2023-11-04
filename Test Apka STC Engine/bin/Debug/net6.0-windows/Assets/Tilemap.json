@@ -1,0 +1,14 @@
+{
+    "mapWidth": 3, 
+    "mapHeight": 3, 
+    "tileWidth": 100, 
+    "tileHeight": 100,
+    "dictStringKeys": ["1", "2", "3"],
+    "dictStringPaths": ["Assets/Basic Enemy White 1.png", "Assets/Basic Enemy White 2.png", "Assets/Basic Enemy White 3.png"],
+    "tilemapString": 
+    [
+        "1", "1", "1",
+        "2", "2", "2",
+        "3", "3", "3"
+    ]
+}
