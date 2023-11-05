@@ -55,10 +55,12 @@ namespace STCEngine
     public class Sprite : Component
     {
         public Image image;
-        public Sprite(string fileSourceDirectory)
+        public int orderInLayer;
+        public Sprite(string fileSourceDirectory, int orderInLayer = int.MaxValue)
         {
             this.image = Image.FromFile(fileSourceDirectory);
-            Task.Delay(1).ContinueWith(t => EngineClass.AddSpriteToRender(gameObject));
+            Task.Delay(1).ContinueWith(t => EngineClass.AddSpriteToRender(gameObject, orderInLayer));
+            this.orderInLayer = EngineClass.spritesToRender.IndexOf(gameObject);
         }
 
         public override void DestroySelf()
@@ -175,6 +177,7 @@ namespace STCEngine
     }
     class Tilemap : Component
     {
+        public int orderInLayer; //higher numbers render on top of lower numbers
         private Dictionary<string, string> tileSources;
         public string[] tilemapString;
         public string[] dictStringKeys;
@@ -184,7 +187,7 @@ namespace STCEngine
         public Vector2 mapSize;
 
         //to edit the origin, move the gameObject the tilemap is attached to
-        public Tilemap(string jsonSourcePath)
+        public Tilemap(string jsonSourcePath, int orderInLayer = 0)
         {
             //loads the json into a new object
             string text = File.ReadAllText(jsonSourcePath);
@@ -199,7 +202,8 @@ namespace STCEngine
 
             //creates the tilemap
             CreateTilemap();
-            Task.Delay(1).ContinueWith(t => EngineClass.AddSpriteToRender(gameObject, 0));
+            Task.Delay(1).ContinueWith(t => EngineClass.AddSpriteToRender(gameObject, orderInLayer));
+            this.orderInLayer = EngineClass.spritesToRender.IndexOf(gameObject);
         }
         /// <summary>
         /// Creates tiles array and adds it to the render queue
