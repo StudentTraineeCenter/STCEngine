@@ -102,7 +102,6 @@ namespace STCEngine.Engine
                     //}
                     
                 }
-
                 Tilemap? tilemap = gameObject.GetComponent<Tilemap>();
                 if(tilemap != null)
                 {
@@ -115,6 +114,7 @@ namespace STCEngine.Engine
                     }
                 }
             }
+
             graphics.TranslateTransform(cameraPosition.x, cameraPosition.y);
         }
         public static void RunAnimations(object? sender, EventArgs e)
@@ -136,9 +136,15 @@ namespace STCEngine.Engine
         /// </summary>
         public static void UnregisterGameObject(GameObject GameObject) { registeredGameObjects.Remove(GameObject.name); }
         /// <summary>
-        /// Registers the GameObject with a Sprite to the render queue
+        /// Registers the GameObject with a Sprite to the render queue at the given index or at the end (drawn over everything)
         /// </summary>
-        public static void AddSpriteToRender(GameObject GameObject) { spritesToRender.Add(GameObject); }
+        public static void AddSpriteToRender(GameObject GameObject, int order = int.MaxValue) { if (order != int.MaxValue && order < spritesToRender.Count) { spritesToRender.Insert(order, GameObject); return; } spritesToRender.Add(GameObject); }
+        /// <summary>
+        /// Moves the given GameObject to the given index in the render queue
+        /// </summary>
+        /// <param name="GameObject"></param>
+        /// <param name="order"></param>
+        public static void ChangeSpriteRenderOrder(GameObject GameObject, int order) { spritesToRender.Remove(GameObject); spritesToRender.Insert(order, GameObject); }
         /// <summary>
         /// Unregisters the GameObject with a Sprite from the render queue
         /// </summary>

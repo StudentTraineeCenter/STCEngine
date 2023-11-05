@@ -1,14 +1,21 @@
 {
-    "mapWidth": 3, 
-    "mapHeight": 3, 
-    "tileWidth": 100, 
-    "tileHeight": 100,
+    "mapWidth": 10, 
+    "mapHeight": 10, 
+    "tileWidth": 64, 
+    "tileHeight": 64,
     "dictStringKeys": ["1", "2", "3"],
-    "dictStringPaths": ["Assets/Basic Enemy White 1.png", "Assets/Basic Enemy White 2.png", "Assets/Basic Enemy White 3.png"],
+    "dictStringPaths": ["Assets/GrassTile.png", "Assets/Basic Enemy White 2.png", "Assets/Basic Enemy White 3.png"],
     "tilemapString": 
     [
-        "1", "1", "1",
-        "2", "2", "2",
-        "3", "3", "3"
+        "1", "1", "1", "1","1", "1", "1", "1", "1", "1", 
+        "1", "1", "1", "1","1", "1", "1", "1", "1", "1",
+        "1", "1", "1", "1","1", "1", "1", "1", "1", "1",
+        "1", "1", "1", "1","1", "1", "1", "1", "1", "1", 
+        "1", "1", "1", "1","1", "1", "1", "1", "1", "1",
+        "1", "1", "1", "1","1", "1", "1", "1", "1", "1",
+        "1", "1", "1", "1","1", "1", "1", "1", "1", "1", 
+        "1", "1", "1", "1","1", "1", "1", "1", "1", "1",
+        "1", "1", "1", "1","1", "1", "1", "1", "1", "1",
+        "1", "1", "1", "1","1", "1", "1", "1", "1", "1"
     ]
 }

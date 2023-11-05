@@ -40,7 +40,7 @@ namespace STCEngine.Game
             Animation anim = new Animation("TestAnimation", animFrames);
             playerAnim = player.AddComponent(new Animator(anim)) as Animator;
 
-            tilemap = new GameObject("Tilemap", new Vector2(50, 100));
+            tilemap = new GameObject("Tilemap", new Vector2(0, 0));
             tilemap.AddComponent(new Tilemap("Assets/Tilemap.json"));
         }
 

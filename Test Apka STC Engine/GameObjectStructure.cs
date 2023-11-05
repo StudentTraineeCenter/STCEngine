@@ -199,7 +199,7 @@ namespace STCEngine
 
             //creates the tilemap
             CreateTilemap();
-            Task.Delay(1).ContinueWith(t => EngineClass.AddSpriteToRender(gameObject));
+            Task.Delay(1).ContinueWith(t => EngineClass.AddSpriteToRender(gameObject, 0));
         }
         /// <summary>
         /// Creates tiles array and adds it to the render queue
