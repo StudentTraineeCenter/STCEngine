@@ -195,8 +195,10 @@ namespace STCEngine
 
             //copies all the values from that object
             tilemapString = tilemapValues.tilemapString;
-            dictStringKeys = tilemapValues.dictStringKeys;
-            dictStringPaths = tilemapValues.dictStringPaths;
+
+            //dictStringKeys = tilemapValues.dictStringKeys;
+            //dictStringPaths = tilemapValues.dictStringPaths;
+            tileSources = tilemapValues.tileSources;
             tileSize = new Vector2(tilemapValues.tileWidth, tilemapValues.tileHeight);
             mapSize = new Vector2(tilemapValues.mapWidth, tilemapValues.mapHeight);
 
@@ -214,7 +216,8 @@ namespace STCEngine
             {
                 tiles = new Image[(int)mapSize.x, (int)mapSize.y];
                 //creates the user key + path dictionary (ex. grass -> Assets/GrassTexture.png)
-                CreateDictionary();
+                //CreateDictionary();
+
                 for (int y = 0; y < mapSize.y; y++)
                 {
                     for (int x = 0; x < mapSize.x; x++)
@@ -228,20 +231,20 @@ namespace STCEngine
                 Debug.LogError("Error creating tilemap, error message: " + e.Message);
             }
         }
-        /// <summary>
-        /// Creates the user key + path dictionary (ex. grass -> Assets/GrassTexture.png), is called upon creating a new tilemap
-        /// </summary>
-        private void CreateDictionary()
-        {
-            tileSources = new Dictionary<string, string>();
+        ///// <summary>
+        ///// Creates the user key + path dictionary (ex. grass -> Assets/GrassTexture.png), is called upon creating a new tilemap
+        ///// </summary>
+        //private void CreateDictionary()
+        //{
+        //    tileSources = new Dictionary<string, string>();
 
-            if (dictStringKeys.Length != dictStringPaths.Length) { throw new Exception("Wrong json input dictStringKeys and dictStringPaths, both arrays must contain the same amount of elements!"); }
+        //    if (dictStringKeys.Length != dictStringPaths.Length) { throw new Exception("Wrong json input dictStringKeys and dictStringPaths, both arrays must contain the same amount of elements!"); }
 
-            for (int i = 0; i < dictStringKeys.Length; i++)
-            {
-                tileSources.Add(dictStringKeys[i], dictStringPaths[i]);
-            }
-        }
+        //    for (int i = 0; i < dictStringKeys.Length; i++)
+        //    {
+        //        tileSources.Add(dictStringKeys[i], dictStringPaths[i]);
+        //    }
+        //}
         public override void DestroySelf()
         {
             EngineClass.RemoveSpriteToRender(gameObject);
@@ -250,8 +253,11 @@ namespace STCEngine
         private class TilemapValues
         {
             public string[] tilemapString { get; set; }
-            public string[] dictStringKeys { get; set; }
-            public string[] dictStringPaths { get; set; }
+            //public string[] dictStringKeys { get; set; }
+            //public string[] dictStringPaths { get; set; }
+            //"dictStringKeys": ["1", "2", "3"], 
+            //"dictStringPaths": ["Assets/GrassTile.png", "Assets/Basic Enemy White 2.png", "Assets/Basic Enemy White 3.png"],
+            public Dictionary<string, string> tileSources { get; set; }
             public float mapWidth { get; set; }
             public float mapHeight { get; set; }
             public float tileWidth { get; set; }

@@ -3,8 +3,7 @@
     "mapHeight": 10, 
     "tileWidth": 64, 
     "tileHeight": 64,
-    "dictStringKeys": ["1", "2", "3"],
-    "dictStringPaths": ["Assets/GrassTile.png", "Assets/Basic Enemy White 2.png", "Assets/Basic Enemy White 3.png"],
+    "tileSources": {"1":"Assets/GrassTile.png","2":"Assets/Basic Enemy White 2.png", "3":"Assets/Basic Enemy White 3.png"},
     "tilemapString": 
     [
         "1", "1", "1", "1","1", "1", "1", "1", "1", "1", 
