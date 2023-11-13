@@ -17,6 +17,7 @@ namespace STCEngine.Game
 
         private float horizontalInput, verticalInput;
 
+        private GameObject testGameObject;
         //starts the game
         public Game() : base(new Vector2(512, 512), "Hraaa :)") { } 
 
@@ -31,6 +32,7 @@ namespace STCEngine.Game
             //spawn player
             player = new GameObject("Player",new Transform(new Vector2(10, 10), 0, new Vector2(0.6f, 0.6f)));
             player.AddComponent(new Sprite("Assets/Basic Enemy White 1.png"));
+            player.AddComponent(new BoxCollider(Vector2.one * 100, Vector2.zero, false, true));
 
             AnimationFrame[] animFrames = {
                 new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 1.png"), 100),
@@ -42,6 +44,10 @@ namespace STCEngine.Game
 
             tilemap = new GameObject("Tilemap", new Vector2(0, 0));
             tilemap.AddComponent(new Tilemap("Assets/Tilemap.json"));
+
+            testGameObject = new GameObject("test", new Vector2(200, 50));
+            testGameObject.AddComponent(new BoxCollider(Vector2.one * 100, Vector2.zero, false, true));
+            
         }
 
         /// <summary>
@@ -58,6 +64,7 @@ namespace STCEngine.Game
         /// </summary>
         public override void Update()
         {
+            Debug.Log(player.GetComponent<BoxCollider>().IsColliding(testGameObject.GetComponent<BoxCollider>()).ToString());
             if (horizontalInput != 0 || verticalInput != 0)
             {
                 player.transform.position += new Vector2(horizontalInput, verticalInput).normalized * movementSpeed;

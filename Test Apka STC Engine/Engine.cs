@@ -21,6 +21,7 @@ namespace STCEngine.Engine
 
         public static Dictionary<string, GameObject> registeredGameObjects = new Dictionary<string, GameObject>();
         public static List<GameObject> spritesToRender = new List<GameObject>();
+        public static List<BoxCollider> debugRectangles = new List<BoxCollider>();
         public static List<Animation> runningAnimations = new List<Animation>();
         public Color backgroundColor;
 
@@ -114,6 +115,10 @@ namespace STCEngine.Engine
                     }
                 }
             }
+            foreach(BoxCollider box in debugRectangles)
+            {
+                graphics.DrawRectangle(new Pen(Color.LimeGreen, 5), box.gameObject.transform.position.x + box.offset.x, box.gameObject.transform.position.y + box.offset.y, box.size.x, box.size.y);
+            }
 
             graphics.TranslateTransform(cameraPosition.x, cameraPosition.y);
         }
@@ -139,6 +144,8 @@ namespace STCEngine.Engine
         /// Registers the GameObject with a Sprite to the render queue at the given index or at the end (drawn over everything)
         /// </summary>
         public static void AddSpriteToRender(GameObject GameObject, int order = int.MaxValue) { if (order != int.MaxValue && order < spritesToRender.Count) { spritesToRender.Insert(order, GameObject); return; } spritesToRender.Add(GameObject); }
+        public static void AddDebugRectangle(BoxCollider BoxCollider, int order = int.MaxValue) { if (order != int.MaxValue && order < debugRectangles.Count) { debugRectangles.Insert(order, BoxCollider); return; } debugRectangles.Add(BoxCollider); }
+        public static void RemoveDebugRectangle(BoxCollider BoxCollider) { debugRectangles.Remove(BoxCollider); }
         /// <summary>
         /// Moves the given GameObject to the given index in the render queue
         /// </summary>

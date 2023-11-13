@@ -69,7 +69,6 @@ namespace STCEngine
             EngineClass.RemoveSpriteToRender(gameObject);
         }
     }
-
     public class Animator : Component
     {
         public Sprite? sprite;
@@ -196,8 +195,6 @@ namespace STCEngine
             //copies all the values from that object
             tilemapString = tilemapValues.tilemapString;
 
-            //dictStringKeys = tilemapValues.dictStringKeys;
-            //dictStringPaths = tilemapValues.dictStringPaths;
             tileSources = tilemapValues.tileSources;
             tileSize = new Vector2(tilemapValues.tileWidth, tilemapValues.tileHeight);
             mapSize = new Vector2(tilemapValues.mapWidth, tilemapValues.mapHeight);
@@ -231,20 +228,6 @@ namespace STCEngine
                 Debug.LogError("Error creating tilemap, error message: " + e.Message);
             }
         }
-        ///// <summary>
-        ///// Creates the user key + path dictionary (ex. grass -> Assets/GrassTexture.png), is called upon creating a new tilemap
-        ///// </summary>
-        //private void CreateDictionary()
-        //{
-        //    tileSources = new Dictionary<string, string>();
-
-        //    if (dictStringKeys.Length != dictStringPaths.Length) { throw new Exception("Wrong json input dictStringKeys and dictStringPaths, both arrays must contain the same amount of elements!"); }
-
-        //    for (int i = 0; i < dictStringKeys.Length; i++)
-        //    {
-        //        tileSources.Add(dictStringKeys[i], dictStringPaths[i]);
-        //    }
-        //}
         public override void DestroySelf()
         {
             EngineClass.RemoveSpriteToRender(gameObject);
@@ -253,15 +236,53 @@ namespace STCEngine
         private class TilemapValues
         {
             public string[] tilemapString { get; set; }
-            //public string[] dictStringKeys { get; set; }
-            //public string[] dictStringPaths { get; set; }
-            //"dictStringKeys": ["1", "2", "3"], 
-            //"dictStringPaths": ["Assets/GrassTile.png", "Assets/Basic Enemy White 2.png", "Assets/Basic Enemy White 3.png"],
             public Dictionary<string, string> tileSources { get; set; }
             public float mapWidth { get; set; }
             public float mapHeight { get; set; }
             public float tileWidth { get; set; }
             public float tileHeight { get; set; }
+        }
+    }
+    public class BoxCollider : Component
+    {
+        public Vector2 offset;
+        public Vector2 size;
+        public bool isTrigger; //whether it stops movement upon collision
+        public bool debugDraw;
+        /// <summary>
+        /// Creates the box collider of the given size and with a given offset from gameObjects position 
+        /// </summary>
+        /// <param name="size"></param>
+        /// <param name="offset"></param>
+        /// <param name="isTrigger"></param>
+        public BoxCollider(Vector2 size, Vector2? offset = null, bool isTrigger = false, bool debugDraw = false)
+        {
+            this.size = size;
+            this.offset = offset ?? Vector2.zero;
+            this.isTrigger = isTrigger;
+            this.debugDraw = debugDraw;
+            
+            if (debugDraw) 
+            {
+                Task.Delay(1).ContinueWith(t => EngineClass.AddDebugRectangle(this, 0));
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="otherCollider"></param>
+        /// <returns>Whether this collider overlaps with the given collider</returns>
+        public bool IsColliding(BoxCollider otherCollider)
+        {
+            var relativeDistance = otherCollider.gameObject.transform.position + otherCollider.offset - gameObject.transform.position - offset;
+            return ((Math.Abs(relativeDistance.x) < (size.x + otherCollider.size.x)/2) && (Math.Abs(relativeDistance.y) < (size.y + otherCollider.size.y)/2));
+            
+        }
+
+        public override void DestroySelf()
+        {
+            if (debugDraw) { EngineClass.RemoveDebugRectangle(this); }
+
         }
     }
 
