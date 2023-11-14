@@ -243,11 +243,18 @@ namespace STCEngine
             public float tileHeight { get; set; }
         }
     }
-    public class BoxCollider : Component
+    public abstract class Collider : Component
     {
-        public Vector2 offset;
-        public Vector2 size;
         public bool isTrigger; //whether it stops movement upon collision
+        public Vector2 offset;
+        public abstract bool IsColliding(BoxCollider other); //udelat override v tehle classe i pro circle, elipsu,...
+        public abstract Collider[] OverlapCollider(bool includeTriggers = false);
+    }
+    public class BoxCollider : Collider
+    {
+        
+        public Vector2 size;
+        
         public bool debugDraw;
         /// <summary>
         /// Creates the box collider of the given size and with a given offset from gameObjects position 
@@ -261,10 +268,12 @@ namespace STCEngine
             this.offset = offset ?? Vector2.zero;
             this.isTrigger = isTrigger;
             this.debugDraw = debugDraw;
-            
+
+            EngineClass.RegisterCollider(this);
+
             if (debugDraw) 
             {
-                Task.Delay(1).ContinueWith(t => EngineClass.AddDebugRectangle(this, 0));
+               EngineClass.AddDebugRectangle(this, 0);
             }
         }
         /// <summary>
@@ -272,17 +281,27 @@ namespace STCEngine
         /// </summary>
         /// <param name="otherCollider"></param>
         /// <returns>Whether this collider overlaps with the given collider</returns>
-        public bool IsColliding(BoxCollider otherCollider)
-        {
-            var relativeDistance = otherCollider.gameObject.transform.position + otherCollider.offset - gameObject.transform.position - offset;
-            return ((Math.Abs(relativeDistance.x) < (size.x + otherCollider.size.x)/2) && (Math.Abs(relativeDistance.y) < (size.y + otherCollider.size.y)/2));
-            
-        }
-
         public override void DestroySelf()
         {
             if (debugDraw) { EngineClass.RemoveDebugRectangle(this); }
+            EngineClass.UnregisterCollider(this);
 
+        }
+
+        public override bool IsColliding(BoxCollider otherCollider)
+        {
+            var relativeDistance = otherCollider.gameObject.transform.position + otherCollider.offset - gameObject.transform.position - offset;
+            return ((Math.Abs(relativeDistance.x) < (size.x + otherCollider.size.x) / 2) && (Math.Abs(relativeDistance.y) < (size.y + otherCollider.size.y) / 2));
+        }
+
+        public override Collider[] OverlapCollider(bool includeTriggers = false)
+        {
+            List<Collider> outList = new List<Collider>();
+            foreach(Collider col in EngineClass.registeredColliders)
+            {
+                if (col.IsColliding(this) && (!(!includeTriggers && col.isTrigger))) { outList.Add(col); }
+            }
+            return outList.ToArray();
         }
     }
 

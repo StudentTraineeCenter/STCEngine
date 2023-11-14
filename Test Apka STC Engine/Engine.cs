@@ -13,6 +13,8 @@ namespace STCEngine.Engine
     /// </summary>
     public abstract class EngineClass
     {
+        public readonly bool DEBUG = true;
+
         private Vector2 screenSize;
         private string title;
         private Canvas window;
@@ -23,6 +25,8 @@ namespace STCEngine.Engine
         public static List<GameObject> spritesToRender = new List<GameObject>();
         public static List<BoxCollider> debugRectangles = new List<BoxCollider>();
         public static List<Animation> runningAnimations = new List<Animation>();
+        public static List<Collider> registeredColliders = new List<Collider>();
+
         public Color backgroundColor;
 
         public Vector2 cameraPosition = Vector2.zero;
@@ -59,6 +63,8 @@ namespace STCEngine.Engine
             OnExit();
             animationTimer.Stop();
         }
+
+        #region Inner logic classes (GameLoop, Renderer, Animations,...)
         /// <summary>
         /// The main game loop thread, calls the Update funcions
         /// </summary>
@@ -94,12 +100,13 @@ namespace STCEngine.Engine
 
             foreach (GameObject gameObject in spritesToRender)
             {
+                
                 Sprite? sprite = gameObject.GetComponent<Sprite>();
                 if(sprite != null)
                 {
                     //foreach(Sprite sprite in gameObject.GetComponents<Sprite>()) //pro vice spritu na jednom objektu by to teoreticky fungovat mohlo, ale pak by nesel odstranit specificky sprite
                     //{ 
-                        graphics.DrawImage(sprite.image, gameObject.transform.position.x, gameObject.transform.position.y, sprite.image.Width*gameObject.transform.size.x, sprite.image.Height * gameObject.transform.size.y);
+                        graphics.DrawImage(sprite.image, gameObject.transform.position.x - sprite.image.Width * gameObject.transform.size.x / 2, gameObject.transform.position.y - sprite.image.Height * gameObject.transform.size.y / 2, sprite.image.Width*gameObject.transform.size.x, sprite.image.Height * gameObject.transform.size.y);
                     //}
                     
                 }
@@ -115,9 +122,19 @@ namespace STCEngine.Engine
                     }
                 }
             }
-            foreach(BoxCollider box in debugRectangles)
+            //DEBUG ---------
+            if (DEBUG)
             {
-                graphics.DrawRectangle(new Pen(Color.LimeGreen, 5), box.gameObject.transform.position.x + box.offset.x, box.gameObject.transform.position.y + box.offset.y, box.size.x, box.size.y);
+                foreach(BoxCollider box in debugRectangles)
+                {
+                    if(box == null) { Debug.LogError("ERROR LOADING COLLIDER DEBUG RECTANGLE"); continue; }
+                    graphics.DrawRectangle(new Pen(box.isTrigger ? Color.Cyan : Color.Orange, 1), box.gameObject.transform.position.x + box.offset.x - box.size.x/2, box.gameObject.transform.position.y + box.offset.y - box.size.y/2, box.size.x, box.size.y);
+                }
+                foreach(KeyValuePair<string, GameObject> gameObject in registeredGameObjects)
+                {
+                    //graphics.DrawRectangle(new Pen(Color.Black), gameObject.Value.transform.position.x, gameObject.Value.transform.position.y, 2, 2);
+                    graphics.DrawString(gameObject.Value.name, new Font("Arial", 11, FontStyle.Regular), new SolidBrush(Color.Black), gameObject.Value.transform.position.x-gameObject.Value.name.Length*4f, gameObject.Value.transform.position.y - 5.5f);
+                }
             }
 
             graphics.TranslateTransform(cameraPosition.x, cameraPosition.y);
@@ -126,12 +143,18 @@ namespace STCEngine.Engine
         {
             foreach(Animation anim in runningAnimations) { anim.RunAnimation(); }
         }
+        #endregion
+
+        #region Game logic classes
         public abstract void Update();
         public abstract void LateUpdate();
-        private void Window_KeyDown(object? sender, KeyEventArgs e) { GetKeyDown(e); } public abstract void GetKeyDown(KeyEventArgs e);
-        private void Window_KeyUp(object? sender, KeyEventArgs e) { GetKeyUp(e); } public abstract void GetKeyUp(KeyEventArgs e);
         public abstract void OnLoad();
         public abstract void OnExit();
+        private void Window_KeyDown(object? sender, KeyEventArgs e) { GetKeyDown(e); } public abstract void GetKeyDown(KeyEventArgs e);
+        private void Window_KeyUp(object? sender, KeyEventArgs e) { GetKeyUp(e); } public abstract void GetKeyUp(KeyEventArgs e);
+        #endregion
+
+        #region List Registrations ------------------------------------------------------------------------
         /// <summary>
         /// Registers the GameObject to the list of existing GameObjects
         /// </summary>
@@ -140,6 +163,7 @@ namespace STCEngine.Engine
         /// Unregisters the GameObject from the list of existing GameObjects
         /// </summary>
         public static void UnregisterGameObject(GameObject GameObject) { registeredGameObjects.Remove(GameObject.name); }
+        #region Sprite rendering and animations
         /// <summary>
         /// Registers the GameObject with a Sprite to the render queue at the given index or at the end (drawn over everything)
         /// </summary>
@@ -164,6 +188,13 @@ namespace STCEngine.Engine
         /// Unregisters the Animation from the animation queue
         /// </summary>
         public static void RemoveSpriteAnimation(Animation Animation) { runningAnimations.Remove(Animation); }
+        #endregion
+        #region Colliders
+        public static void RegisterCollider(Collider Collider) { registeredColliders.Add(Collider); }
+        public static void UnregisterCollider(Collider Collider) { registeredColliders.Remove(Collider); }
+        #endregion
+        #endregion
+
         public static void Destroy(GameObject GameObject) { GameObject.DestroySelf(); UnregisterGameObject(GameObject); }
         public static void Destroy(Component component) { component.DestroySelf(); }
     }
@@ -232,6 +263,10 @@ namespace STCEngine
         public static Vector2 operator -(Vector2 a, Vector2 b)
         {
             return new Vector2(a.x - b.x, a.y - b.y);
+        }
+        public static Vector2 operator -(Vector2 a)
+        {
+            return new Vector2(-a.x, -a.y);
         }
         public static Vector2 operator *(Vector2 a, float b)
         {

@@ -14,6 +14,8 @@ namespace STCEngine.Game
         public GameObject? tilemap;
         private Animator? playerAnim;
         private float movementSpeed = 10;
+        public BoxCollider playerCol;
+        public BoxCollider playerTopCol, playerBotCol, playerLeftCol, playerRightCol; //hitboxes used for wall collision detection
 
         private float horizontalInput, verticalInput;
 
@@ -32,7 +34,14 @@ namespace STCEngine.Game
             //spawn player
             player = new GameObject("Player",new Transform(new Vector2(10, 10), 0, new Vector2(0.6f, 0.6f)));
             player.AddComponent(new Sprite("Assets/Basic Enemy White 1.png"));
-            player.AddComponent(new BoxCollider(Vector2.one * 100, Vector2.zero, false, true));
+            playerCol = player.AddComponent(new BoxCollider(Vector2.one * 100, Vector2.zero, false, true)) as BoxCollider;
+
+            var hitboxWidth = 1f; //values lower than 1 might cause walking into walls
+            playerTopCol = player.AddComponent(new BoxCollider(Vector2.up * movementSpeed *hitboxWidth+ Vector2.right * 100, Vector2.up * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
+            playerBotCol = player.AddComponent(new BoxCollider(Vector2.up * movementSpeed * hitboxWidth + Vector2.right * 100, -Vector2.up * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
+            playerRightCol = player.AddComponent(new BoxCollider(Vector2.right * movementSpeed * hitboxWidth + Vector2.up * 100, Vector2.right * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
+            playerLeftCol = player.AddComponent(new BoxCollider(Vector2.right * movementSpeed * hitboxWidth + Vector2.up * 100, -Vector2.right * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
+
 
             AnimationFrame[] animFrames = {
                 new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 1.png"), 100),
@@ -47,7 +56,6 @@ namespace STCEngine.Game
 
             testGameObject = new GameObject("test", new Vector2(200, 50));
             testGameObject.AddComponent(new BoxCollider(Vector2.one * 100, Vector2.zero, false, true));
-            
         }
 
         /// <summary>
@@ -64,9 +72,15 @@ namespace STCEngine.Game
         /// </summary>
         public override void Update()
         {
-            Debug.Log(player.GetComponent<BoxCollider>().IsColliding(testGameObject.GetComponent<BoxCollider>()).ToString());
+            //Debug.Log(player.GetComponent<BoxCollider>().IsColliding(testGameObject.GetComponent<BoxCollider>()).ToString());
             if (horizontalInput != 0 || verticalInput != 0)
             {
+                //prevents the player from walking into walls
+                if (horizontalInput > 0) { if (playerRightCol.OverlapCollider().Length > 0) { horizontalInput = 0; } }
+                else if (horizontalInput < 0) { if (playerLeftCol.OverlapCollider().Length > 0) { horizontalInput = 0; } }
+                if (verticalInput > 0) { if (playerTopCol.OverlapCollider().Length > 0) { verticalInput = 0; } }
+                else if (verticalInput < 0) { if (playerBotCol.OverlapCollider().Length > 0) { verticalInput = 0; } }
+
                 player.transform.position += new Vector2(horizontalInput, verticalInput).normalized * movementSpeed;
 
                 if (!playerAnim.isPlaying) { playerAnim.Play("TestAnimation"); }
