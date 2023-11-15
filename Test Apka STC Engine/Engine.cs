@@ -105,10 +105,9 @@ namespace STCEngine.Engine
                 if(sprite != null)
                 {
                     //foreach(Sprite sprite in gameObject.GetComponents<Sprite>()) //pro vice spritu na jednom objektu by to teoreticky fungovat mohlo, ale pak by nesel odstranit specificky sprite
-                    //{ 
+                    //{
                         graphics.DrawImage(sprite.image, gameObject.transform.position.x - sprite.image.Width * gameObject.transform.size.x / 2, gameObject.transform.position.y - sprite.image.Height * gameObject.transform.size.y / 2, sprite.image.Width*gameObject.transform.size.x, sprite.image.Height * gameObject.transform.size.y);
                     //}
-                    
                 }
                 Tilemap? tilemap = gameObject.GetComponent<Tilemap>();
                 if(tilemap != null)

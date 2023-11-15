@@ -75,13 +75,15 @@ namespace STCEngine.Game
             //Debug.Log(player.GetComponent<BoxCollider>().IsColliding(testGameObject.GetComponent<BoxCollider>()).ToString());
             if (horizontalInput != 0 || verticalInput != 0)
             {
-                //prevents the player from walking into walls
-                if (horizontalInput > 0) { if (playerRightCol.OverlapCollider().Length > 0) { horizontalInput = 0; } }
-                else if (horizontalInput < 0) { if (playerLeftCol.OverlapCollider().Length > 0) { horizontalInput = 0; } }
-                if (verticalInput > 0) { if (playerTopCol.OverlapCollider().Length > 0) { verticalInput = 0; } }
-                else if (verticalInput < 0) { if (playerBotCol.OverlapCollider().Length > 0) { verticalInput = 0; } }
+                var modifiedMovementInput = new Vector2(horizontalInput, verticalInput);
 
-                player.transform.position += new Vector2(horizontalInput, verticalInput).normalized * movementSpeed;
+                //prevents the player from walking into walls
+                if (horizontalInput > 0) { if (playerRightCol.OverlapCollider().Length > 0) { modifiedMovementInput.x = 0; } }
+                else if (horizontalInput < 0) { if (playerLeftCol.OverlapCollider().Length > 0) { modifiedMovementInput.x = 0; } }
+                if (verticalInput > 0) { if (playerTopCol.OverlapCollider().Length > 0) { modifiedMovementInput.y = 0; } }
+                else if (verticalInput < 0) { if (playerBotCol.OverlapCollider().Length > 0) { modifiedMovementInput.y = 0; } }
+
+                player.transform.position += modifiedMovementInput.normalized * movementSpeed;
 
                 if (!playerAnim.isPlaying) { playerAnim.Play("TestAnimation"); }
             }
