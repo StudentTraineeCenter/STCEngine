@@ -36,18 +36,19 @@ namespace STCEngine.Game
             player.AddComponent(new Sprite("Assets/Basic Enemy White 1.png"));
             playerCol = player.AddComponent(new BoxCollider(Vector2.one * 100, Vector2.zero, false, true)) as BoxCollider;
 
+            #region Player component setup
             var hitboxWidth = 1f; //values lower than 1 might cause walking into walls
             playerTopCol = player.AddComponent(new BoxCollider(Vector2.up * movementSpeed *hitboxWidth+ Vector2.right * 100, Vector2.up * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
             playerBotCol = player.AddComponent(new BoxCollider(Vector2.up * movementSpeed * hitboxWidth + Vector2.right * 100, -Vector2.up * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
             playerRightCol = player.AddComponent(new BoxCollider(Vector2.right * movementSpeed * hitboxWidth + Vector2.up * 100, Vector2.right * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
             playerLeftCol = player.AddComponent(new BoxCollider(Vector2.right * movementSpeed * hitboxWidth + Vector2.up * 100, -Vector2.right * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
-
-
             AnimationFrame[] animFrames = {
                 new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 1.png"), 100),
                 new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 2.png"), 100),
                 new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 3.png"), 100)
             };
+            #endregion
+
             Animation anim = new Animation("TestAnimation", animFrames);
             playerAnim = player.AddComponent(new Animator(anim)) as Animator;
 
@@ -56,6 +57,7 @@ namespace STCEngine.Game
 
             testGameObject = new GameObject("test", new Vector2(200, 50));
             testGameObject.AddComponent(new BoxCollider(Vector2.one * 100, Vector2.zero, false, true));
+            testGameObject.AddComponent(new Sprite("Assets/Basic Wall.png"))
         }
 
         /// <summary>
