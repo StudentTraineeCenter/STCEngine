@@ -4,6 +4,8 @@ using System.Threading;
 //using System.Windows;
 //using System.Drawing;
 //using System.Numerics;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 
 namespace STCEngine.Engine
@@ -13,7 +15,7 @@ namespace STCEngine.Engine
     /// </summary>
     public abstract class EngineClass
     {
-        public readonly bool DEBUG = true;
+        public readonly bool testDebug = true;
 
         private Vector2 screenSize;
         private string title;
@@ -94,53 +96,62 @@ namespace STCEngine.Engine
         /// </summary>
         private void Renderer(object? sender, PaintEventArgs args)
         {
-            Graphics graphics = args.Graphics;
-            
-            graphics.Clear(backgroundColor);
-
-            foreach (GameObject gameObject in spritesToRender)
+            try
             {
-                
-                Sprite? sprite = gameObject.GetComponent<Sprite>();
-                if(sprite != null)
+                Graphics graphics = args.Graphics;
+            
+                graphics.Clear(backgroundColor);
+
+                foreach (GameObject gameObject in spritesToRender)
                 {
-                    //foreach(Sprite sprite in gameObject.GetComponents<Sprite>()) //pro vice spritu na jednom objektu by to teoreticky fungovat mohlo, ale pak by nesel odstranit specificky sprite
-                    //{
-                        graphics.DrawImage(sprite.image, gameObject.transform.position.x - sprite.image.Width * gameObject.transform.size.x / 2, gameObject.transform.position.y - sprite.image.Height * gameObject.transform.size.y / 2, sprite.image.Width*gameObject.transform.size.x, sprite.image.Height * gameObject.transform.size.y);
-                    //}
-                }
-                Tilemap? tilemap = gameObject.GetComponent<Tilemap>();
-                if(tilemap != null)
-                {
-                    for(int y = 0; y < tilemap.mapSize.y; y++)
+                    Sprite? sprite = gameObject.GetComponent<Sprite>();
+                    if(sprite != null)
                     {
-                        for (int x = 0; x < tilemap.mapSize.x; x++)
+                        //foreach(Sprite sprite in gameObject.GetComponents<Sprite>()) //pro vice spritu na jednom objektu by to teoreticky fungovat mohlo, ale pak by nesel odstranit specificky sprite
+                        //{
+                            graphics.DrawImage(sprite.image, gameObject.transform.position.x - sprite.image.Width * gameObject.transform.size.x / 2, gameObject.transform.position.y - sprite.image.Height * gameObject.transform.size.y / 2, sprite.image.Width*gameObject.transform.size.x, sprite.image.Height * gameObject.transform.size.y);
+                        //}
+                    }
+                    Tilemap? tilemap = gameObject.GetComponent<Tilemap>();
+                    if(tilemap != null)
+                    {
+                        for(int y = 0; y < tilemap.mapSize.y; y++)
                         {
-                            graphics.DrawImage(tilemap.tiles[x, y], gameObject.transform.position.x + x * tilemap.tileSize.x, gameObject.transform.position.y + y * tilemap.tileSize.y, tilemap.tileSize.x, tilemap.tileSize.x);
+                            for (int x = 0; x < tilemap.mapSize.x; x++)
+                            {
+                                graphics.DrawImage(tilemap.tiles[x, y], gameObject.transform.position.x + x * tilemap.tileSize.x, gameObject.transform.position.y + y * tilemap.tileSize.y, tilemap.tileSize.x, tilemap.tileSize.x);
+                            }
                         }
                     }
                 }
-            }
-            //DEBUG ---------
-            if (DEBUG)
-            {
-                foreach(BoxCollider box in debugRectangles)
+                //DEBUG ---------
+                if (testDebug)
                 {
-                    if(box == null) { Debug.LogError("ERROR LOADING COLLIDER DEBUG RECTANGLE"); continue; }
-                    graphics.DrawRectangle(new Pen(box.isTrigger ? Color.Cyan : Color.Orange, 1), box.gameObject.transform.position.x + box.offset.x - box.size.x/2, box.gameObject.transform.position.y + box.offset.y - box.size.y/2, box.size.x, box.size.y);
+                    foreach(BoxCollider box in debugRectangles)
+                    {
+                        if(box == null) { Debug.LogError("ERROR LOADING COLLIDER DEBUG RECTANGLE"); continue; }
+                        graphics.DrawRectangle(new Pen(box.isTrigger ? Color.Cyan : Color.Orange, 1), box.gameObject.transform.position.x + box.offset.x - box.size.x/2, box.gameObject.transform.position.y + box.offset.y - box.size.y/2, box.size.x, box.size.y);
+                    }
+                    foreach(KeyValuePair<string, GameObject> gameObject in registeredGameObjects)
+                    {
+                        //graphics.DrawRectangle(new Pen(Color.Black), gameObject.Value.transform.position.x, gameObject.Value.transform.position.y, 2, 2);
+                        graphics.DrawString(gameObject.Value.name, new Font("Arial", 11, FontStyle.Regular), new SolidBrush(Color.Black), gameObject.Value.transform.position.x-gameObject.Value.name.Length*4f, gameObject.Value.transform.position.y - 5.5f);
+                    }
                 }
-                foreach(KeyValuePair<string, GameObject> gameObject in registeredGameObjects)
-                {
-                    //graphics.DrawRectangle(new Pen(Color.Black), gameObject.Value.transform.position.x, gameObject.Value.transform.position.y, 2, 2);
-                    graphics.DrawString(gameObject.Value.name, new Font("Arial", 11, FontStyle.Regular), new SolidBrush(Color.Black), gameObject.Value.transform.position.x-gameObject.Value.name.Length*4f, gameObject.Value.transform.position.y - 5.5f);
-                }
-            }
 
-            graphics.TranslateTransform(cameraPosition.x, cameraPosition.y);
+                graphics.TranslateTransform(cameraPosition.x, cameraPosition.y);
+            }
+            catch (Exception e) { Debug.LogError("Error running renderer, error message: " + e.Message); }
         }
-        public static void RunAnimations(object? sender, EventArgs e)
+        public static void RunAnimations(object? sender, EventArgs eventArgs)
         {
-            foreach(Animation anim in runningAnimations) { anim.RunAnimation(); }
+            try
+            {
+                foreach (Animation anim in runningAnimations)
+                {
+                    anim.RunAnimation();
+                }
+            }catch(Exception e) { Debug.LogError("Error running animations, error message: " + e.Message); }
         }
         #endregion
 
@@ -166,7 +177,7 @@ namespace STCEngine.Engine
         /// <summary>
         /// Registers the GameObject with a Sprite to the render queue at the given index or at the end (drawn over everything)
         /// </summary>
-        public static void AddSpriteToRender(GameObject GameObject, int order = int.MaxValue) { if (order != int.MaxValue && order < spritesToRender.Count) { spritesToRender.Insert(order, GameObject); return; } spritesToRender.Add(GameObject); }
+        public static void AddSpriteToRender(GameObject GameObject, int order = int.MaxValue) { if (GameObject == null) { Debug.LogError("Tried to add empty sprite component!"); } if (order < 0) { order = 0; } if (order != int.MaxValue && order < spritesToRender.Count) { spritesToRender.Insert(order, GameObject); return; } spritesToRender.Add(GameObject); }
         public static void AddDebugRectangle(BoxCollider BoxCollider, int order = int.MaxValue) { if (order != int.MaxValue && order < debugRectangles.Count) { debugRectangles.Insert(order, BoxCollider); return; } debugRectangles.Add(BoxCollider); }
         public static void RemoveDebugRectangle(BoxCollider BoxCollider) { debugRectangles.Remove(BoxCollider); }
         /// <summary>
@@ -232,24 +243,24 @@ namespace STCEngine
         /// <summary>
         /// (0, 0)
         /// </summary>
-        public static Vector2 zero { get => new Vector2(0, 0); }
+        [JsonIgnore] public static Vector2 zero { get => new Vector2(0, 0); }
         /// <summary>
         /// (1, 1)
         /// </summary>
-        public static Vector2 one { get => new Vector2(1, 1); }
+        [JsonIgnore] public static Vector2 one { get => new Vector2(1, 1); }
         /// <summary>
         /// (0, 1)
         /// </summary>
-        public static Vector2 up { get => new Vector2(0, 1); }
+        [JsonIgnore] public static Vector2 up { get => new Vector2(0, 1); }
         /// <summary>
         /// (1, 0)
         /// </summary>
-        public static Vector2 right { get => new Vector2(1, 0); }
+        [JsonIgnore] public static Vector2 right { get => new Vector2(1, 0); }
         /// <summary>
         /// Length of the vector as a float
         /// </summary>
-        public float length { get => MathF.Sqrt(x*x + y*y); }
-        public Vector2 normalized { get => length == 0 ? Vector2.zero : new Vector2(x / length, y / length); }
+        [JsonIgnore] public float length { get => MathF.Sqrt(x*x + y*y); }
+        [JsonIgnore] public Vector2 normalized { get => length == 0 ? Vector2.zero : new Vector2(x / length, y / length); }
         public Vector2(float x, float y)
         {
             this.x = x;

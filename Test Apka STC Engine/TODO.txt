@@ -1,0 +1,14 @@
+﻿DONE		1. Cteni gameobjectu s componenty z jsonu
+DONE		2. Cteni levelu z jsonu (jen skupina gameobjectu)
+IN PROGRESS	3. UI system
+			4. Item system
+			5. Inventar
+			6. Dvere (toggle hitbox)
+			7. Destructible objekty
+			8. Fight system/Farmareni
+			9. NPC dialogue system
+
+			10. Prirucka
+			11. Absolventka :)
+
+

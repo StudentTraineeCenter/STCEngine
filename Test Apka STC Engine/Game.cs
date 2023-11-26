@@ -19,9 +19,9 @@ namespace STCEngine.Game
 
         private float horizontalInput, verticalInput;
 
-        private GameObject testGameObject;
+        private GameObject testGameObject, testGameObject2;
         //starts the game
-        public Game() : base(new Vector2(512, 512), "Hraaa :)") { } 
+        public Game() : base(new Vector2(1920, 1080), "Hraaa :)") { } 
 
         /// <summary>
         /// Called upon starting the game
@@ -32,7 +32,7 @@ namespace STCEngine.Game
             backgroundColor = Color.Black;
 
             //spawn player
-            player = new GameObject("Player",new Transform(new Vector2(10, 10), 0, new Vector2(0.6f, 0.6f)));
+            player = new GameObject("Player",new Transform(new Vector2(100, 100), 0, new Vector2(0.6f, 0.6f)));
             player.AddComponent(new Sprite("Assets/Basic Enemy White 1.png"));
             playerCol = player.AddComponent(new BoxCollider(Vector2.one * 100, Vector2.zero, false, true)) as BoxCollider;
 
@@ -44,18 +44,24 @@ namespace STCEngine.Game
 
 
             AnimationFrame[] animFrames = {
-                new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 1.png"), 100),
-                new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 2.png"), 100),
-                new AnimationFrame(Image.FromFile("Assets/Basic Enemy White 3.png"), 100)
+                new AnimationFrame("Assets/Basic Enemy White 1.png", 100),
+                new AnimationFrame("Assets/Basic Enemy White 2.png", 100),
+                new AnimationFrame("Assets/Basic Enemy White 3.png", 100)
             };
-            Animation anim = new Animation("TestAnimation", animFrames);
+            Animation anim = new Animation("TestAnimation", animFrames, true);
             playerAnim = player.AddComponent(new Animator(anim)) as Animator;
 
             tilemap = new GameObject("Tilemap", new Vector2(0, 0));
-            tilemap.AddComponent(new Tilemap("Assets/Tilemap.json"));
+            tilemap.AddComponent(new Tilemap("Assets/Level/Tilemap.json"));
 
-            testGameObject = new GameObject("test", new Vector2(200, 50));
-            testGameObject.AddComponent(new BoxCollider(Vector2.one * 100, Vector2.zero, false, true));
+            //testGameObject = new GameObject("test", new Vector2(200, 50));
+            //testGameObject.AddComponent(new BoxCollider(Vector2.one * 100, Vector2.zero, false, true));
+
+            string fileName = "Assets/Level/playerZed.json";
+            testGameObject2 = GameObject.CreateGameObjectFromJSON(fileName);
+            testGameObject2.GetComponent<Animator>().Play("TestAnimation2");
+            
+
         }
 
         /// <summary>
@@ -72,6 +78,7 @@ namespace STCEngine.Game
         /// </summary>
         public override void Update()
         {
+            if (!testGameObject2.GetComponent<Animator>().isPlaying) { testGameObject2.GetComponent<Animator>().Play("TestAnimation2"); }
             //Debug.Log(player.GetComponent<BoxCollider>().IsColliding(testGameObject.GetComponent<BoxCollider>()).ToString());
             if (horizontalInput != 0 || verticalInput != 0)
             {

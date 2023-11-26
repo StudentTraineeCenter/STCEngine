@@ -5,24 +5,32 @@ using System.Text;
 using System.Threading.Tasks;
 using STCEngine.Engine;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace STCEngine
 {
     /// <summary>
     /// Base for all components, components define the properties of GameObjects
     /// </summary>
+    [JsonConverter(typeof(ComponentConverter))]
     public abstract class Component
     {
-        public bool enabled;
+        public abstract string Type { get; }
+        public bool enabled { get; set; } = true;
         /// <summary>
         /// the GameObject this component is attached to
         /// </summary>
-        public GameObject gameObject;
+        [JsonIgnore] public GameObject gameObject { get; set; }
 
+        /// <summary>
+        /// Function that gets called upon creating this component
+        /// </summary>
+        public abstract void Initialize();
         /// <summary>
         /// Function that gets called upon destroying this component or the GameObject its attached to
         /// </summary>
         public abstract void DestroySelf();
+        [JsonConstructor]protected Component() { }
     }
 
     /// <summary>
@@ -30,9 +38,10 @@ namespace STCEngine
     /// </summary>
     public class Transform : Component
     {
-        public Vector2 position;
-        public float rotation;
-        public Vector2 size;
+        public override string Type { get; } = nameof(Transform);
+        public Vector2 position { get; set; }
+        public float rotation { get; set; }
+        public Vector2 size { get; set; }
 
         /// <summary>
         /// Creates a Transform component with a given position, rotation and size
@@ -48,21 +57,30 @@ namespace STCEngine
             Debug.LogWarning("Tried to destroy Transform component, destroying the whole GameObject");
             gameObject.DestroySelf();
         }
+        public override void Initialize(){}
     }
     /// <summary>
     /// Component responsible for holding visual information about the GameObject
     /// </summary>
     public class Sprite : Component
     {
-        public Image image;
-        public int orderInLayer;
+        public override string Type { get; } = nameof(Sprite);
+        [JsonIgnore] private Image? _image; 
+        [JsonIgnore] public Image image { get { if (_image == null) { _image = Image.FromFile(fileSourceDirectory); } return _image; } set => _image = value; }
+        public int orderInLayer { get; private set; }
+        public string fileSourceDirectory { get; set; }
         public Sprite(string fileSourceDirectory, int orderInLayer = int.MaxValue)
         {
+            this.fileSourceDirectory = fileSourceDirectory;
             this.image = Image.FromFile(fileSourceDirectory);
-            Task.Delay(1).ContinueWith(t => EngineClass.AddSpriteToRender(gameObject, orderInLayer));
+            this.orderInLayer = orderInLayer;
+        }
+        //[JsonConstructor] public Sprite() { } //not needed
+        public override void Initialize() 
+        {
+            EngineClass.AddSpriteToRender(gameObject, orderInLayer);
             this.orderInLayer = EngineClass.spritesToRender.IndexOf(gameObject);
         }
-
         public override void DestroySelf()
         {
             if (gameObject.GetComponent<Sprite>() != null) { gameObject.RemoveComponent<Sprite>(); return; }
@@ -71,11 +89,13 @@ namespace STCEngine
     }
     public class Animator : Component
     {
-        public Sprite? sprite;
-        public Dictionary<string, Animation> animations { get; private set; }
-        public float playBackSpeed;
-        public static Animation? currentlyPlayingAnimation { get; private set; }
-        public bool isPlaying { get; private set; }
+        public override string Type { get; } = nameof(Animator);
+        [JsonIgnore] public Sprite? sprite { get; set; }
+        public Dictionary<string, Animation> animations { get; set; }
+        //[JsonIgnore] public Dictionary<string, Animation> _animations { get; private set; }
+        public float playBackSpeed { get; set; }
+        [JsonIgnore] public Animation? currentlyPlayingAnimation { get; private set; }
+        [JsonIgnore] public bool isPlaying { get => currentlyPlayingAnimation != null; }
         public Animator(Animation animation, float playBackSpeed = 1)
         {
             this.animations = new Dictionary<string, Animation>();
@@ -96,20 +116,21 @@ namespace STCEngine
         public void Play(string animationName) 
         { 
             if(sprite == null) { sprite = gameObject.GetComponent<Sprite>(); }
-            if (animations.TryGetValue(animationName, out Animation? animation)) { EngineClass.runningAnimations.Add(animation); animation.sprite = sprite; currentlyPlayingAnimation = animation; isPlaying = true; } 
+            if (animations.TryGetValue(animationName, out Animation? animation)) { EngineClass.AddSpriteAnimation(animation); animation.sprite = sprite; currentlyPlayingAnimation = animation; animation.animator = this; } 
             else { Debug.LogError($"Animation {animationName} not found and couldnt be played."); }     
         }
         public void Stop()
         {
             try
             {
-                EngineClass.runningAnimations.Remove(currentlyPlayingAnimation??throw new Exception("Trying to stop animator that isnt playing!"));
+                EngineClass.RemoveSpriteAnimation(currentlyPlayingAnimation??throw new Exception("Trying to stop animator that isnt playing!"));
                 currentlyPlayingAnimation = null;
-                isPlaying = false;
             }catch(Exception e) { Debug.LogError(e.Message); }
         }
 
 
+        [JsonConstructor] public Animator() { }
+        public override void Initialize() {}
         public override void DestroySelf()
         {
             if(gameObject.GetComponent<Animator>() != null) { gameObject.RemoveComponent<Animator>(); return; }
@@ -117,34 +138,45 @@ namespace STCEngine
     }
     public class AnimationFrame
     {
-        public Image image;
+        [JsonIgnore] private Image? _image;
+        [JsonIgnore] public Image image { get { if (_image == null) { _image = Image.FromFile(fileSourceDirectory); } return _image; } set => _image = value; }
+        public string fileSourceDirectory { get; set; }
         /// <summary>
         /// How long the frame stays in ms
         /// </summary>
-        public int time;
-        /// <summary>
-        /// How long the frame stays in ms
+        public int time { get; set; }
+        //public AnimationFrame(Image image, int time)
+        //{
+        //    this.image = image;
+        //    this.time = time;
+        //}
+        
+        ///<summary>
+        /// Creates a frame of an animation from the source of the image and the time how long this image should stay in the animation in ms
         /// </summary>
-        /// <param name="image"></param>
-        /// <param name="time"></param>
-        public AnimationFrame(Image image, int time)
+        public AnimationFrame(String fileSourceDirectory, int time)
         {
-            this.image = image;
+            this.fileSourceDirectory = fileSourceDirectory;
+            this.image = Image.FromFile(fileSourceDirectory);
             this.time = time;
         }
     }
     public class Animation
     {
-        public string name;
-        public AnimationFrame[] animationFrames;
-        private int timer, nextFrameTimer, animationFrame;
-        public Sprite? sprite;
+        public string name { get; set; }
+        public AnimationFrame[] animationFrames { get; set; }
+        public bool loop { get; set; }
+        [JsonIgnore] public Animator animator { get; set; }
+        [JsonIgnore] private int timer { get; set; }
+        [JsonIgnore] private int nextFrameTimer{ get; set; }
+        [JsonIgnore] private int animationFrame { get; set; }
+        [JsonIgnore] public Sprite? sprite { get; set; }
 
-        /// <summary>
-        /// Internal function, should NEVER be called by the user!
-        /// To start an animation, call the "Play" function in the animator component!
-        /// </summary>
-        public void RunAnimation()
+    /// <summary>
+    /// Internal function, should NEVER be called by the user!
+    /// To start an animation, call the "Play" function in the animator component!
+    /// </summary>
+    public void RunAnimation()
         {
             if(sprite == null) { Debug.LogError("Animation sprite not found (was the RunAnimation function called manually? To play an animation, use the \"Play\" function in the Animator component!)"); }
             if(timer > nextFrameTimer)
@@ -157,33 +189,38 @@ namespace STCEngine
                     timer = 0;
                     animationFrame++;
                 }
-                else
+                else if(loop)
                 {
                     sprite.image = animationFrames[0].image;
                     nextFrameTimer = animationFrames[0].time;
                     timer = 0;
                     animationFrame = 0;
-                }            }
+                }
+                else
+                {
+                    animator.Stop();
+                }
+            }
             timer+=10;
         }
 
-        public Animation(string name, AnimationFrame[] animationFrames)
+        public Animation(string name, AnimationFrame[] animationFrames, bool loop)
         {
             this.name = name;
             this.animationFrames = animationFrames;
+            this.loop = loop;
             timer = 0; nextFrameTimer = animationFrames[0].time; animationFrame = 0;
         }
     }
     class Tilemap : Component
     {
-        public int orderInLayer; //higher numbers render on top of lower numbers
-        private Dictionary<string, string> tileSources;
-        public string[] tilemapString;
-        public string[] dictStringKeys;
-        public string[] dictStringPaths;
-        public Image[,] tiles;
-        public Vector2 tileSize;
-        public Vector2 mapSize;
+        public override string Type { get; } = nameof(Tilemap);
+        public int orderInLayer { get; private set; }//higher numbers render on top of lower numbers
+        private Dictionary<string, string> tileSources { get; set; }
+        public string[] tilemapString { get; set; }
+        public Image[,] tiles { get; set; }
+        public Vector2 tileSize { get; set; }
+        public Vector2 mapSize { get; set; }
 
         //to edit the origin, move the gameObject the tilemap is attached to
         public Tilemap(string jsonSourcePath, int orderInLayer = 0)
@@ -201,8 +238,6 @@ namespace STCEngine
 
             //creates the tilemap
             CreateTilemap();
-            Task.Delay(1).ContinueWith(t => EngineClass.AddSpriteToRender(gameObject, orderInLayer));
-            this.orderInLayer = EngineClass.spritesToRender.IndexOf(gameObject);
         }
         /// <summary>
         /// Creates tiles array and adds it to the render queue
@@ -228,10 +263,6 @@ namespace STCEngine
                 Debug.LogError("Error creating tilemap, error message: " + e.Message);
             }
         }
-        public override void DestroySelf()
-        {
-            EngineClass.RemoveSpriteToRender(gameObject);
-        }
 
         private class TilemapValues
         {
@@ -242,20 +273,32 @@ namespace STCEngine
             public float tileWidth { get; set; }
             public float tileHeight { get; set; }
         }
+        [JsonConstructor] public Tilemap(){}
+        public override void Initialize() 
+        {
+            EngineClass.AddSpriteToRender(gameObject, orderInLayer);
+            this.orderInLayer = EngineClass.spritesToRender.IndexOf(gameObject);
+        }
+        public override void DestroySelf()
+        {
+            EngineClass.RemoveSpriteToRender(gameObject);
+        }
     }
     public abstract class Collider : Component
     {
-        public bool isTrigger; //whether it stops movement upon collision
-        public Vector2 offset;
+        public bool isTrigger { get; set; } //whether it stops movement upon collision
+        public Vector2 offset { get; set; }
         public abstract bool IsColliding(BoxCollider other); //udelat override v tehle classe i pro circle, elipsu,...
         public abstract Collider[] OverlapCollider(bool includeTriggers = false);
+        [JsonConstructor] protected Collider() { }
+
     }
     public class BoxCollider : Collider
     {
-        
-        public Vector2 size;
-        
-        public bool debugDraw;
+        public override string Type { get; } = nameof(BoxCollider);
+        public Vector2 size { get; set; }
+
+        public bool debugDraw { get; private set; }
         /// <summary>
         /// Creates the box collider of the given size and with a given offset from gameObjects position 
         /// </summary>
@@ -268,32 +311,23 @@ namespace STCEngine
             this.offset = offset ?? Vector2.zero;
             this.isTrigger = isTrigger;
             this.debugDraw = debugDraw;
-
-            EngineClass.RegisterCollider(this);
-
-            if (debugDraw) 
-            {
-               EngineClass.AddDebugRectangle(this, 0);
-            }
         }
         /// <summary>
         /// 
         /// </summary>
         /// <param name="otherCollider"></param>
         /// <returns>Whether this collider overlaps with the given collider</returns>
-        public override void DestroySelf()
-        {
-            if (debugDraw) { EngineClass.RemoveDebugRectangle(this); }
-            EngineClass.UnregisterCollider(this);
-
-        }
-
         public override bool IsColliding(BoxCollider otherCollider)
         {
             var relativeDistance = otherCollider.gameObject.transform.position + otherCollider.offset - gameObject.transform.position - offset;
             return ((Math.Abs(relativeDistance.x) < (size.x + otherCollider.size.x) / 2) && (Math.Abs(relativeDistance.y) < (size.y + otherCollider.size.y) / 2));
         }
 
+        /// <summary>
+        /// Returns all the colliders colliding with this one, option to include triggers
+        /// </summary>
+        /// <param name="includeTriggers"></param>
+        /// <returns>Array of colliding colliers</returns>
         public override Collider[] OverlapCollider(bool includeTriggers = false)
         {
             List<Collider> outList = new List<Collider>();
@@ -303,6 +337,23 @@ namespace STCEngine
             }
             return outList.ToArray();
         }
+
+        [JsonConstructor] BoxCollider() { }
+        public override void Initialize() 
+        {
+            EngineClass.RegisterCollider(this);
+
+            if (debugDraw)
+            {
+                EngineClass.AddDebugRectangle(this, 0);
+            }
+        }
+        public override void DestroySelf()
+        {
+            if (debugDraw) { EngineClass.RemoveDebugRectangle(this); }
+            EngineClass.UnregisterCollider(this);
+
+        }
     }
 
     /// <summary>
@@ -310,15 +361,19 @@ namespace STCEngine
     /// </summary>
     public class GameObject
     {
-        public List<Component> components = new List<Component>();
-        public string name;
+        
+        public List<Component> components { get; set; } = new List<Component>(); //is converted to the specific derivatives when creating a json file
+        public string name { get; set; }
         /// <summary>
         /// Defines whether the object is currently active/enabled in the game, inactive GameObjects do not affect the game in any way
         /// </summary>
-        public bool isActive;
-        public Transform transform;
+        public bool isActive { get; set; }
+        [JsonIgnore] public Transform transform { get; set; }
 
         #region Constructors
+        [JsonConstructor] public GameObject() { }
+        
+        //private void 
         /// <summary>
         /// Creates a GameObject with given components
         /// </summary>
@@ -351,6 +406,27 @@ namespace STCEngine
             GameObjectCreated();
         }
         /// <summary>
+        /// Creates a new GameObject from a JSON file with the given source path
+        /// </summary>
+        /// <param name="jsonSourcePath"></param>
+        /// <returns>Reference to the new GameObject</returns>
+        public static GameObject CreateGameObjectFromJSON(string jsonSourcePath)
+        {
+            try
+            {
+                string jsonString = File.ReadAllText(jsonSourcePath);
+                var newGameObject = JsonSerializer.Deserialize<GameObject>(jsonString, new JsonSerializerOptions { WriteIndented = true, Converters = { new ComponentConverter() } });
+                foreach (Component c in newGameObject.components)
+                {
+                    c.gameObject = newGameObject;
+                    c.Initialize();
+                }
+                newGameObject.GameObjectCreated();
+                return newGameObject;
+            }catch(Exception e) { Debug.LogError("GameObject couldnt be created from json, error message: " + e.Message); }
+            return null;
+        }
+        /// <summary>
         /// Called upon creating a GameObject, registers the object in the Engine class and prints a debug
         /// </summary>
         #endregion
@@ -368,14 +444,6 @@ namespace STCEngine
             EngineClass.RegisterGameObject(this);
             Debug.LogInfo($"GameObject \"{name}\" Registered");
         }
-        /// <summary>
-        /// Self destructs this GameObject and all its components
-        /// </summary>
-        public void DestroySelf()
-        {
-            foreach(Component c in components) { if(c.GetType() != typeof(Transform)){ DestroySelf(); } }
-            Debug.LogInfo($"GameObject {name} should be destroyed. (remove all references to this object)");
-        }
 
         #region Component Managment
         /// <summary>
@@ -383,11 +451,12 @@ namespace STCEngine
         /// </summary>
         /// <param name="component"></param>
         /// <returns>The newly added componnent</returns>
-        public Component AddComponent(Component component)
+        public T AddComponent<T>(T component) where T : Component
         {
             components.Add(component);
             component.gameObject = this;
             Debug.LogInfo($"Component {component} has been added onto GameObject {this.name}");
+            component.Initialize();
             return component;
         }
         /// <summary>
@@ -440,5 +509,48 @@ namespace STCEngine
         }
 
         #endregion
+        /// <summary>
+        /// Self destructs this GameObject and all its components
+        /// </summary>
+        public void DestroySelf()
+        {
+            foreach(Component c in components) { if(c.GetType() != typeof(Transform)){ DestroySelf(); } }
+            Debug.LogInfo($"GameObject {name} should be destroyed. (remove all references to this object)");
+        }
     }
+    /// <summary>
+    /// Converts Components into specific derivatives of Components during serialization of a component
+    /// </summary>
+    public class ComponentConverter : JsonConverter<Component> //diky chatgpt :3
+    {
+        public override Component Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            using (var jsonDoc = JsonDocument.ParseValue(ref reader))
+            {
+                switch (jsonDoc.RootElement.GetProperty("Type").GetString())
+                {
+                    case nameof(Transform):
+                        return jsonDoc.RootElement.Deserialize<Transform>(options) as Transform;
+                    case nameof(Animator):
+                        return jsonDoc.RootElement.Deserialize<Animator>(options) as Animator;
+                    case nameof(Sprite):
+                        return jsonDoc.RootElement.Deserialize<Sprite>(options) as Sprite;
+                    case nameof(Tilemap):
+                        return jsonDoc.RootElement.Deserialize<Tilemap>(options) as Tilemap;
+                    case nameof(BoxCollider):
+                        return jsonDoc.RootElement.Deserialize<BoxCollider>(options) as BoxCollider;
+                    default:
+                        throw new JsonException("'Type' doesn't match a known derived type");
+                }
+
+            }
+        }
+
+        public override void Write(Utf8JsonWriter writer, Component value, JsonSerializerOptions options)
+        {
+            JsonSerializer.Serialize(writer, value, value.GetType(), options);
+        }
+    }
+   
 }
+

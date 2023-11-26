@@ -1,0 +1,64 @@
+{
+  "components": [
+    {
+      "Type": "Transform",
+      "position": {
+        "x": 300,
+        "y": 500
+      },
+      "rotation": 0,
+      "size": {
+        "x": 1,
+        "y": 1
+      },
+      "enabled": true
+    },
+    {
+      "Type": "Sprite",
+      "orderInLayer": 100,
+      "fileSourceDirectory": "Assets/Basic Enemy White 1.png",
+      "enabled": true
+    },
+    {
+      "Type": "BoxCollider",
+      "size": {
+        "x": 100,
+        "y": 100
+      },
+      "debugDraw": true,
+      "isTrigger": false,
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "enabled": true
+    },
+    {
+      "Type": "Animator",
+      "animations": {
+        "TestAnimation2": {
+          "name": "TestAnimation2",
+          "loop": true,
+          "animationFrames": [
+            {
+              "fileSourceDirectory": "Assets/Basic Enemy White 1.png",
+              "time": 99
+            },
+            {
+              "fileSourceDirectory": "Assets/Basic Enemy White 2.png",
+              "time": 99
+            },
+            {
+              "fileSourceDirectory": "Assets/Basic Enemy White 3.png",
+              "time": 99
+            }
+          ]
+        }
+      },
+      "playBackSpeed": 1,
+      "enabled": true
+    }
+  ],
+  "name": "Player Zed",
+  "isActive": true
+}
