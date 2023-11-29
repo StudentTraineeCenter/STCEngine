@@ -22,9 +22,12 @@ namespace STCEngine.Engine
         private Canvas window;
         public Thread gameLoopThread;
         private static System.Windows.Forms.Timer animationTimer = new System.Windows.Forms.Timer();
+        public static bool paused;
 
         public static Dictionary<string, GameObject> registeredGameObjects = new Dictionary<string, GameObject>();
         public static List<GameObject> spritesToRender = new List<GameObject>();
+        public static List<GameObject> UISpritesToRender = new List<GameObject>();
+
         public static List<BoxCollider> debugRectangles = new List<BoxCollider>();
         public static List<Animation> runningAnimations = new List<Animation>();
         public static List<Collider> registeredColliders = new List<Collider>();
@@ -59,7 +62,7 @@ namespace STCEngine.Engine
             OnLoad();
             gameLoopThread = new Thread(GameLoop);
             gameLoopThread.Start();
-            
+
             Application.Run(window);
 
             OnExit();
@@ -77,9 +80,9 @@ namespace STCEngine.Engine
             {
                 try
                 {
-                    Update();
+                    if (!paused) { Update(); }
                     window.BeginInvoke((MethodInvoker)delegate { window.Refresh(); });
-                    LateUpdate();
+                    if (!paused) { LateUpdate(); }
                 
                     Thread.Sleep(1);
                 }
@@ -105,7 +108,8 @@ namespace STCEngine.Engine
                 foreach (GameObject gameObject in spritesToRender)
                 {
                     Sprite? sprite = gameObject.GetComponent<Sprite>();
-                    if(sprite != null)
+                    //if(gameObject.name == "Kamena stena") { Debug.Log(sprite.image.Height.ToString()); }
+                    if(sprite != null && sprite.enabled && gameObject.isActive)
                     {
                         //foreach(Sprite sprite in gameObject.GetComponents<Sprite>()) //pro vice spritu na jednom objektu by to teoreticky fungovat mohlo, ale pak by nesel odstranit specificky sprite
                         //{
@@ -113,7 +117,7 @@ namespace STCEngine.Engine
                         //}
                     }
                     Tilemap? tilemap = gameObject.GetComponent<Tilemap>();
-                    if(tilemap != null)
+                    if(tilemap != null && tilemap.enabled && gameObject.isActive)
                     {
                         for(int y = 0; y < tilemap.mapSize.y; y++)
                         {
@@ -123,6 +127,8 @@ namespace STCEngine.Engine
                             }
                         }
                     }
+
+                    
                 }
                 //DEBUG ---------
                 if (testDebug)
@@ -145,6 +151,7 @@ namespace STCEngine.Engine
         }
         public static void RunAnimations(object? sender, EventArgs eventArgs)
         {
+            if (paused) { return; }
             try
             {
                 foreach (Animation anim in runningAnimations)
@@ -174,22 +181,45 @@ namespace STCEngine.Engine
         /// </summary>
         public static void UnregisterGameObject(GameObject GameObject) { registeredGameObjects.Remove(GameObject.name); }
         #region Sprite rendering and animations
+        //Sprites list
         /// <summary>
         /// Registers the GameObject with a Sprite to the render queue at the given index or at the end (drawn over everything)
         /// </summary>
         public static void AddSpriteToRender(GameObject GameObject, int order = int.MaxValue) { if (GameObject == null) { Debug.LogError("Tried to add empty sprite component!"); } if (order < 0) { order = 0; } if (order != int.MaxValue && order < spritesToRender.Count) { spritesToRender.Insert(order, GameObject); return; } spritesToRender.Add(GameObject); }
-        public static void AddDebugRectangle(BoxCollider BoxCollider, int order = int.MaxValue) { if (order != int.MaxValue && order < debugRectangles.Count) { debugRectangles.Insert(order, BoxCollider); return; } debugRectangles.Add(BoxCollider); }
-        public static void RemoveDebugRectangle(BoxCollider BoxCollider) { debugRectangles.Remove(BoxCollider); }
+        /// <summary>
+        /// Unregisters the GameObject with a Sprite from the render queue
+        /// </summary>
+        public static void RemoveSpriteToRender(GameObject GameObject) { spritesToRender.Remove(GameObject); }
         /// <summary>
         /// Moves the given GameObject to the given index in the render queue
         /// </summary>
         /// <param name="GameObject"></param>
         /// <param name="order"></param>
         public static void ChangeSpriteRenderOrder(GameObject GameObject, int order) { spritesToRender.Remove(GameObject); spritesToRender.Insert(order, GameObject); }
+
+        //UI elements list
         /// <summary>
-        /// Unregisters the GameObject with a Sprite from the render queue
+        /// Registers the UI GameObject with a Sprite to the render queue at the given index or at the end (drawn over everything)
         /// </summary>
-        public static void RemoveSpriteToRender(GameObject GameObject) { spritesToRender.Remove(GameObject); }
+        /// <param name="GameObject"></param>
+        /// <param name="order"></param>
+        public static void AddUISpriteToRender(GameObject GameObject, int order = int.MaxValue) { if (GameObject == null) { Debug.LogError("Tried to add empty UISprite component!"); } if (order < 0) { order = 0; } if (order != int.MaxValue && order < UISpritesToRender.Count) { UISpritesToRender.Insert(order, GameObject); return; } UISpritesToRender.Add(GameObject); }
+        /// <summary>
+        /// Unregisters the UI GameObject with a Sprite from the render queue
+        /// </summary>
+        /// <param name="GameObject"></param>
+        public static void RemoveUISpriteToRender(GameObject GameObject) { UISpritesToRender.Remove(GameObject); }
+        /// <summary>
+        /// Moves the given UI GameObject to the given index in the render queue
+        /// </summary>
+        /// <param name="GameObject"></param>
+        /// <param name="order"></param>
+        public static void ChangeUISpriteRenderOrder(GameObject GameObject, int order) { UISpritesToRender.Remove(GameObject); UISpritesToRender.Insert(order, GameObject); }
+
+        //Debug boxes list
+        public static void AddDebugRectangle(BoxCollider BoxCollider, int order = int.MaxValue) { if (order != int.MaxValue && order < debugRectangles.Count) { debugRectangles.Insert(order, BoxCollider); return; } debugRectangles.Add(BoxCollider); }
+        public static void RemoveDebugRectangle(BoxCollider BoxCollider) { debugRectangles.Remove(BoxCollider); }
+        
         /// <summary>
         /// Registers the Animation to the animation queue
         /// </summary>

@@ -10,8 +10,10 @@ namespace STCEngine.Game
 {
     class Game : EngineClass
     {
+        private static Vector2 windowSize = new Vector2(1920, 1080);
         public GameObject? player;
         public GameObject? tilemap;
+        public GameObject? pauseScreen;
         private Animator? playerAnim;
         private float movementSpeed = 10;
         public BoxCollider playerCol;
@@ -19,9 +21,9 @@ namespace STCEngine.Game
 
         private float horizontalInput, verticalInput;
 
-        private GameObject testGameObject, testGameObject2;
+        private GameObject testKamenaStena, testGameObject2;
         //starts the game
-        public Game() : base(new Vector2(1920, 1080), "Hraaa :)") { } 
+        public Game() : base(windowSize, "Hraaa :)") { } 
 
         /// <summary>
         /// Called upon starting the game
@@ -56,17 +58,15 @@ namespace STCEngine.Game
             tilemap = new GameObject("Tilemap", new Vector2(0, 0));
             tilemap.AddComponent(new Tilemap("Assets/Level/Tilemap.json"));
 
-            //testGameObject = new GameObject("test", new Vector2(200, 50));
-            //testGameObject.AddComponent(new BoxCollider(Vector2.one * 100, Vector2.zero, false, true));
-
             string fileName = "Assets/Level/playerZed.json";
             testGameObject2 = GameObject.CreateGameObjectFromJSON(fileName);
             testGameObject2.GetComponent<Animator>().Play("TestAnimation2");
-            
 
-            testGameObject = new GameObject("test", new Vector2(200, 50));
-            testGameObject.AddComponent(new BoxCollider(Vector2.one * 100, Vector2.zero, false, true));
-            testGameObject.AddComponent(new Sprite("Assets/Basic Wall.png"))
+            pauseScreen = new GameObject("Pause Screen", new Transform(Vector2.zero, 0, Vector2.one));
+            //testKamenaStena = new GameObject("Kamena stena", new Transform(new Vector2(700, 75), 0, Vector2.one));
+            //testKamenaStena.AddComponent(new Sprite("Assets/Basic Wall.png"));
+            //testKamenaStena.AddComponent(new BoxCollider(Vector2.one * 64, Vector2.zero, false, true));
+            //Debug.Log(testKamenaStena.GetComponent<Sprite>().orderInLayer.ToString());
         }
 
         /// <summary>
@@ -83,8 +83,6 @@ namespace STCEngine.Game
         /// </summary>
         public override void Update()
         {
-            if (!testGameObject2.GetComponent<Animator>().isPlaying) { testGameObject2.GetComponent<Animator>().Play("TestAnimation2"); }
-            //Debug.Log(player.GetComponent<BoxCollider>().IsColliding(testGameObject.GetComponent<BoxCollider>()).ToString());
             if (horizontalInput != 0 || verticalInput != 0)
             {
                 var modifiedMovementInput = new Vector2(horizontalInput, verticalInput);
@@ -113,6 +111,17 @@ namespace STCEngine.Game
             
         }
 
+        public void Pause()
+        {
+            paused = true;
+            pauseScreen.isActive = true;
+        }
+        public void Unpause()
+        {
+            paused = false;
+            pauseScreen.isActive = false;
+        }
+
         private bool up = false, down = false, left = false, right = false;
         /// <summary>
         /// Called the frame a key is pressed down
@@ -120,6 +129,11 @@ namespace STCEngine.Game
         /// <param name="e"></param>
         public override void GetKeyDown(KeyEventArgs e)
         {
+            if(e.KeyCode == Keys.Escape)
+            {
+                if (paused) { Unpause(); }
+                else { Pause(); }
+            }
             if(e.KeyCode == Keys.A || e.KeyCode == Keys.Left)
             {
                 left = true;

@@ -9,6 +9,7 @@ using System.Text.Json.Serialization;
 
 namespace STCEngine
 {
+    #region Components
     /// <summary>
     /// Base for all components, components define the properties of GameObjects
     /// </summary>
@@ -33,13 +34,15 @@ namespace STCEngine
         [JsonConstructor]protected Component() { }
     }
 
+
+
     /// <summary>
-    /// Component responsible for position, rotation and scale of the GameObject
+    /// A component responsible for position, rotation and scale of the GameObject
     /// </summary>
     public class Transform : Component
     {
         public override string Type { get; } = nameof(Transform);
-        public Vector2 position { get; set; }
+        public Vector2 position { get; set; } = Vector2.one;
         public float rotation { get; set; }
         public Vector2 size { get; set; }
 
@@ -59,8 +62,9 @@ namespace STCEngine
         }
         public override void Initialize(){}
     }
+
     /// <summary>
-    /// Component responsible for holding visual information about the GameObject
+    /// A component responsible for holding visual information about the GameObject
     /// </summary>
     public class Sprite : Component
     {
@@ -87,132 +91,38 @@ namespace STCEngine
             EngineClass.RemoveSpriteToRender(gameObject);
         }
     }
-    public class Animator : Component
+    /// <summary>
+    /// A component responsible for rendering UI elements, essentially a basic sprite but handled differently while rendering
+    /// </summary>
+    public class UISprite : Component
     {
-        public override string Type { get; } = nameof(Animator);
-        [JsonIgnore] public Sprite? sprite { get; set; }
-        public Dictionary<string, Animation> animations { get; set; }
-        //[JsonIgnore] public Dictionary<string, Animation> _animations { get; private set; }
-        public float playBackSpeed { get; set; }
-        [JsonIgnore] public Animation? currentlyPlayingAnimation { get; private set; }
-        [JsonIgnore] public bool isPlaying { get => currentlyPlayingAnimation != null; }
-        public Animator(Animation animation, float playBackSpeed = 1)
-        {
-            this.animations = new Dictionary<string, Animation>();
-            animations.Add(animation.name, animation);
-
-            this.playBackSpeed = Math.Clamp(playBackSpeed, 0, float.PositiveInfinity);
-        }
-        
-        /// <summary>
-        /// Adds an animation to the animator, which can later be played using the Play function
-        /// </summary>
-        /// <param name="animation"></param>
-        public void AddAnimation(Animation animation) { animations.Add(animation.name, animation); }
-        /// <summary>
-        /// Plays the animation of the given name
-        /// </summary>
-        /// <param name="animationName"></param>
-        public void Play(string animationName) 
-        { 
-            if(sprite == null) { sprite = gameObject.GetComponent<Sprite>(); }
-            if (animations.TryGetValue(animationName, out Animation? animation)) { EngineClass.AddSpriteAnimation(animation); animation.sprite = sprite; currentlyPlayingAnimation = animation; animation.animator = this; } 
-            else { Debug.LogError($"Animation {animationName} not found and couldnt be played."); }     
-        }
-        public void Stop()
-        {
-            try
-            {
-                EngineClass.RemoveSpriteAnimation(currentlyPlayingAnimation??throw new Exception("Trying to stop animator that isnt playing!"));
-                currentlyPlayingAnimation = null;
-            }catch(Exception e) { Debug.LogError(e.Message); }
-        }
-
-
-        [JsonConstructor] public Animator() { }
-        public override void Initialize() {}
-        public override void DestroySelf()
-        {
-            if(gameObject.GetComponent<Animator>() != null) { gameObject.RemoveComponent<Animator>(); return; }
-        }
-    }
-    public class AnimationFrame
-    {
+        public override string Type { get; } = nameof(UISprite);
         [JsonIgnore] private Image? _image;
         [JsonIgnore] public Image image { get { if (_image == null) { _image = Image.FromFile(fileSourceDirectory); } return _image; } set => _image = value; }
+        public int orderInUILayer { get; private set; }
         public string fileSourceDirectory { get; set; }
-        /// <summary>
-        /// How long the frame stays in ms
-        /// </summary>
-        public int time { get; set; }
-        //public AnimationFrame(Image image, int time)
-        //{
-        //    this.image = image;
-        //    this.time = time;
-        //}
-        
-        ///<summary>
-        /// Creates a frame of an animation from the source of the image and the time how long this image should stay in the animation in ms
-        /// </summary>
-        public AnimationFrame(String fileSourceDirectory, int time)
+        public UISprite(string fileSourceDirectory, int orderInLayer = int.MaxValue)
         {
             this.fileSourceDirectory = fileSourceDirectory;
             this.image = Image.FromFile(fileSourceDirectory);
-            this.time = time;
+            this.orderInUILayer = orderInLayer;
+        }
+        //[JsonConstructor] public Sprite() { } //not needed
+        public override void Initialize()
+        {
+            EngineClass.AddUISpriteToRender(gameObject, orderInUILayer);
+            this.orderInUILayer = EngineClass.UISpritesToRender.IndexOf(gameObject);
+        }
+        public override void DestroySelf()
+        {
+            if (gameObject.GetComponent<UISprite>() != null) { gameObject.RemoveComponent<UISprite>(); return; }
+            EngineClass.RemoveUISpriteToRender(gameObject);
         }
     }
-    public class Animation
-    {
-        public string name { get; set; }
-        public AnimationFrame[] animationFrames { get; set; }
-        public bool loop { get; set; }
-        [JsonIgnore] public Animator animator { get; set; }
-        [JsonIgnore] private int timer { get; set; }
-        [JsonIgnore] private int nextFrameTimer{ get; set; }
-        [JsonIgnore] private int animationFrame { get; set; }
-        [JsonIgnore] public Sprite? sprite { get; set; }
-
     /// <summary>
-    /// Internal function, should NEVER be called by the user!
-    /// To start an animation, call the "Play" function in the animator component!
+    /// A component responsible for rendering a grid of images
     /// </summary>
-    public void RunAnimation()
-        {
-            if(sprite == null) { Debug.LogError("Animation sprite not found (was the RunAnimation function called manually? To play an animation, use the \"Play\" function in the Animator component!)"); }
-            if(timer > nextFrameTimer)
-            {
-                //Debug.Log(timer.ToString() + ", " + animationFrame);
-                if(animationFrame < animationFrames.Count() - 1)
-                {
-                    sprite.image = animationFrames[animationFrame+1].image;
-                    nextFrameTimer = animationFrames[animationFrame + 1].time;
-                    timer = 0;
-                    animationFrame++;
-                }
-                else if(loop)
-                {
-                    sprite.image = animationFrames[0].image;
-                    nextFrameTimer = animationFrames[0].time;
-                    timer = 0;
-                    animationFrame = 0;
-                }
-                else
-                {
-                    animator.Stop();
-                }
-            }
-            timer+=10;
-        }
-
-        public Animation(string name, AnimationFrame[] animationFrames, bool loop)
-        {
-            this.name = name;
-            this.animationFrames = animationFrames;
-            this.loop = loop;
-            timer = 0; nextFrameTimer = animationFrames[0].time; animationFrame = 0;
-        }
-    }
-    class Tilemap : Component
+    public class Tilemap : Component
     {
         public override string Type { get; } = nameof(Tilemap);
         public int orderInLayer { get; private set; }//higher numbers render on top of lower numbers
@@ -284,6 +194,147 @@ namespace STCEngine
             EngineClass.RemoveSpriteToRender(gameObject);
         }
     }
+    
+    #region Animation-related components and classes
+    /// <summary>
+    /// A component responsible for animating a gameobject with a sprite component
+    /// </summary>
+    public class Animator : Component
+    {
+        public override string Type { get; } = nameof(Animator);
+        [JsonIgnore] public Sprite? sprite { get; set; }
+        public Dictionary<string, Animation> animations { get; set; }
+        //[JsonIgnore] public Dictionary<string, Animation> _animations { get; private set; }
+        public float playBackSpeed { get; set; }
+        [JsonIgnore] public Animation? currentlyPlayingAnimation { get; private set; }
+        [JsonIgnore] public bool isPlaying { get => currentlyPlayingAnimation != null; }
+        public Animator(Animation animation, float playBackSpeed = 1)
+        {
+            this.animations = new Dictionary<string, Animation>();
+            animations.Add(animation.name, animation);
+
+            this.playBackSpeed = Math.Clamp(playBackSpeed, 0, float.PositiveInfinity);
+        }
+        
+        /// <summary>
+        /// Adds an animation to the animator, which can later be played using the Play function
+        /// </summary>
+        /// <param name="animation"></param>
+        public void AddAnimation(Animation animation) { animations.Add(animation.name, animation); }
+        /// <summary>
+        /// Plays the animation of the given name
+        /// </summary>
+        /// <param name="animationName"></param>
+        public void Play(string animationName) 
+        { 
+            if(sprite == null) { sprite = gameObject.GetComponent<Sprite>(); }
+            if (animations.TryGetValue(animationName, out Animation? animation)) { EngineClass.AddSpriteAnimation(animation); animation.sprite = sprite; currentlyPlayingAnimation = animation; animation.animator = this; } 
+            else { Debug.LogError($"Animation {animationName} not found and couldnt be played."); }     
+        }
+        public void Stop()
+        {
+            try
+            {
+                EngineClass.RemoveSpriteAnimation(currentlyPlayingAnimation??throw new Exception("Trying to stop animator that isnt playing!"));
+                currentlyPlayingAnimation = null;
+            }catch(Exception e) { Debug.LogError(e.Message); }
+        }
+
+
+        [JsonConstructor] public Animator() { }
+        public override void Initialize() {}
+        public override void DestroySelf()
+        {
+            if(gameObject.GetComponent<Animator>() != null) { gameObject.RemoveComponent<Animator>(); return; }
+        }
+    }
+    /// <summary>
+    /// A single frame of an animation
+    /// </summary>
+    public class AnimationFrame
+    {
+        [JsonIgnore] private Image? _image;
+        [JsonIgnore] public Image image { get { if (_image == null) { _image = Image.FromFile(fileSourceDirectory); } return _image; } set => _image = value; }
+        public string fileSourceDirectory { get; set; }
+        /// <summary>
+        /// How long the frame stays in ms
+        /// </summary>
+        public int time { get; set; }
+        //public AnimationFrame(Image image, int time)
+        //{
+        //    this.image = image;
+        //    this.time = time;
+        //}
+        
+        ///<summary>
+        /// Creates a frame of an animation from the source of the image and the time how long this image should stay in the animation in ms
+        /// </summary>
+        public AnimationFrame(String fileSourceDirectory, int time)
+        {
+            this.fileSourceDirectory = fileSourceDirectory;
+            this.image = Image.FromFile(fileSourceDirectory);
+            this.time = time;
+        }
+    }
+    /// <summary>
+    /// An animation to be used with the Animator component
+    /// </summary>
+    public class Animation
+    {
+        public string name { get; set; }
+        public AnimationFrame[] animationFrames { get; set; }
+        public bool loop { get; set; }
+        [JsonIgnore] public Animator animator { get; set; }
+        [JsonIgnore] private int timer { get; set; }
+        [JsonIgnore] private int nextFrameTimer{ get; set; }
+        [JsonIgnore] private int animationFrame { get; set; }
+        [JsonIgnore] public Sprite? sprite { get; set; }
+
+    /// <summary>
+    /// Internal function, should NEVER be called by the user!
+    /// To start an animation, call the "Play" function in the animator component!
+    /// </summary>
+    public void RunAnimation()
+        {
+            if(sprite == null) { Debug.LogError("Animation sprite not found (was the RunAnimation function called manually? To play an animation, use the \"Play\" function in the Animator component!)"); }
+            if(timer > nextFrameTimer)
+            {
+                //Debug.Log(timer.ToString() + ", " + animationFrame);
+                if(animationFrame < animationFrames.Count() - 1)
+                {
+                    sprite.image = animationFrames[animationFrame+1].image;
+                    nextFrameTimer = animationFrames[animationFrame + 1].time;
+                    timer = 0;
+                    animationFrame++;
+                }
+                else if(loop)
+                {
+                    sprite.image = animationFrames[0].image;
+                    nextFrameTimer = animationFrames[0].time;
+                    timer = 0;
+                    animationFrame = 0;
+                }
+                else
+                {
+                    animator.Stop();
+                }
+            }
+            timer+=10;
+        }
+
+        public Animation(string name, AnimationFrame[] animationFrames, bool loop)
+        {
+            this.name = name;
+            this.animationFrames = animationFrames;
+            this.loop = loop;
+            timer = 0; nextFrameTimer = animationFrames[0].time; animationFrame = 0;
+        }
+    }
+    #endregion
+    
+    /// <summary>
+    /// Base class for all components responsible for detecting collisions
+    /// </summary>
     public abstract class Collider : Component
     {
         public bool isTrigger { get; set; } //whether it stops movement upon collision
@@ -293,6 +344,9 @@ namespace STCEngine
         [JsonConstructor] protected Collider() { }
 
     }
+    /// <summary>
+    /// A component responsible for detecting collisions in a box area
+    /// </summary>
     public class BoxCollider : Collider
     {
         public override string Type { get; } = nameof(BoxCollider);
@@ -355,6 +409,8 @@ namespace STCEngine
 
         }
     }
+    #endregion
+
 
     /// <summary>
     /// Any object inside the game, has a name and a list of components that defines its properties
@@ -367,13 +423,19 @@ namespace STCEngine
         /// <summary>
         /// Defines whether the object is currently active/enabled in the game, inactive GameObjects do not affect the game in any way
         /// </summary>
-        public bool isActive { get; set; }
+        public bool isActive { get => _isActive; 
+            set 
+            {
+                isActiveChanged(!_isActive); //zatim nevyuzito :)
+                _isActive = value;
+            } 
+        }
+        private bool _isActive { get; set; }
         [JsonIgnore] public Transform transform { get; set; }
 
-        #region Constructors
+        #region Constructors and related
         [JsonConstructor] public GameObject() { }
-        
-        //private void 
+
         /// <summary>
         /// Creates a GameObject with given components
         /// </summary>
@@ -429,7 +491,6 @@ namespace STCEngine
         /// <summary>
         /// Called upon creating a GameObject, registers the object in the Engine class and prints a debug
         /// </summary>
-        #endregion
         private void GameObjectCreated()
         {
             try
@@ -444,6 +505,9 @@ namespace STCEngine
             EngineClass.RegisterGameObject(this);
             Debug.LogInfo($"GameObject \"{name}\" Registered");
         }
+        #endregion
+
+        public static void isActiveChanged(bool newState) { } //jeste nevyuzito :)
 
         #region Component Managment
         /// <summary>
@@ -518,6 +582,9 @@ namespace STCEngine
             Debug.LogInfo($"GameObject {name} should be destroyed. (remove all references to this object)");
         }
     }
+
+
+
     /// <summary>
     /// Converts Components into specific derivatives of Components during serialization of a component
     /// </summary>
@@ -539,6 +606,8 @@ namespace STCEngine
                         return jsonDoc.RootElement.Deserialize<Tilemap>(options) as Tilemap;
                     case nameof(BoxCollider):
                         return jsonDoc.RootElement.Deserialize<BoxCollider>(options) as BoxCollider;
+                    case nameof(UISprite):
+                        return jsonDoc.RootElement.Deserialize<UISprite>(options) as UISprite;
                     default:
                         throw new JsonException("'Type' doesn't match a known derived type");
                 }
