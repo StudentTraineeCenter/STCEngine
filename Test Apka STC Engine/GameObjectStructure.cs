@@ -99,8 +99,56 @@ namespace STCEngine
         public override string Type { get; } = nameof(UISprite);
         [JsonIgnore] private Image? _image;
         [JsonIgnore] public Image image { get { if (_image == null) { _image = Image.FromFile(fileSourceDirectory); } return _image; } set => _image = value; }
+        public ScreenAnchor screenAnchor { get; set; } = ScreenAnchor.TopLeft;
+        public Vector2 screenAnchorOffset
+        {
+            get
+            {
+                switch ((int)screenAnchor)
+                {
+                    case 0:
+                        return Vector2.zero;
+                    case 1:
+                        return new Vector2(Game.Game.MainGameInstance.screenSize.x * 0.5f, 0);
+                    case 2:
+                        return new Vector2(Game.Game.MainGameInstance.screenSize.x, 0);
+                    case 3:
+                        return new Vector2(0, Game.Game.MainGameInstance.screenSize.y * 0.5f);
+                    case 4:
+                        return new Vector2(Game.Game.MainGameInstance.screenSize.x * 0.5f, Game.Game.MainGameInstance.screenSize.y * 0.5f);
+                    case 5:
+                        return new Vector2(Game.Game.MainGameInstance.screenSize.x, Game.Game.MainGameInstance.screenSize.y * 0.5f);
+                    case 6:
+                        return new Vector2(0, Game.Game.MainGameInstance.screenSize.y);
+                    case 7:
+                        return new Vector2(Game.Game.MainGameInstance.screenSize.x * 0.5f, Game.Game.MainGameInstance.screenSize.y);
+                    case 8:
+                        return Game.Game.MainGameInstance.screenSize;
+                    default:
+                        Debug.LogError("Invalid screen anchor, returning Vector2.zero");
+                        return Vector2.zero;
+                }
+            }
+        }
+        public Vector2 offset { get; set; } = Vector2.zero;
+        
         public int orderInUILayer { get; private set; }
         public string fileSourceDirectory { get; set; }
+        public UISprite(string fileSourceDirectory, ScreenAnchor screenAnchor, Vector2 offset, int orderInLayer = int.MaxValue)
+        {
+            this.offset = offset;
+            this.screenAnchor = screenAnchor;
+            this.fileSourceDirectory = fileSourceDirectory;
+            this.image = Image.FromFile(fileSourceDirectory);
+            this.orderInUILayer = orderInLayer;
+        }
+        public UISprite(string fileSourceDirectory, ScreenAnchor screenAnchor, int orderInLayer = int.MaxValue)
+        {
+            this.screenAnchor = screenAnchor;
+            this.fileSourceDirectory = fileSourceDirectory;
+            this.image = Image.FromFile(fileSourceDirectory);
+            this.orderInUILayer = orderInLayer;
+        }
         public UISprite(string fileSourceDirectory, int orderInLayer = int.MaxValue)
         {
             this.fileSourceDirectory = fileSourceDirectory;
@@ -111,13 +159,14 @@ namespace STCEngine
         public override void Initialize()
         {
             EngineClass.AddUISpriteToRender(gameObject, orderInUILayer);
-            this.orderInUILayer = EngineClass.UISpritesToRender.IndexOf(gameObject);
+            //this.orderInUILayer = EngineClass.UISpritesToRender.IndexOf(gameObject);
         }
         public override void DestroySelf()
         {
             if (gameObject.GetComponent<UISprite>() != null) { gameObject.RemoveComponent<UISprite>(); return; }
             EngineClass.RemoveUISpriteToRender(gameObject);
         }
+        public enum ScreenAnchor { TopLeft, TopCentre, TopRight, MiddleLeft, MiddleCentre, MiddleRight, LeftBottom, MiddleBottom, RightBottom }
     }
     /// <summary>
     /// A component responsible for rendering a grid of images
@@ -128,7 +177,9 @@ namespace STCEngine
         public int orderInLayer { get; private set; }//higher numbers render on top of lower numbers
         private Dictionary<string, string> tileSources { get; set; }
         public string[] tilemapString { get; set; }
-        public Image[,] tiles { get; set; }
+        [JsonIgnore] private Image[,] _tiles;
+        [JsonIgnore] public Image[,] tiles { get => _tiles; set { _tiles = value; UpdateTiles(); } }
+        [JsonIgnore] public Image tileMapImage;
         public Vector2 tileSize { get; set; }
         public Vector2 mapSize { get; set; }
 
@@ -156,7 +207,7 @@ namespace STCEngine
         {
             try
             {
-                tiles = new Image[(int)mapSize.x, (int)mapSize.y];
+                _tiles = new Image[(int)mapSize.x, (int)mapSize.y];
                 //creates the user key + path dictionary (ex. grass -> Assets/GrassTexture.png)
                 //CreateDictionary();
 
@@ -164,14 +215,44 @@ namespace STCEngine
                 {
                     for (int x = 0; x < mapSize.x; x++)
                     {
-                        tiles[x, y] = tileSources.TryGetValue(tilemapString[x + y * (int)mapSize.x], out string? value) ? Image.FromFile(value) : throw new Exception("bambusovina");
+                        _tiles[x, y] = tileSources.TryGetValue(tilemapString[x + y * (int)mapSize.x], out string? value) ? Image.FromFile(value) : throw new Exception("bambusovina");
                     }
                 }
+                tiles = _tiles;
+
             }
             catch (Exception e)
             {
                 Debug.LogError("Error creating tilemap, error message: " + e.Message);
             }
+        }
+        /// <summary>
+        /// Combines the multidimensional array of images into one image to be rendered
+        /// </summary>
+        private void UpdateTiles()
+        {
+            // Calculate the size of the final combined image
+            int totalWidth = tiles.GetLength(1) * (int)tileSize.x;
+            int totalHeight = tiles.GetLength(0) * (int)tileSize.y;
+
+            // Create a new bitmap to hold the combined image
+            Bitmap combinedImage = new Bitmap(totalWidth, totalHeight);
+
+            // Create a graphics object to draw on the combined image
+            using (Graphics g = Graphics.FromImage(combinedImage))
+            {
+                // Iterate through the multidimensional array and draw each image onto the combined image
+                for (int i = 0; i < tiles.GetLength(0); i++)
+                {
+                    for (int j = 0; j < tiles.GetLength(1); j++)
+                    {
+                        g.DrawImage(tiles[i, j], j * tileSize.x, i * tileSize.y);
+                    }
+                }
+            }
+
+            //saves it to render it
+            tileMapImage = combinedImage;
         }
 
         private class TilemapValues

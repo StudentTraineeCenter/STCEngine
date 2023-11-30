@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 
 
 namespace STCEngine.Engine
-{   
+{
     /// <summary>
     /// The main class of the engine, the Game class derives off this one
     /// </summary>
@@ -17,7 +17,7 @@ namespace STCEngine.Engine
     {
         public readonly bool testDebug = true;
 
-        private Vector2 screenSize;
+        public Vector2 screenSize { get => new Vector2(window.Width, window.Height); set { window.Size = new Size((int)value.x, (int)value.y); } }
         private string title;
         private Canvas window;
         public Thread gameLoopThread;
@@ -41,12 +41,12 @@ namespace STCEngine.Engine
         /// </summary>
         public EngineClass(Vector2 screenSize, string title)
         {
+            window = new Canvas();
             this.screenSize = screenSize;
             this.title = title;
-            window = new Canvas();
 
             //Rendering
-            window.Size = new Size((int)this.screenSize.x, (int)this.screenSize.y);
+            //window.Size = new Size((int)this.screenSize.x, (int)this.screenSize.y); already done by changing screen size above
             window.Text = this.title;
             window.Paint += Renderer;
 
@@ -109,11 +109,11 @@ namespace STCEngine.Engine
                 {
                     Sprite? sprite = gameObject.GetComponent<Sprite>();
                     //if(gameObject.name == "Kamena stena") { Debug.Log(sprite.image.Height.ToString()); }
-                    if(sprite != null && sprite.enabled && gameObject.isActive)
+                    if (sprite != null && sprite.enabled && gameObject.isActive)
                     {
                         //foreach(Sprite sprite in gameObject.GetComponents<Sprite>()) //pro vice spritu na jednom objektu by to teoreticky fungovat mohlo, ale pak by nesel odstranit specificky sprite
                         //{
-                            graphics.DrawImage(sprite.image, gameObject.transform.position.x - sprite.image.Width * gameObject.transform.size.x / 2, gameObject.transform.position.y - sprite.image.Height * gameObject.transform.size.y / 2, sprite.image.Width*gameObject.transform.size.x, sprite.image.Height * gameObject.transform.size.y);
+                        graphics.DrawImage(sprite.image, gameObject.transform.position.x - sprite.image.Width * gameObject.transform.size.x / 2, gameObject.transform.position.y - sprite.image.Height * gameObject.transform.size.y / 2, sprite.image.Width * gameObject.transform.size.x, sprite.image.Height * gameObject.transform.size.y);
                         //}
                     }
                     Tilemap? tilemap = gameObject.GetComponent<Tilemap>();
@@ -123,25 +123,35 @@ namespace STCEngine.Engine
                         {
                             for (int x = 0; x < tilemap.mapSize.x; x++)
                             {
-                                graphics.DrawImage(tilemap.tiles[x, y], gameObject.transform.position.x + x * tilemap.tileSize.x, gameObject.transform.position.y + y * tilemap.tileSize.y, tilemap.tileSize.x, tilemap.tileSize.x);
+                                graphics.DrawImage(tilemap.tileMapImage, gameObject.transform.position.x - tilemap.tileMapImage.Width/2, gameObject.transform.position.y - tilemap.tileMapImage.Height / 2, tilemap.tileMapImage.Width, tilemap.tileMapImage.Height);//(tilemap.tiles[x, y], gameObject.transform.position.x + x * tilemap.tileSize.x, gameObject.transform.position.y + y * tilemap.tileSize.y, tilemap.tileSize.x, tilemap.tileSize.x);
                             }
                         }
                     }
-
-                    
+                }
+                foreach(GameObject gameObject in UISpritesToRender)
+                {
+                    UISprite? UISprite = gameObject.GetComponent<UISprite>();
+                    if (UISprite != null && UISprite.enabled && gameObject.isActive)
+                    {
+                        //foreach(Sprite sprite in gameObject.GetComponents<Sprite>()) //pro vice spritu na jednom objektu by to teoreticky fungovat mohlo, ale pak by nesel odstranit specificky sprite
+                        //{
+                        graphics.DrawImage(UISprite.image, gameObject.transform.position.x - UISprite.image.Width * gameObject.transform.size.x / 2 + UISprite.offset.x + UISprite.screenAnchorOffset.x, gameObject.transform.position.y - UISprite.image.Height * gameObject.transform.size.y / 2 + UISprite.offset.y + UISprite.screenAnchorOffset.y, UISprite.image.Width * gameObject.transform.size.x, UISprite.image.Height * gameObject.transform.size.y);
+                        Debug.Log("paused");
+                        //}
+                    }
                 }
                 //DEBUG ---------
                 if (testDebug)
                 {
-                    foreach(BoxCollider box in debugRectangles)
+                    foreach (BoxCollider box in debugRectangles)
                     {
-                        if(box == null) { Debug.LogError("ERROR LOADING COLLIDER DEBUG RECTANGLE"); continue; }
-                        graphics.DrawRectangle(new Pen(box.isTrigger ? Color.Cyan : Color.Orange, 1), box.gameObject.transform.position.x + box.offset.x - box.size.x/2, box.gameObject.transform.position.y + box.offset.y - box.size.y/2, box.size.x, box.size.y);
+                        if (box == null) { Debug.LogError("ERROR LOADING COLLIDER DEBUG RECTANGLE"); continue; }
+                        graphics.DrawRectangle(new Pen(box.isTrigger ? Color.Cyan : Color.Orange, 1), box.gameObject.transform.position.x + box.offset.x - box.size.x / 2, box.gameObject.transform.position.y + box.offset.y - box.size.y / 2, box.size.x, box.size.y);
                     }
-                    foreach(KeyValuePair<string, GameObject> gameObject in registeredGameObjects)
+                    foreach (KeyValuePair<string, GameObject> gameObject in registeredGameObjects)
                     {
                         //graphics.DrawRectangle(new Pen(Color.Black), gameObject.Value.transform.position.x, gameObject.Value.transform.position.y, 2, 2);
-                        graphics.DrawString(gameObject.Value.name, new Font("Arial", 11, FontStyle.Regular), new SolidBrush(Color.Black), gameObject.Value.transform.position.x-gameObject.Value.name.Length*4f, gameObject.Value.transform.position.y - 5.5f);
+                        graphics.DrawString(gameObject.Value.name, new Font("Arial", 11, FontStyle.Regular), new SolidBrush(Color.Black), gameObject.Value.transform.position.x - gameObject.Value.name.Length * 4f, gameObject.Value.transform.position.y - 5.5f);
                     }
                 }
 

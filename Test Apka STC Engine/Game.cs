@@ -10,6 +10,8 @@ namespace STCEngine.Game
 {
     class Game : EngineClass
     {
+        public static Game MainGameInstance;
+
         private static Vector2 windowSize = new Vector2(1920, 1080);
         public GameObject? player;
         public GameObject? tilemap;
@@ -23,13 +25,14 @@ namespace STCEngine.Game
 
         private GameObject testKamenaStena, testGameObject2;
         //starts the game
-        public Game() : base(windowSize, "Hraaa :)") { } 
+        public Game() : base(windowSize, "Hraaa :)") {  } 
 
         /// <summary>
         /// Called upon starting the game
         /// </summary>
         public override void OnLoad() 
         {
+            MainGameInstance = this;
             Debug.LogInfo("Game started");
             backgroundColor = Color.Black;
 
@@ -57,12 +60,16 @@ namespace STCEngine.Game
 
             tilemap = new GameObject("Tilemap", new Vector2(0, 0));
             tilemap.AddComponent(new Tilemap("Assets/Level/Tilemap.json"));
+            tilemap.transform.position = new Vector2(tilemap.GetComponent<Tilemap>().tileMapImage.Width / 2, tilemap.GetComponent<Tilemap>().tileMapImage.Height / 2);
 
             string fileName = "Assets/Level/playerZed.json";
             testGameObject2 = GameObject.CreateGameObjectFromJSON(fileName);
             testGameObject2.GetComponent<Animator>().Play("TestAnimation2");
 
             pauseScreen = new GameObject("Pause Screen", new Transform(Vector2.zero, 0, Vector2.one));
+            pauseScreen.AddComponent(new UISprite("Assets/PauseScreenOverlayBG.png", UISprite.ScreenAnchor.MiddleCentre));
+            pauseScreen.transform.size = new Vector2(windowSize.x / pauseScreen.GetComponent<UISprite>().image.Width-1, windowSize.y / pauseScreen.GetComponent<UISprite>().image.Height-1);
+            pauseScreen.isActive = false;
             //testKamenaStena = new GameObject("Kamena stena", new Transform(new Vector2(700, 75), 0, Vector2.one));
             //testKamenaStena.AddComponent(new Sprite("Assets/Basic Wall.png"));
             //testKamenaStena.AddComponent(new BoxCollider(Vector2.one * 64, Vector2.zero, false, true));
