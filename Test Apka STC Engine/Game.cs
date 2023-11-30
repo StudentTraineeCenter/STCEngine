@@ -68,7 +68,7 @@ namespace STCEngine.Game
 
             pauseScreen = new GameObject("Pause Screen", new Transform(Vector2.zero, 0, Vector2.one));
             pauseScreen.AddComponent(new UISprite("Assets/PauseScreenOverlayBG.png", UISprite.ScreenAnchor.MiddleCentre));
-            pauseScreen.transform.size = new Vector2(windowSize.x / pauseScreen.GetComponent<UISprite>().image.Width-1, windowSize.y / pauseScreen.GetComponent<UISprite>().image.Height-1);
+            pauseScreen.transform.size = new Vector2(windowSize.x / pauseScreen.GetComponent<UISprite>().image.Width, windowSize.y / pauseScreen.GetComponent<UISprite>().image.Height);
             pauseScreen.isActive = false;
             //testKamenaStena = new GameObject("Kamena stena", new Transform(new Vector2(700, 75), 0, Vector2.one));
             //testKamenaStena.AddComponent(new Sprite("Assets/Basic Wall.png"));
@@ -81,7 +81,7 @@ namespace STCEngine.Game
         /// </summary>
         public override void OnExit()
         {
-            gameLoopThread.Interrupt();
+
             Debug.LogInfo("Application Quit");
         }
 
@@ -120,6 +120,7 @@ namespace STCEngine.Game
 
         public void Pause()
         {
+            debugFloat += 0.05f;
             paused = true;
             pauseScreen.isActive = true;
         }

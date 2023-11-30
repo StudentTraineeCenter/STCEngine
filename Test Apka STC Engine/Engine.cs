@@ -20,8 +20,9 @@ namespace STCEngine.Engine
         public Vector2 screenSize { get => new Vector2(window.Width, window.Height); set { window.Size = new Size((int)value.x, (int)value.y); } }
         private string title;
         private Canvas window;
-        public Thread gameLoopThread;
+        //public Thread gameLoopThread;
         private static System.Windows.Forms.Timer animationTimer = new System.Windows.Forms.Timer();
+        private static System.Windows.Forms.Timer gameLoopTimer = new System.Windows.Forms.Timer();
         public static bool paused;
 
         public static Dictionary<string, GameObject> registeredGameObjects = new Dictionary<string, GameObject>();
@@ -60,40 +61,57 @@ namespace STCEngine.Engine
             window.KeyUp += Window_KeyUp;
 
             OnLoad();
-            gameLoopThread = new Thread(GameLoop);
-            gameLoopThread.Start();
+            //gameLoopThread = new Thread(GameLoop);
+            //gameLoopThread.Start();
+            gameLoopTimer.Tick += new EventHandler(GameLoop); //timer funguje, thread ne
+            gameLoopTimer.Interval = 1;
+            gameLoopTimer.Start();
+
 
             Application.Run(window);
 
             OnExit();
+            //gameLoopThread.Interrupt();
             animationTimer.Stop();
+            gameLoopTimer.Stop();
         }
 
         #region Inner logic classes (GameLoop, Renderer, Animations,...)
         /// <summary>
         /// The main game loop thread, calls the Update funcions
         /// </summary>
-        private void GameLoop()
+        //private void GameLoop() nefunguje, vymenen za timer :3
+        //{
+        //    bool cancelationToken = false;
+        //    while (!cancelationToken && gameLoopThread.IsAlive)
+        //    {
+        //        try
+        //        {
+        //            if (!paused) { Update(); }
+        //            window.BeginInvoke((MethodInvoker)delegate { window.Refresh(); });
+        //            if (!paused) { LateUpdate(); }
+
+        //            Thread.Sleep(1);
+        //        }
+        //        catch(Exception e)
+        //        {
+        //            Debug.LogWarning($"Window not found, exiting thread... ({e.Message})");
+        //            cancelationToken = true;
+        //        }
+        //    }
+        //}
+
+        /// <summary>
+        /// The main game loop running on a timer, calls the Update funcions
+        /// </summary>
+        private void GameLoop(object? sender, EventArgs args)
         {
-            bool cancelationToken = false;
-            while (!cancelationToken && gameLoopThread.IsAlive)
-            {
-                try
-                {
-                    if (!paused) { Update(); }
-                    window.BeginInvoke((MethodInvoker)delegate { window.Refresh(); });
-                    if (!paused) { LateUpdate(); }
-                
-                    Thread.Sleep(1);
-                }
-                catch
-                {
-                    Debug.LogWarning("Window not found, exiting thread...");
-                    cancelationToken = true;
-                }
-            }
+            if (!paused) { Update(); }
+            window.BeginInvoke((MethodInvoker)delegate { window.Refresh(); });
+            if (!paused) { LateUpdate(); }
         }
 
+        public static float debugFloat = 0;
         /// <summary>
         /// Takes care of rendering things inside the game window
         /// </summary>
@@ -123,7 +141,7 @@ namespace STCEngine.Engine
                         {
                             for (int x = 0; x < tilemap.mapSize.x; x++)
                             {
-                                graphics.DrawImage(tilemap.tileMapImage, gameObject.transform.position.x - tilemap.tileMapImage.Width/2, gameObject.transform.position.y - tilemap.tileMapImage.Height / 2, tilemap.tileMapImage.Width, tilemap.tileMapImage.Height);//(tilemap.tiles[x, y], gameObject.transform.position.x + x * tilemap.tileSize.x, gameObject.transform.position.y + y * tilemap.tileSize.y, tilemap.tileSize.x, tilemap.tileSize.x);
+                                //graphics.DrawImage(tilemap.tileMapImage, gameObject.transform.position.x - tilemap.tileMapImage.Width/2, gameObject.transform.position.y - tilemap.tileMapImage.Height / 2, tilemap.tileMapImage.Width, tilemap.tileMapImage.Height);//(tilemap.tiles[x, y], gameObject.transform.position.x + x * tilemap.tileSize.x, gameObject.transform.position.y + y * tilemap.tileSize.y, tilemap.tileSize.x, tilemap.tileSize.x);
                             }
                         }
                     }
@@ -135,8 +153,8 @@ namespace STCEngine.Engine
                     {
                         //foreach(Sprite sprite in gameObject.GetComponents<Sprite>()) //pro vice spritu na jednom objektu by to teoreticky fungovat mohlo, ale pak by nesel odstranit specificky sprite
                         //{
+                        //Debug.Log($"graphics.DrawImage({gameObject.transform.position.x - UISprite.image.Width * gameObject.transform.size.x / 2 + UISprite.offset.x + UISprite.screenAnchorOffset.x}, {gameObject.transform.position.y - UISprite.image.Height * gameObject.transform.size.y / 2 + UISprite.offset.y + UISprite.screenAnchorOffset.y}, {UISprite.image.Width * gameObject.transform.size.x}, {UISprite.image.Height * gameObject.transform.size.y}");
                         graphics.DrawImage(UISprite.image, gameObject.transform.position.x - UISprite.image.Width * gameObject.transform.size.x / 2 + UISprite.offset.x + UISprite.screenAnchorOffset.x, gameObject.transform.position.y - UISprite.image.Height * gameObject.transform.size.y / 2 + UISprite.offset.y + UISprite.screenAnchorOffset.y, UISprite.image.Width * gameObject.transform.size.x, UISprite.image.Height * gameObject.transform.size.y);
-                        Debug.Log("paused");
                         //}
                     }
                 }
