@@ -689,6 +689,8 @@ namespace STCEngine
                         return jsonDoc.RootElement.Deserialize<BoxCollider>(options) as BoxCollider;
                     case nameof(UISprite):
                         return jsonDoc.RootElement.Deserialize<UISprite>(options) as UISprite;
+                    case nameof(Inventory):
+                        return jsonDoc.RootElement.Deserialize<Inventory>(options) as Inventory;
                     default:
                         throw new JsonException("'Type' doesn't match a known derived type");
                 }

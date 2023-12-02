@@ -11,12 +11,15 @@ namespace STCEngine.Game
     class Game : EngineClass
     {
         public static Game MainGameInstance;
+        public bool twoInventoriesOpen { get => otherInventory != null; }
+        public Inventory? otherInventory;
 
         private static Vector2 windowSize = new Vector2(1920, 1080);
         public GameObject? player;
         public GameObject? tilemap;
         public GameObject? pauseScreen;
         private Animator? playerAnim;
+        public Inventory? playerInventory;
         private float movementSpeed = 10;
         public BoxCollider playerCol;
         public BoxCollider playerTopCol, playerBotCol, playerLeftCol, playerRightCol; //hitboxes used for wall collision detection
@@ -45,6 +48,23 @@ namespace STCEngine.Game
         {
             Unpause();
         }
+        //private void InitializeInventories()
+        //{
+        //    //for (int i = 0; i < rows; i++)
+        //    //{
+        //    //    for (int j = 0; j < columns; j++)
+        //    //    {
+        //    //        var slot = new InventorySlot();
+        //    //        slot.Click += new EventHandler(ItemClicked);
+        //    //        slot.Location = new Point((int)gameObject.transform.position.x + slotSpacing + (slotSpacing + slotSize) * j, (int)gameObject.transform.position.y + slotSpacing + (slotSpacing + slotSize) * i);
+        //    //        slot.Size = new Size(slotSize, slotSize);
+        //    //        slot.BackgroundImage = inventorySlotBackgroundImage;
+        //    //        slot.Visible = false;
+        //    //        inventorySlots.Add(slot);
+
+        //    //    }
+        //    //}
+        //}
 
         /// <summary>
         /// Called upon starting the game
@@ -59,12 +79,13 @@ namespace STCEngine.Game
             quitButton.Click += new EventHandler(QuitButton);
             resumeButton.Click += new EventHandler(ResumeButton);
 
+
+            #region Player component setup
             //spawn player
             player = new GameObject("Player",new Transform(new Vector2(100, 100), 0, new Vector2(0.6f, 0.6f)));
             player.AddComponent(new Sprite("Assets/Basic Enemy White 1.png"));
             playerCol = player.AddComponent(new BoxCollider(Vector2.one * 100, Vector2.zero, false, true)) as BoxCollider;
 
-            #region Player component setup
             var hitboxWidth = 1f; //values lower than 1 might cause walking into walls
             playerTopCol = player.AddComponent(new BoxCollider(Vector2.up * movementSpeed *hitboxWidth+ Vector2.right * 100, Vector2.up * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
             playerBotCol = player.AddComponent(new BoxCollider(Vector2.up * movementSpeed * hitboxWidth + Vector2.right * 100, -Vector2.up * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
@@ -79,6 +100,9 @@ namespace STCEngine.Game
             
             Animation anim = new Animation("TestAnimation", animFrames, true);
             playerAnim = player.AddComponent(new Animator(anim)) as Animator;
+
+            playerInventory = player.AddComponent(new Inventory());
+            playerInventory.AddItem(new ItemInInventory[] { new ItemInInventory("mec", 1, "Assets/Items/Items-Test_Sword.png"), new ItemInInventory("slimeball", 5, "Assets/Items/Slimeball.png") });
             #endregion
 
             tilemap = new GameObject("Tilemap", new Vector2(0, 0));
@@ -93,6 +117,8 @@ namespace STCEngine.Game
             pauseScreen.AddComponent(new UISprite("Assets/PauseScreenOverlayBG.png", UISprite.ScreenAnchor.MiddleCentre));
             pauseScreen.transform.size = new Vector2(windowSize.x / pauseScreen.GetComponent<UISprite>().image.Width, windowSize.y / pauseScreen.GetComponent<UISprite>().image.Height);
             pauseScreen.isActive = false;
+
+            InitializeInventories();
             //testKamenaStena = new GameObject("Kamena stena", new Transform(new Vector2(700, 75), 0, Vector2.one));
             //testKamenaStena.AddComponent(new Sprite("Assets/Basic Wall.png"));
             //testKamenaStena.AddComponent(new BoxCollider(Vector2.one * 64, Vector2.zero, false, true));

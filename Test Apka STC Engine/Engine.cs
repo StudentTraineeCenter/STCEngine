@@ -26,6 +26,9 @@ namespace STCEngine.Engine
         public Button resumeButton, quitButton;
         public static bool paused;
 
+        public DataGridView playerInventoryUI = new DataGridView(), otherInventoryUI = new DataGridView();
+        private Panel playerInventoryPanel = new Panel(), otherInventoryPanel = new Panel();
+
         public static Dictionary<string, GameObject> registeredGameObjects = new Dictionary<string, GameObject>();
         public static List<GameObject> spritesToRender = new List<GameObject>();
         public static List<GameObject> UISpritesToRender = new List<GameObject>();
@@ -108,6 +111,78 @@ namespace STCEngine.Engine
             quitButton.Visible = false;
             resumeButton.Visible = false;
             
+        }
+
+        public void InitializeInventories()
+        {
+
+            playerInventoryPanel.BackgroundImage = Image.FromFile("Assets/Inventory-Background.png");
+            playerInventoryPanel.BackgroundImageLayout = ImageLayout.Stretch;
+            playerInventoryPanel.Controls.Add(this.playerInventoryUI);
+            playerInventoryPanel.Location = new Point(50, 50);
+            playerInventoryPanel.Name = "player inv panel";
+            playerInventoryPanel.Size = new Size(740, 444);
+            System.Reflection.PropertyInfo pi2 = typeof(Panel).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            pi2.SetValue(playerInventoryPanel, true, null);
+
+            otherInventoryPanel.BackgroundImage = Image.FromFile("Assets/Inventory-Background.png");
+            otherInventoryPanel.BackgroundImageLayout = ImageLayout.Stretch;
+            otherInventoryPanel.Controls.Add(this.otherInventoryUI);
+            otherInventoryPanel.Location = new Point(50, 500);
+            otherInventoryPanel.Name = "other inv panel";
+            otherInventoryPanel.Size = new Size(740, 444);
+            System.Reflection.PropertyInfo pi3 = typeof(Panel).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            pi3.SetValue(otherInventoryPanel, true, null);
+
+            playerInventoryUI.ColumnHeadersVisible = false;
+            playerInventoryUI.RowHeadersVisible = false;
+            playerInventoryUI.ScrollBars = ScrollBars.None;
+            playerInventoryUI.ForeColor = Color.Transparent;
+            playerInventoryUI.Size = new Size(640, 384);
+            playerInventoryUI.Location = new Point(50, 30);
+            playerInventoryUI.AllowUserToAddRows = false;playerInventoryUI.AllowUserToDeleteRows = false;playerInventoryUI.AllowUserToOrderColumns = false;playerInventoryUI.AllowUserToResizeRows = false;playerInventoryUI.AllowUserToResizeColumns = false;
+            System.Reflection.PropertyInfo pi = typeof(DataGridView).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            pi.SetValue(playerInventoryUI, true, null);
+
+            otherInventoryUI.ColumnHeadersVisible = false;
+            otherInventoryUI.RowHeadersVisible = false;
+            otherInventoryUI.ScrollBars = ScrollBars.None;
+            otherInventoryUI.Size = new Size(640, 320);
+            System.Reflection.PropertyInfo pi1 = typeof(DataGridView).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            pi1.SetValue(otherInventoryUI, true, null);
+
+            playerInventoryUI.Rows.Clear();
+            playerInventoryUI.Columns.Clear();
+
+            playerInventoryUI.Columns.Add(new DataGridViewImageColumn());
+            playerInventoryUI.Columns[0].Width = 128;
+            playerInventoryUI.Columns[0].HeaderCell.Style.Padding = new Padding(10);
+            (playerInventoryUI.Columns[0] as DataGridViewImageColumn).Image = Image.FromFile("Assets/Inventory-Item_Slot.png");
+            DataGridViewImageColumn template = playerInventoryUI.Columns[0] as DataGridViewImageColumn;
+
+            playerInventoryUI.Rows.Add(new DataGridViewRow());
+            playerInventoryUI.Rows[0].Height = 128;
+            playerInventoryUI.Rows[0].HeaderCell.Style.Padding = new Padding(10);
+            DataGridViewRow template2 = playerInventoryUI.Rows[0];
+            
+            playerInventoryUI.Rows.Clear();
+            playerInventoryUI.Columns.Clear();
+
+            playerInventoryUI.Columns.AddRange(template.Clone() as DataGridViewImageColumn, template.Clone() as DataGridViewImageColumn, template.Clone() as DataGridViewImageColumn, template.Clone() as DataGridViewImageColumn, template.Clone() as DataGridViewImageColumn);
+            playerInventoryUI.Rows.AddRange(template2.Clone() as DataGridViewRow, template2.Clone() as DataGridViewRow, template2.Clone() as DataGridViewRow);
+            playerInventoryPanel.Controls.Add(playerInventoryUI);
+            playerInventoryUI.Dock = DockStyle.None;//DockStyle.Top | DockStyle.Right | DockStyle.Bottom | DockStyle.Left;
+            //playerInventoryUI.Anchor = 
+            
+
+
+            window.Controls.Add(playerInventoryPanel);
+            window.Controls.Add(otherInventoryPanel);
+            //for (int i = 0; i < inventory.inventorySlots.Count; i++)
+            //{
+            //    window.Controls.Add(inventory.inventorySlots[i]);
+            //}
+
         }
 
         #region Inner logic classes (GameLoop, Renderer, Animations,...)
