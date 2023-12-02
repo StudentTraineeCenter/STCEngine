@@ -23,6 +23,7 @@ namespace STCEngine.Engine
         //public Thread gameLoopThread;
         private static System.Windows.Forms.Timer animationTimer = new System.Windows.Forms.Timer();
         private static System.Windows.Forms.Timer gameLoopTimer = new System.Windows.Forms.Timer();
+        public Button resumeButton, quitButton;
         public static bool paused;
 
         public static Dictionary<string, GameObject> registeredGameObjects = new Dictionary<string, GameObject>();
@@ -68,6 +69,8 @@ namespace STCEngine.Engine
             gameLoopTimer.Start();
 
 
+
+
             Application.Run(window);
 
             OnExit();
@@ -76,30 +79,38 @@ namespace STCEngine.Engine
             gameLoopTimer.Stop();
         }
 
-        #region Inner logic classes (GameLoop, Renderer, Animations,...)
-        /// <summary>
-        /// The main game loop thread, calls the Update funcions
-        /// </summary>
-        //private void GameLoop() nefunguje, vymenen za timer :3
-        //{
-        //    bool cancelationToken = false;
-        //    while (!cancelationToken && gameLoopThread.IsAlive)
-        //    {
-        //        try
-        //        {
-        //            if (!paused) { Update(); }
-        //            window.BeginInvoke((MethodInvoker)delegate { window.Refresh(); });
-        //            if (!paused) { LateUpdate(); }
+        public void CreatePauseScreenButtons()
+        {
+            quitButton = new Button();
+            quitButton.BackColor = Color.White; 
+            quitButton.ForeColor = Color.Black;
+            quitButton.Text = "Quit";
+            quitButton.Font = new Font(quitButton.Font.FontFamily, 30);
+            quitButton.Size = new Size(300, 150);
+            quitButton.Location = new Point((int)screenSize.x / 2 - 200 - quitButton.Size.Width/2, (int)screenSize.y / 3 * 2);
+            quitButton.MouseEnter += new EventHandler((object? o, EventArgs e) => quitButton.BackColor = Color.SteelBlue);
+            quitButton.MouseLeave += new EventHandler((object? o, EventArgs e) => quitButton.BackColor = Color.White);
+            window.Controls.Add(quitButton);
+            
+            resumeButton = new Button();
+            resumeButton.BackColor = Color.White;
+            resumeButton.ForeColor = Color.Black; 
+            resumeButton.Text = "Resume";
+            resumeButton.Font = new Font(resumeButton.Font.FontFamily, 30);
+            resumeButton.Size = new Size(300, 150);
+            resumeButton.Location = new Point((int)screenSize.x / 2 + 200 - resumeButton.Size.Width / 2, (int)screenSize.y / 3 * 2);
+            resumeButton.MouseEnter += new EventHandler((object? o, EventArgs e) => resumeButton.BackColor = Color.SteelBlue);
+            resumeButton.MouseLeave += new EventHandler((object? o, EventArgs e) => resumeButton.BackColor = Color.White);
+            window.Controls.Add(resumeButton);
 
-        //            Thread.Sleep(1);
-        //        }
-        //        catch(Exception e)
-        //        {
-        //            Debug.LogWarning($"Window not found, exiting thread... ({e.Message})");
-        //            cancelationToken = true;
-        //        }
-        //    }
-        //}
+            quitButton.Enabled = false;
+            resumeButton.Enabled = false;
+            quitButton.Visible = false;
+            resumeButton.Visible = false;
+            
+        }
+
+        #region Inner logic classes (GameLoop, Renderer, Animations,...)
 
         /// <summary>
         /// The main game loop running on a timer, calls the Update funcions
@@ -111,7 +122,6 @@ namespace STCEngine.Engine
             if (!paused) { LateUpdate(); }
         }
 
-        public static float debugFloat = 0;
         /// <summary>
         /// Takes care of rendering things inside the game window
         /// </summary>
@@ -137,13 +147,14 @@ namespace STCEngine.Engine
                     Tilemap? tilemap = gameObject.GetComponent<Tilemap>();
                     if(tilemap != null && tilemap.enabled && gameObject.isActive)
                     {
-                        for(int y = 0; y < tilemap.mapSize.y; y++)
-                        {
-                            for (int x = 0; x < tilemap.mapSize.x; x++)
-                            {
-                                //graphics.DrawImage(tilemap.tileMapImage, gameObject.transform.position.x - tilemap.tileMapImage.Width/2, gameObject.transform.position.y - tilemap.tileMapImage.Height / 2, tilemap.tileMapImage.Width, tilemap.tileMapImage.Height);//(tilemap.tiles[x, y], gameObject.transform.position.x + x * tilemap.tileSize.x, gameObject.transform.position.y + y * tilemap.tileSize.y, tilemap.tileSize.x, tilemap.tileSize.x);
-                            }
-                        }
+                        graphics.DrawImage(tilemap.tileMapImage, gameObject.transform.position.x - tilemap.tileMapImage.Width / 2, gameObject.transform.position.y - tilemap.tileMapImage.Height / 2, tilemap.tileMapImage.Width, tilemap.tileMapImage.Height);
+                        //for(int y = 0; y < tilemap.mapSize.y; y++)
+                        //{
+                        //    for (int x = 0; x < tilemap.mapSize.x; x++)
+                        //    {
+                        //        //graphics.DrawImage(tilemap.tileMapImage, gameObject.transform.position.x - tilemap.tileMapImage.Width/2, gameObject.transform.position.y - tilemap.tileMapImage.Height / 2, tilemap.tileMapImage.Width, tilemap.tileMapImage.Height);//(tilemap.tiles[x, y], gameObject.transform.position.x + x * tilemap.tileSize.x, gameObject.transform.position.y + y * tilemap.tileSize.y, tilemap.tileSize.x, tilemap.tileSize.x);
+                        //    }
+                        //}
                     }
                 }
                 foreach(GameObject gameObject in UISpritesToRender)
@@ -155,7 +166,22 @@ namespace STCEngine.Engine
                         //{
                         //Debug.Log($"graphics.DrawImage({gameObject.transform.position.x - UISprite.image.Width * gameObject.transform.size.x / 2 + UISprite.offset.x + UISprite.screenAnchorOffset.x}, {gameObject.transform.position.y - UISprite.image.Height * gameObject.transform.size.y / 2 + UISprite.offset.y + UISprite.screenAnchorOffset.y}, {UISprite.image.Width * gameObject.transform.size.x}, {UISprite.image.Height * gameObject.transform.size.y}");
                         graphics.DrawImage(UISprite.image, gameObject.transform.position.x - UISprite.image.Width * gameObject.transform.size.x / 2 + UISprite.offset.x + UISprite.screenAnchorOffset.x, gameObject.transform.position.y - UISprite.image.Height * gameObject.transform.size.y / 2 + UISprite.offset.y + UISprite.screenAnchorOffset.y, UISprite.image.Width * gameObject.transform.size.x, UISprite.image.Height * gameObject.transform.size.y);
+                        if(gameObject.name == "Pause Screen")
+                        {
+                            quitButton.Enabled = true;
+                            resumeButton.Enabled = true;
+                            quitButton.Visible = true;
+                            resumeButton.Visible = true;
+                        }
                         //}
+                    }
+                    else if (gameObject.name == "Pause Screen")
+                    {
+                        quitButton.Enabled = false;
+                        quitButton.Enabled = false;
+                        quitButton.Visible = false;
+                        resumeButton.Visible = false;
+                        window.Focus();
                     }
                 }
                 //DEBUG ---------

@@ -25,7 +25,26 @@ namespace STCEngine.Game
 
         private GameObject testKamenaStena, testGameObject2;
         //starts the game
-        public Game() : base(windowSize, "Hraaa :)") {  } 
+        public Game() : base(windowSize, "Hraaa :)") {  }
+
+        /// <summary>
+        /// Quits the application, called upon clicking the quit button when the game is paused
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void QuitButton(object? sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+        /// <summary>
+        /// Resumes the game, called upon clicking the resume button when the game is paused
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ResumeButton(object? sender, EventArgs e)
+        {
+            Unpause();
+        }
 
         /// <summary>
         /// Called upon starting the game
@@ -35,6 +54,10 @@ namespace STCEngine.Game
             MainGameInstance = this;
             Debug.LogInfo("Game started");
             backgroundColor = Color.Black;
+
+            CreatePauseScreenButtons();
+            quitButton.Click += new EventHandler(QuitButton);
+            resumeButton.Click += new EventHandler(ResumeButton);
 
             //spawn player
             player = new GameObject("Player",new Transform(new Vector2(100, 100), 0, new Vector2(0.6f, 0.6f)));
@@ -120,7 +143,6 @@ namespace STCEngine.Game
 
         public void Pause()
         {
-            debugFloat += 0.05f;
             paused = true;
             pauseScreen.isActive = true;
         }
