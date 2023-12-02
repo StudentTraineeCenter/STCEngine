@@ -15,3 +15,4 @@ C:\Users\Martin\source\repos\2DGameEngineSTC\Test Apka STC Engine\obj\Debug\net6
 C:\Users\Martin\source\repos\2DGameEngineSTC\Test Apka STC Engine\obj\Debug\net6.0-windows\ref\STCEngine.dll
 C:\Users\Martin\source\repos\2DGameEngineSTC\Test Apka STC Engine\obj\Debug\net6.0-windows\STCEngine.Test_form.resources
 C:\Users\Martin\source\repos\2DGameEngineSTC\Test Apka STC Engine\obj\Debug\net6.0-windows\STCEngine.csproj.GenerateResource.cache
+C:\Users\Martin\source\repos\2DGameEngineSTC\Test Apka STC Engine\obj\Debug\net6.0-windows\STCEngine.Properties.Resources.resources
