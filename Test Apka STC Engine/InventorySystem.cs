@@ -84,9 +84,15 @@ namespace STCEngine
             {
                 for (int i = 0; i < items.Count; i++)
                 {
-                    //Debug.Log($"showing {items[i].itemName} at position {(int)(i / 5)} from max {Engine.EngineClass.playerInventoryUI.Rows.Count}, {i % 5} from max {Engine.EngineClass.playerInventoryUI.Rows[(int)(i / 5)].Cells.Count} , image: {items[i].icon}");
-                    Engine.EngineClass.playerInventoryUI.Rows[(int)(i / 5)].Cells[i % 5].Value = items[i].icon;
-                    Engine.EngineClass.playerInventoryUI.Rows[(int)(i / 5)].Cells[i % 5].ToolTipText = items[i].itemName;
+                    //combines the image of the item with the amount
+                    Bitmap combinedImage = new Bitmap(96, 96);
+                    using (Graphics g = Graphics.FromImage(combinedImage))
+                    {
+                        g.DrawImage(items[i].icon, 0, 0, 96, 96);
+                        if (items[i].itemCount != 1) { g.DrawString(items[i].itemCount.ToString(), new Font("Arial", 15, FontStyle.Regular), new SolidBrush(Color.Black), 0, 0); }
+                    }
+                    Engine.EngineClass.playerInventoryUI.Rows[(int)(i / 5)].Cells[i % 5].Value = combinedImage;
+                    Engine.EngineClass.playerInventoryUI.Rows[(int)(i / 5)].Cells[i % 5].ToolTipText = $"{items[i].itemName} x {items[i].itemCount}";
                     //Engine.EngineClass.playerInventoryUI.Refresh();
                 }
             }
@@ -109,17 +115,27 @@ namespace STCEngine
             else { return false; }
         }
 
-        private void ItemClicked(object? sender, EventArgs e)
+        public void ItemClicked(object? sender, DataGridViewCellEventArgs e)
         {
-            //InventorySlot senderItemSlot = sender as InventorySlot;
-            //if (Game.Game.MainGameInstance.twoInventoriesOpen)
-            //{
-            //    if (!TransferItem(senderItemSlot.item, Game.Game.MainGameInstance.otherInventory)) { Debug.LogError("Error moving items between inventories"); }
-            //}
-            //else
-            //{
-            //    senderItemSlot.DropItem();
-            //}
+            //Debug.Log(sender.GetType());
+            Debug.Log($"{e.ColumnIndex}, {e.RowIndex}");
+            if(items.Count <= e.RowIndex * 5 + e.ColumnIndex) { Debug.Log("clicked empty slot"); return; }
+            if (Game.Game.MainGameInstance.twoInventoriesOpen)
+            {
+                if (!TransferItem(items[e.RowIndex*5+e.ColumnIndex], Game.Game.MainGameInstance.otherInventory)) { Debug.LogError("Error moving items between inventories"); }
+            }
+            else
+            {
+                DropItem(items[e.RowIndex * 5 + e.ColumnIndex]);
+            }
+        }
+        public void DropItem(ItemInInventory item)
+        {
+            Debug.Log($"Dropped {item.itemName}x{item.itemCount}");
+        }
+        public void DropItem(int itemIndex)
+        {
+            Debug.Log($"Dropped {items[itemIndex].itemName}x{items[itemIndex].itemCount}");
         }
 
         public override void Initialize()

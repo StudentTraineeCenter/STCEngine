@@ -173,7 +173,15 @@ namespace STCEngine.Engine
             playerInventoryPanel.Controls.Add(playerInventoryUI);
             playerInventoryUI.Dock = DockStyle.None;//DockStyle.Top | DockStyle.Right | DockStyle.Bottom | DockStyle.Left; 
             
-            for(int i = 0; i < playerInventoryUI.Rows.Count; i++) { for(int j = 0; j < playerInventoryUI.Rows[i].Cells.Count; j++) { playerInventoryUI.Rows[i].Cells[j].Value = emptyImage; playerInventoryUI.Rows[i].Cells[j].ToolTipText = ""; } }
+            for(int i = 0; i < playerInventoryUI.Rows.Count; i++) 
+            { 
+                for(int j = 0; j < playerInventoryUI.Rows[i].Cells.Count; j++) 
+                { 
+                    playerInventoryUI.Rows[i].Cells[j].Value = emptyImage; 
+                    playerInventoryUI.Rows[i].Cells[j].ToolTipText = "";
+                } 
+            }
+            playerInventoryUI.CellClick += new DataGridViewCellEventHandler(Game.Game.MainGameInstance.playerInventory.ItemClicked);
             #endregion
 
             #region otherInventoryUI setup
@@ -193,7 +201,15 @@ namespace STCEngine.Engine
             otherInventoryPanel.Controls.Add(otherInventoryUI);
             otherInventoryUI.Dock = DockStyle.None;
 
-            for (int i = 0; i < otherInventoryUI.Rows.Count; i++) { for (int j = 0; j < otherInventoryUI.Rows[i].Cells.Count; j++) { otherInventoryUI.Rows[i].Cells[j].Value = emptyImage; otherInventoryUI.Rows[i].Cells[j].ToolTipText = ""; } }
+            for (int i = 0; i < otherInventoryUI.Rows.Count; i++) 
+            { 
+                for (int j = 0; j < otherInventoryUI.Rows[i].Cells.Count; j++) 
+                { 
+                    otherInventoryUI.Rows[i].Cells[j].Value = emptyImage; 
+                    otherInventoryUI.Rows[i].Cells[j].ToolTipText = "";
+                } 
+            }
+            //otherInventoryUI.CellClick += new DataGridViewCellEventHandler(Game.Game.MainGameInstance.otherInventory.ItemClicked);
             #endregion
 
 
@@ -402,10 +418,8 @@ namespace STCEngine.Engine
     }
     public class InventoryItemSlots : DataGridView
     {
-        //protected override bool DoubleBuffered { get => base.DoubleBuffered; set => base.DoubleBuffered = value; }
         private bool alreadyTransparent;
         private Image backgroundImage;
-        //public bool DoubleBuffered { get => base.DoubleBuffered; set => base.DoubleBuffered = value; }
         protected override void PaintBackground(Graphics graphics, Rectangle clipBounds, Rectangle gridBounds)
         {
             base.PaintBackground(graphics, clipBounds, gridBounds);

@@ -162,14 +162,26 @@ namespace STCEngine.Game
             paused = false;
             pauseScreen.isActive = false;
         }
-        public void OpenInventory()
+        public void OpenPlayerInventory()
         {
             playerInventory.ShowInventory();
             playerInventoryPanel.Visible = true;
         }
-        public void CloseInventory()
+        public void ClosePlayerInventory()
         {
             playerInventoryPanel.Visible = false;
+        }
+        public void OpenOtherInventory(Inventory inventory)
+        {
+            otherInventory = inventory;
+            otherInventoryUI.CellClick += new DataGridViewCellEventHandler(otherInventory.ItemClicked);
+            otherInventoryUI.Visible = true;
+        }
+        public void CloseOtherInventory()
+        {
+            otherInventoryUI.CellClick -= new DataGridViewCellEventHandler(otherInventory.ItemClicked);
+            otherInventory = null;
+            otherInventoryUI.Visible = false;
         }
 
         private bool up = false, down = false, left = false, right = false;
@@ -181,8 +193,8 @@ namespace STCEngine.Game
         {
             if(e.KeyCode == Keys.I)
             {
-                if (playerInventoryPanel.Visible) { CloseInventory(); }
-                else { OpenInventory(); }
+                if (playerInventoryPanel.Visible) { ClosePlayerInventory(); }
+                else { OpenPlayerInventory(); }
             }
             if(e.KeyCode == Keys.Escape)
             {
