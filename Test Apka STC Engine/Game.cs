@@ -48,23 +48,6 @@ namespace STCEngine.Game
         {
             Unpause();
         }
-        //private void InitializeInventories()
-        //{
-        //    //for (int i = 0; i < rows; i++)
-        //    //{
-        //    //    for (int j = 0; j < columns; j++)
-        //    //    {
-        //    //        var slot = new InventorySlot();
-        //    //        slot.Click += new EventHandler(ItemClicked);
-        //    //        slot.Location = new Point((int)gameObject.transform.position.x + slotSpacing + (slotSpacing + slotSize) * j, (int)gameObject.transform.position.y + slotSpacing + (slotSpacing + slotSize) * i);
-        //    //        slot.Size = new Size(slotSize, slotSize);
-        //    //        slot.BackgroundImage = inventorySlotBackgroundImage;
-        //    //        slot.Visible = false;
-        //    //        inventorySlots.Add(slot);
-
-        //    //    }
-        //    //}
-        //}
 
         /// <summary>
         /// Called upon starting the game
@@ -102,7 +85,7 @@ namespace STCEngine.Game
             playerAnim = player.AddComponent(new Animator(anim)) as Animator;
 
             playerInventory = player.AddComponent(new Inventory());
-            playerInventory.AddItem(new ItemInInventory[] { new ItemInInventory("mec", 1, "Assets/Items/Items-Test_Sword.png"), new ItemInInventory("slimeball", 5, "Assets/Items/Slimeball.png") });
+            playerInventory.isPlayerInventory = true;
             #endregion
 
             tilemap = new GameObject("Tilemap", new Vector2(0, 0));
@@ -119,6 +102,8 @@ namespace STCEngine.Game
             pauseScreen.isActive = false;
 
             InitializeInventories();
+            otherInventoryPanel.Visible = false;
+            playerInventory.AddItem(new ItemInInventory[] { new ItemInInventory("mec", 1, "Assets/Items/Item-Test_Sword.png"), new ItemInInventory("slimeball", 5, "Assets/Items/Slimeball.png") });
             //testKamenaStena = new GameObject("Kamena stena", new Transform(new Vector2(700, 75), 0, Vector2.one));
             //testKamenaStena.AddComponent(new Sprite("Assets/Basic Wall.png"));
             //testKamenaStena.AddComponent(new BoxCollider(Vector2.one * 64, Vector2.zero, false, true));
@@ -177,6 +162,15 @@ namespace STCEngine.Game
             paused = false;
             pauseScreen.isActive = false;
         }
+        public void OpenInventory()
+        {
+            playerInventory.ShowInventory();
+            playerInventoryPanel.Visible = true;
+        }
+        public void CloseInventory()
+        {
+            playerInventoryPanel.Visible = false;
+        }
 
         private bool up = false, down = false, left = false, right = false;
         /// <summary>
@@ -185,6 +179,11 @@ namespace STCEngine.Game
         /// <param name="e"></param>
         public override void GetKeyDown(KeyEventArgs e)
         {
+            if(e.KeyCode == Keys.I)
+            {
+                if (playerInventoryPanel.Visible) { CloseInventory(); }
+                else { OpenInventory(); }
+            }
             if(e.KeyCode == Keys.Escape)
             {
                 if (paused) { Unpause(); }

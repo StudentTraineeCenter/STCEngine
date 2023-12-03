@@ -14,6 +14,7 @@ namespace STCEngine
         public override string Type { get; } = nameof(Inventory);
         [JsonIgnore] public int emptySlots { get => 30 - items.Count; }
         public List<ItemInInventory> items { get; set; } = new List<ItemInInventory>();
+        public bool isPlayerInventory;
         //[JsonIgnore] public List<InventorySlot> inventorySlots = new List<InventorySlot>();
 
         public Inventory() { }
@@ -27,6 +28,7 @@ namespace STCEngine
             if(emptySlots == 0) { return false; }
             
             items.Add(item);
+            RefreshInventory();
             return true;
         }
         /// <summary>
@@ -39,6 +41,7 @@ namespace STCEngine
             if (emptySlots - items.Length <= 0) { return false; }
 
             this.items.AddRange(items);
+            RefreshInventory();
             return true;
         }
         /// <summary>
@@ -51,12 +54,14 @@ namespace STCEngine
             try
             {
                 items.Remove(item);
+                RefreshInventory();
                 return true;
             }
             catch { return false; }
         }
         public void ShowInventory()
         {
+            RefreshInventory();
             //for(int i = 0; i < items.Count; i++)
             //{
             //    inventorySlots[i].Visible = true;
@@ -67,18 +72,24 @@ namespace STCEngine
         }
         public void HideInventory()
         {
-            for (int i = 0; i < items.Count; i++)
-            {
-                //inventorySlots[i].Visible = false;
-                //inventorySlots[i].Enabled = false;
-            }
+            //for (int i = 0; i < items.Count; i++)
+            //{
+            //    //inventorySlots[i].Visible = false;
+            //    //inventorySlots[i].Enabled = false;
+            //}
         }
         public void RefreshInventory()
         {
-            //for (int i = 0; i < items.Count; i++)
-            //{
-            //    if (inventorySlots[i].item != items[i] || inventorySlots[i].Image == null) { inventorySlots[i].Image = inventorySlots[i].item.icon; inventorySlots[i].item = items[i]; }
-            //}
+            if (isPlayerInventory)
+            {
+                for (int i = 0; i < items.Count; i++)
+                {
+                    //Debug.Log($"showing {items[i].itemName} at position {(int)(i / 5)} from max {Engine.EngineClass.playerInventoryUI.Rows.Count}, {i % 5} from max {Engine.EngineClass.playerInventoryUI.Rows[(int)(i / 5)].Cells.Count} , image: {items[i].icon}");
+                    Engine.EngineClass.playerInventoryUI.Rows[(int)(i / 5)].Cells[i % 5].Value = items[i].icon;
+                    Engine.EngineClass.playerInventoryUI.Rows[(int)(i / 5)].Cells[i % 5].ToolTipText = items[i].itemName;
+                    //Engine.EngineClass.playerInventoryUI.Refresh();
+                }
+            }
         }
 
         /// <summary>
@@ -100,15 +111,15 @@ namespace STCEngine
 
         private void ItemClicked(object? sender, EventArgs e)
         {
-            InventorySlot senderItemSlot = sender as InventorySlot;
-            if (Game.Game.MainGameInstance.twoInventoriesOpen)
-            {
-                if (!TransferItem(senderItemSlot.item, Game.Game.MainGameInstance.otherInventory)) { Debug.LogError("Error moving items between inventories"); }
-            }
-            else
-            {
-                senderItemSlot.DropItem();
-            }
+            //InventorySlot senderItemSlot = sender as InventorySlot;
+            //if (Game.Game.MainGameInstance.twoInventoriesOpen)
+            //{
+            //    if (!TransferItem(senderItemSlot.item, Game.Game.MainGameInstance.otherInventory)) { Debug.LogError("Error moving items between inventories"); }
+            //}
+            //else
+            //{
+            //    senderItemSlot.DropItem();
+            //}
         }
 
         public override void Initialize()
@@ -134,12 +145,12 @@ namespace STCEngine
         public ItemInInventory(string itemName, int count, string fileSourceDirectory) { this.itemName = itemName; itemCount = count; this.fileSourceDirectory = fileSourceDirectory; }
         [JsonConstructor] public ItemInInventory() { }
     }
-    public class InventorySlot : Button
-    {
-        public ItemInInventory item;
+    //public class InventorySlot : Button
+    //{
+    //    public ItemInInventory item;
 
-        public void DropItem() { Debug.Log($"Item {item.itemName}x{item.itemCount} dropped"); }
+    //    public void DropItem() { Debug.Log($"Item {item.itemName}x{item.itemCount} dropped"); }
         
-    }
+    //}
 
 }

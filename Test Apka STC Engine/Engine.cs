@@ -26,16 +26,16 @@ namespace STCEngine.Engine
         public Button resumeButton, quitButton;
         public static bool paused;
 
-        public InventoryItemSlots playerInventoryUI = new InventoryItemSlots(), otherInventoryUI = new InventoryItemSlots();
-        private Panel playerInventoryPanel = new Panel(), otherInventoryPanel = new Panel();
+        public static InventoryItemSlots playerInventoryUI = new InventoryItemSlots(), otherInventoryUI = new InventoryItemSlots();
+        public Panel playerInventoryPanel = new Panel(), otherInventoryPanel = new Panel();
 
-        public static Dictionary<string, GameObject> registeredGameObjects = new Dictionary<string, GameObject>();
-        public static List<GameObject> spritesToRender = new List<GameObject>();
-        public static List<GameObject> UISpritesToRender = new List<GameObject>();
+        public static Dictionary<string, GameObject> registeredGameObjects { get; private set; } = new Dictionary<string, GameObject>();
+        public static List<GameObject> spritesToRender { get; private set; } = new List<GameObject>();
+        public static List<GameObject> UISpritesToRender { get; private set; } = new List<GameObject>();
 
-        public static List<BoxCollider> debugRectangles = new List<BoxCollider>();
-        public static List<Animation> runningAnimations = new List<Animation>();
-        public static List<Collider> registeredColliders = new List<Collider>();
+        public static List<BoxCollider> debugRectangles { get; private set; } = new List<BoxCollider>();
+        public static List<Animation> runningAnimations { get; private set; } = new List<Animation>();
+        public static List<Collider> registeredColliders { get; private set; } = new List<Collider>();
 
         public Color backgroundColor;
         public static readonly Bitmap emptyImage = new Bitmap(1, 1);
@@ -120,7 +120,7 @@ namespace STCEngine.Engine
             //playerInventoryPanel.BackgroundImage = Image.FromFile("Assets/Inventory-Background.png");
             playerInventoryPanel.BackgroundImage = null;//Image.FromFile("Assets/Inventory-Background.png");
             //playerInventoryPanel.BackgroundImageLayout = ImageLayout.Tile;
-            playerInventoryPanel.Controls.Add(this.playerInventoryUI);
+            playerInventoryPanel.Controls.Add(playerInventoryUI);
             playerInventoryPanel.Location = new Point(50, 50);
             playerInventoryPanel.Size = new Size(640, 384);
             playerInventoryPanel.Name = "player inv panel";
@@ -130,7 +130,7 @@ namespace STCEngine.Engine
             //otherInventoryPanel.BackgroundImage = Image.FromFile("Assets/Inventory-Background.png");
             //otherInventoryPanel.BackgroundImageLayout = ImageLayout.Tile;
             playerInventoryPanel.BackgroundImage = null;
-            otherInventoryPanel.Controls.Add(this.otherInventoryUI);
+            otherInventoryPanel.Controls.Add(otherInventoryUI);
             otherInventoryPanel.Location = new Point(50, 500);
             otherInventoryPanel.Size = new Size(640, 384);
             otherInventoryPanel.Name = "other inv panel";
@@ -173,7 +173,7 @@ namespace STCEngine.Engine
             playerInventoryPanel.Controls.Add(playerInventoryUI);
             playerInventoryUI.Dock = DockStyle.None;//DockStyle.Top | DockStyle.Right | DockStyle.Bottom | DockStyle.Left; 
             
-            for(int i = 0; i < playerInventoryUI.Rows.Count; i++) { for(int j = 0; j < playerInventoryUI.Rows[i].Cells.Count; j++) { playerInventoryUI.Rows[i].Cells[j].Value = emptyImage; } }
+            for(int i = 0; i < playerInventoryUI.Rows.Count; i++) { for(int j = 0; j < playerInventoryUI.Rows[i].Cells.Count; j++) { playerInventoryUI.Rows[i].Cells[j].Value = emptyImage; playerInventoryUI.Rows[i].Cells[j].ToolTipText = ""; } }
             #endregion
 
             #region otherInventoryUI setup
@@ -193,7 +193,7 @@ namespace STCEngine.Engine
             otherInventoryPanel.Controls.Add(otherInventoryUI);
             otherInventoryUI.Dock = DockStyle.None;
 
-            for (int i = 0; i < otherInventoryUI.Rows.Count; i++) { for (int j = 0; j < otherInventoryUI.Rows[i].Cells.Count; j++) { otherInventoryUI.Rows[i].Cells[j].Value = emptyImage; } }
+            for (int i = 0; i < otherInventoryUI.Rows.Count; i++) { for (int j = 0; j < otherInventoryUI.Rows[i].Cells.Count; j++) { otherInventoryUI.Rows[i].Cells[j].Value = emptyImage; otherInventoryUI.Rows[i].Cells[j].ToolTipText = ""; } }
             #endregion
 
 
