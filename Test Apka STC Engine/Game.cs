@@ -27,6 +27,7 @@ namespace STCEngine.Game
         private float horizontalInput, verticalInput;
 
         private GameObject testKamenaStena, testGameObject2;
+        private Inventory testInventory;
         //starts the game
         public Game() : base(windowSize, "Hraaa :)") {  }
 
@@ -103,11 +104,14 @@ namespace STCEngine.Game
 
             InitializeInventories();
             otherInventoryPanel.Visible = false;
+            playerInventoryPanel.Visible = false;
             playerInventory.AddItem(new ItemInInventory[] { new ItemInInventory("mec", 1, "Assets/Items/Item-Test_Sword.png"), new ItemInInventory("Slimeball", 5, "Assets/Items/Slimeball.png") });
 
             var randomDroppedItem = new GameObject("dropped item", new Transform(Vector2.one * 200, 0, Vector2.one));
             randomDroppedItem.AddComponent(new Sprite("Assets/Items/Slimeball.png"));
             randomDroppedItem.AddComponent(new DroppedItem(new ItemInInventory("Slimeball", 3, "Assets/Items/Slimeball.png")));
+
+            testInventory = new Inventory();
             //testKamenaStena = new GameObject("Kamena stena", new Transform(new Vector2(700, 75), 0, Vector2.one));
             //testKamenaStena.AddComponent(new Sprite("Assets/Basic Wall.png"));
             //testKamenaStena.AddComponent(new BoxCollider(Vector2.one * 64, Vector2.zero, false, true));
@@ -147,11 +151,8 @@ namespace STCEngine.Game
                 playerAnim.Stop();
             }
 
-            Collider col;
-            if (playerCol.IsColliding("droppedItem", out col))
-            {
-                col.gameObject.GetComponent<DroppedItem>().CollectItem();
-            }
+            //collecting dropped items
+            Collider col; if (playerCol.IsColliding("droppedItem", out col)) { col.gameObject.GetComponent<DroppedItem>().CollectItem(); }
         }
 
         /// <summary>
@@ -185,13 +186,14 @@ namespace STCEngine.Game
         {
             otherInventory = inventory;
             otherInventoryUI.CellClick += new DataGridViewCellEventHandler(otherInventory.ItemClicked);
-            otherInventoryUI.Visible = true;
+            otherInventory.ShowInventory();
+            otherInventoryPanel.Visible = true;
         }
         public void CloseOtherInventory()
         {
             otherInventoryUI.CellClick -= new DataGridViewCellEventHandler(otherInventory.ItemClicked);
             otherInventory = null;
-            otherInventoryUI.Visible = false;
+            otherInventoryPanel.Visible = false;
         }
 
         private bool up = false, down = false, left = false, right = false;
@@ -201,16 +203,24 @@ namespace STCEngine.Game
         /// <param name="e"></param>
         public override void GetKeyDown(KeyEventArgs e)
         {
-            if(e.KeyCode == Keys.I)
+            if(e.KeyCode == Keys.I) //inventory
             {
                 if (playerInventoryPanel.Visible) { ClosePlayerInventory(); }
                 else { OpenPlayerInventory(); }
+                if (otherInventoryPanel.Visible) { CloseOtherInventory(); }
             }
-            if(e.KeyCode == Keys.Escape)
+            if (e.KeyCode == Keys.O) //inventory
+            {
+                if (otherInventoryPanel.Visible) { CloseOtherInventory(); }
+                else { OpenOtherInventory(testInventory); }
+            }
+            if (e.KeyCode == Keys.Escape) //pause
             {
                 if (paused) { Unpause(); }
                 else { Pause(); }
             }
+
+            //movement inputs
             if(e.KeyCode == Keys.A || e.KeyCode == Keys.Left)
             {
                 left = true;

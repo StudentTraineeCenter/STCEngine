@@ -4,8 +4,9 @@ DONE		3. UI system
 	DONE		Pause screen
 			5. Inventory
 DONE			UI
-				Item system
-				Logic
+DONE			Item system
+DONE			Logic
+				Other container
 			6. Dvere (toggle hitbox)
 			7. NPC system
 				NPC Sprites, animations,...

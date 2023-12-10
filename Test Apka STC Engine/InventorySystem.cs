@@ -66,7 +66,6 @@ namespace STCEngine
         {
             try
             {
-                //Engine.EngineClass.playerInventoryUI.Rows[(int)(items.IndexOf(item) / 5)].Cells[items.IndexOf(item) % 5].Value = Engine.EngineClass.emptyImage;
                 items.Remove(item);
                 RefreshInventory(true);
                 return true;
@@ -76,45 +75,47 @@ namespace STCEngine
         public void ShowInventory()
         {
             RefreshInventory();
-            //for(int i = 0; i < items.Count; i++)
-            //{
-            //    inventorySlots[i].Visible = true;
-            //    inventorySlots[i].Enabled = true;
-
-            //    RefreshInventory();
-            //}
         }
         public void HideInventory()
         {
-            //for (int i = 0; i < items.Count; i++)
-            //{
-            //    //inventorySlots[i].Visible = false;
-            //    //inventorySlots[i].Enabled = false;
-            //}
         }
         public void RefreshInventory(bool removedItem = false)
         {
-            if (isPlayerInventory)
+            for (int i = 0; i < items.Count; i++)
             {
-                for (int i = 0; i < items.Count; i++)
+                //combines the image of the item with the amount
+                Bitmap combinedImage = new Bitmap(96, 96);
+                using (Graphics g = Graphics.FromImage(combinedImage))
                 {
-                    //combines the image of the item with the amount
-                    Bitmap combinedImage = new Bitmap(96, 96);
-                    using (Graphics g = Graphics.FromImage(combinedImage))
-                    {
-                        g.DrawImage(items[i].icon, 0, 0, 96, 96);
-                        if (items[i].itemCount != 1) { g.DrawString(items[i].itemCount.ToString(), new Font("Arial", 15, FontStyle.Regular), new SolidBrush(Color.Black), 0, 0); }
-                    }
+                    g.DrawImage(items[i].icon, 0, 0, 96, 96);
+                    if (items[i].itemCount != 1) { g.DrawString(items[i].itemCount.ToString(), new Font("Arial", 15, FontStyle.Regular), new SolidBrush(Color.Black), 0, 0); }
+                }
+                
+                if (isPlayerInventory)
+                {
                     Engine.EngineClass.playerInventoryUI.Rows[(int)(i / 5)].Cells[i % 5].Value = combinedImage;
                     Engine.EngineClass.playerInventoryUI.Rows[(int)(i / 5)].Cells[i % 5].ToolTipText = $"{items[i].itemName} x {items[i].itemCount}";
-                    //Engine.EngineClass.playerInventoryUI.Refresh();
                 }
-                if (removedItem) 
-                { 
+                else 
+                {
+                    Engine.EngineClass.otherInventoryUI.Rows[(int)(i / 5)].Cells[i % 5].Value = combinedImage;
+                    Engine.EngineClass.otherInventoryUI.Rows[(int)(i / 5)].Cells[i % 5].ToolTipText = $"{items[i].itemName} x {items[i].itemCount}";
+                }
+            }
+            if (removedItem)
+            {
+                if (isPlayerInventory)
+                {
                     Engine.EngineClass.playerInventoryUI.Rows[(int)(items.Count / 5)].Cells[items.Count % 5].Value = Engine.EngineClass.emptyImage;
                     Engine.EngineClass.playerInventoryUI.Rows[(int)(items.Count / 5)].Cells[items.Count % 5].ToolTipText = "";
                 }
+                else
+                {
+                    Engine.EngineClass.otherInventoryUI.Rows[(int)(items.Count / 5)].Cells[items.Count % 5].Value = Engine.EngineClass.emptyImage;
+                    Engine.EngineClass.otherInventoryUI.Rows[(int)(items.Count / 5)].Cells[items.Count % 5].ToolTipText = "";
+                }
             }
+
         }
 
         /// <summary>
@@ -129,6 +130,7 @@ namespace STCEngine
             {
                 RemoveItem(item);
                 otherInventory.AddItem(item);
+                Debug.Log("transfered item");
                 return true;
             }
             else { return false; }
@@ -141,7 +143,7 @@ namespace STCEngine
             if(items.Count <= e.RowIndex * 5 + e.ColumnIndex) { Debug.Log("clicked empty slot"); return; }
             if (Game.Game.MainGameInstance.twoInventoriesOpen)
             {
-                if (!TransferItem(items[e.RowIndex*5+e.ColumnIndex], Game.Game.MainGameInstance.otherInventory)) { Debug.LogError("Error moving items between inventories"); }
+                if (!TransferItem(items[e.RowIndex*5+e.ColumnIndex], isPlayerInventory ? Game.Game.MainGameInstance.otherInventory : Game.Game.MainGameInstance.playerInventory)) { Debug.LogError("Error moving items between inventories"); }
             }
             else
             {
@@ -152,7 +154,7 @@ namespace STCEngine
         {
             Debug.Log($"Dropped {item.itemName}x{item.itemCount}");
             RemoveItem(item);
-            GameObject droppedItem = new GameObject($"Dropped Item {item.itemName}x{item.itemCount}, {new Random().Next()}", new List<Component> { new DroppedItem(item), new Transform(Game.Game.MainGameInstance.player.transform.position, 0, Vector2.one), new Sprite(item.fileSourceDirectory) });
+            GameObject droppedItem = new GameObject($"Dropped Item {item.itemName}x{item.itemCount}, {new Random().Next()}", new List<Component> { new DroppedItem(item), new Transform(Game.Game.MainGameInstance.player.transform.position, 0, Vector2.one*2.5f), new Sprite(item.fileSourceDirectory) });
             droppedItem.GetComponent<DroppedItem>().enabled = false;
             Task.Delay(3000).ContinueWith(t => (droppedItem.GetComponent<DroppedItem>().enabled = true));
             //await Task.Delay(3000);
@@ -211,7 +213,7 @@ namespace STCEngine
         public override void Initialize()
         {
             gameObject.AddComponent(new BoxCollider(Vector2.one * 100, "droppedItem", Vector2.zero, true));
-
+            Task.Delay(5).ContinueWith(t => (gameObject.transform.size = Vector2.one * 2.5f));
         }
     }
 
