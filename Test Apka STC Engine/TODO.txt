@@ -2,15 +2,21 @@
 DONE		2. Cteni levelu z jsonu (jen skupina gameobjectu)
 DONE		3. UI system
 	DONE		Pause screen
-			4. Item system
 			5. Inventory
+DONE			UI
+				Item system
+				Logic
 			6. Dvere (toggle hitbox)
-			9. NPC system
+			7. NPC system
 				NPC Sprites, animations,...
 				NPC Stats
 				NPC Dialogues
 			8. Fight system/Farmareni
-			7. Destructible objekty
+			9. Vic itemu, quests, level, polish
+				Mob drops
+				Quest rewards
+				Level setup
+			10. Destructible objekty
 
 			10. Prirucka
 			11. Absolventka :)

@@ -272,6 +272,7 @@ namespace STCEngine
         }
         public override void DestroySelf()
         {
+            if (gameObject.GetComponent<Tilemap>() != null) { gameObject.RemoveComponent<Tilemap>(); return; }
             EngineClass.RemoveSpriteToRender(gameObject);
         }
     }
@@ -326,6 +327,7 @@ namespace STCEngine
         public override void Initialize() {}
         public override void DestroySelf()
         {
+            if (isPlaying) { Stop(); }
             if(gameObject.GetComponent<Animator>() != null) { gameObject.RemoveComponent<Animator>(); return; }
         }
     }
@@ -420,7 +422,10 @@ namespace STCEngine
     {
         public bool isTrigger { get; set; } //whether it stops movement upon collision
         public Vector2 offset { get; set; }
+        public string tag { get; set; }
         public abstract bool IsColliding(BoxCollider other); //udelat override v tehle classe i pro circle, elipsu,...
+        public abstract bool IsColliding(string tag);
+        public abstract bool IsColliding(string tag, out Collider? collider);
         public abstract Collider[] OverlapCollider(bool includeTriggers = false);
         [JsonConstructor] protected Collider() { }
 
@@ -432,23 +437,27 @@ namespace STCEngine
     {
         public override string Type { get; } = nameof(BoxCollider);
         public Vector2 size { get; set; }
+        
 
         public bool debugDraw { get; private set; }
         /// <summary>
         /// Creates the box collider of the given size and with a given offset from gameObjects position 
         /// </summary>
         /// <param name="size"></param>
+        /// <param name="tag"></param>
         /// <param name="offset"></param>
         /// <param name="isTrigger"></param>
-        public BoxCollider(Vector2 size, Vector2? offset = null, bool isTrigger = false, bool debugDraw = false)
+        /// <param name="debugDraw"></param>
+        public BoxCollider(Vector2 size, string tag, Vector2? offset = null, bool isTrigger = false, bool debugDraw = false)
         {
+            this.tag = tag;
             this.size = size;
             this.offset = offset ?? Vector2.zero;
             this.isTrigger = isTrigger;
             this.debugDraw = debugDraw;
         }
         /// <summary>
-        /// 
+        /// Checks if this collider is coliding with the given collider
         /// </summary>
         /// <param name="otherCollider"></param>
         /// <returns>Whether this collider overlaps with the given collider</returns>
@@ -456,6 +465,35 @@ namespace STCEngine
         {
             var relativeDistance = otherCollider.gameObject.transform.position + otherCollider.offset - gameObject.transform.position - offset;
             return ((Math.Abs(relativeDistance.x) < (size.x + otherCollider.size.x) / 2) && (Math.Abs(relativeDistance.y) < (size.y + otherCollider.size.y) / 2));
+        }
+
+        /// <summary>
+        /// Checks if this collider is coliding with a collider with the given tag
+        /// </summary>
+        /// <param name="tag"></param>
+        /// <returns>Whether this collider overlaps with a collider with the given tag</returns>
+        public override bool IsColliding(string tag)
+        {
+            foreach (Collider col in EngineClass.registeredColliders)
+            {
+                if(col.tag == tag && IsColliding(col as BoxCollider)) { return true; } 
+            }
+            return false;
+        }
+        /// <summary>
+        /// Checks if this collider is coliding with a collider with the given tag
+        /// </summary>
+        /// <param name="tag"></param>
+        /// <param name="collider"></param>
+        /// <returns>Whether this collider overlaps with a collider with the given tag</returns>
+        public override bool IsColliding(string tag, out Collider? collider)
+        {
+            foreach (Collider col in EngineClass.registeredColliders)
+            {
+                if (col.tag == tag && IsColliding(col as BoxCollider)) { collider = col; return true; }
+            }
+            collider = null;
+            return false;
         }
 
         /// <summary>
@@ -485,6 +523,7 @@ namespace STCEngine
         }
         public override void DestroySelf()
         {
+            if (gameObject.GetComponent<BoxCollider>() != null) { gameObject.RemoveComponent<BoxCollider>(); return; }
             if (debugDraw) { EngineClass.RemoveDebugRectangle(this); }
             EngineClass.UnregisterCollider(this);
 
@@ -659,9 +698,14 @@ namespace STCEngine
         /// </summary>
         public void DestroySelf()
         {
-            foreach(Component c in components) { if(c.GetType() != typeof(Transform)){ DestroySelf(); } }
+            int componentsAmount = components.Count;
+            for(int i = 0; i < componentsAmount; i++) { if (components[0].GetType() != typeof(Transform)) { components[0].DestroySelf(); /*RemoveComponent<Component>();*/ } else if(components.Count > 1) { components[1].DestroySelf(); } }
+            //this.isActive = false;
+            if(components.Count > 1) { Debug.LogError($"Error destroying Gameobject, some component didn't destroy itself!"); return; }
+            EngineClass.UnregisterGameObject(this);
             Debug.LogInfo($"GameObject {name} should be destroyed. (remove all references to this object)");
         }
+
     }
 
 
@@ -691,6 +735,8 @@ namespace STCEngine
                         return jsonDoc.RootElement.Deserialize<UISprite>(options) as UISprite;
                     case nameof(Inventory):
                         return jsonDoc.RootElement.Deserialize<Inventory>(options) as Inventory;
+                    case nameof(DroppedItem):
+                        return jsonDoc.RootElement.Deserialize<DroppedItem>(options) as DroppedItem;
                     default:
                         throw new JsonException("'Type' doesn't match a known derived type");
                 }

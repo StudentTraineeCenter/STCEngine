@@ -67,13 +67,13 @@ namespace STCEngine.Game
             //spawn player
             player = new GameObject("Player",new Transform(new Vector2(100, 100), 0, new Vector2(0.6f, 0.6f)));
             player.AddComponent(new Sprite("Assets/Basic Enemy White 1.png"));
-            playerCol = player.AddComponent(new BoxCollider(Vector2.one * 100, Vector2.zero, false, true)) as BoxCollider;
+            playerCol = player.AddComponent(new BoxCollider(Vector2.one * 100, "player", Vector2.zero, false, true)) as BoxCollider;
 
             var hitboxWidth = 1f; //values lower than 1 might cause walking into walls
-            playerTopCol = player.AddComponent(new BoxCollider(Vector2.up * movementSpeed *hitboxWidth+ Vector2.right * 100, Vector2.up * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
-            playerBotCol = player.AddComponent(new BoxCollider(Vector2.up * movementSpeed * hitboxWidth + Vector2.right * 100, -Vector2.up * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
-            playerRightCol = player.AddComponent(new BoxCollider(Vector2.right * movementSpeed * hitboxWidth + Vector2.up * 100, Vector2.right * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
-            playerLeftCol = player.AddComponent(new BoxCollider(Vector2.right * movementSpeed * hitboxWidth + Vector2.up * 100, -Vector2.right * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
+            playerTopCol = player.AddComponent(new BoxCollider(Vector2.up * movementSpeed *hitboxWidth+ Vector2.right * 100, "playerWalk", Vector2.up * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
+            playerBotCol = player.AddComponent(new BoxCollider(Vector2.up * movementSpeed * hitboxWidth + Vector2.right * 100, "playerWalk", -Vector2.up * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
+            playerRightCol = player.AddComponent(new BoxCollider(Vector2.right * movementSpeed * hitboxWidth + Vector2.up * 100, "playerWalk", Vector2.right * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
+            playerLeftCol = player.AddComponent(new BoxCollider(Vector2.right * movementSpeed * hitboxWidth + Vector2.up * 100, "playerWalk", -Vector2.right * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
 
             AnimationFrame[] animFrames = {
                 new AnimationFrame("Assets/Basic Enemy White 1.png", 100),
@@ -103,7 +103,11 @@ namespace STCEngine.Game
 
             InitializeInventories();
             otherInventoryPanel.Visible = false;
-            playerInventory.AddItem(new ItemInInventory[] { new ItemInInventory("mec", 1, "Assets/Items/Item-Test_Sword.png"), new ItemInInventory("slimeball", 5, "Assets/Items/Slimeball.png") });
+            playerInventory.AddItem(new ItemInInventory[] { new ItemInInventory("mec", 1, "Assets/Items/Item-Test_Sword.png"), new ItemInInventory("Slimeball", 5, "Assets/Items/Slimeball.png") });
+
+            var randomDroppedItem = new GameObject("dropped item", new Transform(Vector2.one * 200, 0, Vector2.one));
+            randomDroppedItem.AddComponent(new Sprite("Assets/Items/Slimeball.png"));
+            randomDroppedItem.AddComponent(new DroppedItem(new ItemInInventory("Slimeball", 3, "Assets/Items/Slimeball.png")));
             //testKamenaStena = new GameObject("Kamena stena", new Transform(new Vector2(700, 75), 0, Vector2.one));
             //testKamenaStena.AddComponent(new Sprite("Assets/Basic Wall.png"));
             //testKamenaStena.AddComponent(new BoxCollider(Vector2.one * 64, Vector2.zero, false, true));
@@ -141,6 +145,12 @@ namespace STCEngine.Game
             else if (playerAnim.isPlaying)
             {
                 playerAnim.Stop();
+            }
+
+            Collider col;
+            if (playerCol.IsColliding("droppedItem", out col))
+            {
+                col.gameObject.GetComponent<DroppedItem>().CollectItem();
             }
         }
 
