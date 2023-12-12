@@ -33,7 +33,7 @@ namespace STCEngine.Engine
         public static List<GameObject> spritesToRender { get; private set; } = new List<GameObject>();
         public static List<GameObject> UISpritesToRender { get; private set; } = new List<GameObject>();
 
-        public static List<BoxCollider> debugRectangles { get; private set; } = new List<BoxCollider>();
+        public static List<Collider> debugRectangles { get; private set; } = new List<Collider>();
         public static List<Animation> runningAnimations { get; private set; } = new List<Animation>();
         public static List<Collider> registeredColliders { get; private set; } = new List<Collider>();
 
@@ -304,10 +304,22 @@ namespace STCEngine.Engine
                 //DEBUG ---------
                 if (testDebug)
                 {
-                    foreach (BoxCollider box in debugRectangles)
+                    foreach (Collider col in debugRectangles)
                     {
-                        if (box == null) { Debug.LogError("ERROR LOADING COLLIDER DEBUG RECTANGLE"); continue; }
-                        graphics.DrawRectangle(new Pen(box.isTrigger ? Color.Cyan : Color.Orange, 1), box.gameObject.transform.position.x + box.offset.x - box.size.x / 2, box.gameObject.transform.position.y + box.offset.y - box.size.y / 2, box.size.x, box.size.y);
+                        if(col.GetType() == typeof(BoxCollider))
+                        {
+                            BoxCollider box = col as BoxCollider;
+                            if (box == null) { Debug.LogError("ERROR LOADING COLLIDER DEBUG RECTANGLE"); continue; }
+                            graphics.DrawRectangle(new Pen(box.isTrigger ? Color.Cyan : Color.Orange, 2), box.gameObject.transform.position.x + box.offset.x - box.size.x / 2, box.gameObject.transform.position.y + box.offset.y - box.size.y / 2, box.size.x, box.size.y);
+                        }else if(col.GetType() == typeof(CircleCollider))
+                        {
+                            CircleCollider circle = col as CircleCollider;
+                            if (circle == null) { Debug.LogError("ERROR LOADING COLLIDER DEBUG RECTANGLE"); continue; }
+                            //Debug.Log($"Drawing circle at ({circle.gameObject.transform.position.x + circle.offset.x - circle.radius}, {circle.gameObject.transform.position.y + circle.offset.y - circle.radius}) with size {circle.radius * 2}");
+                            graphics.DrawEllipse(new Pen(circle.isTrigger ? Color.Cyan : Color.Orange, 2), circle.gameObject.transform.position.x + circle.offset.x - circle.radius, circle.gameObject.transform.position.y + circle.offset.y - circle.radius, circle.radius*2, circle.radius*2);
+                        }
+
+
                     }
                     foreach (KeyValuePair<string, GameObject> gameObject in registeredGameObjects)
                     {
@@ -388,8 +400,8 @@ namespace STCEngine.Engine
         public static void ChangeUISpriteRenderOrder(GameObject GameObject, int order) { UISpritesToRender.Remove(GameObject); UISpritesToRender.Insert(order, GameObject); }
 
         //Debug boxes list
-        public static void AddDebugRectangle(BoxCollider BoxCollider, int order = int.MaxValue) { if (order != int.MaxValue && order < debugRectangles.Count) { debugRectangles.Insert(order, BoxCollider); return; } debugRectangles.Add(BoxCollider); }
-        public static void RemoveDebugRectangle(BoxCollider BoxCollider) { debugRectangles.Remove(BoxCollider); }
+        public static void AddDebugRectangle(Collider Collider, int order = int.MaxValue) { if (order != int.MaxValue && order < debugRectangles.Count) { debugRectangles.Insert(order, Collider); return; } debugRectangles.Add(Collider); }
+        public static void RemoveDebugRectangle(Collider Collider) { debugRectangles.Remove(Collider); }
         
         /// <summary>
         /// Registers the Animation to the animation queue

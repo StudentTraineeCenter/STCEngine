@@ -8,7 +8,7 @@ using System.Text.Json.Serialization;
 
 namespace STCEngine
 {
-    public class Inventory : Component
+    public class Inventory : Component, InteractibleGameObject
     {
         [JsonIgnore] public readonly int slotSpacing = 30; [JsonIgnore] public readonly int slotSize = 64; [JsonIgnore] public readonly Image inventorySlotBackgroundImage = Image.FromFile("Assets/Inventory-Background.png");
         public override string Type { get; } = nameof(Inventory);
@@ -165,6 +165,20 @@ namespace STCEngine
         {
             DropItem(items[itemIndex]);
             //Debug.Log($"Dropped {items[itemIndex].itemName}x{items[itemIndex].itemCount}");
+        }
+
+        public void Interact()
+        {
+            if (isPlayerInventory) { return; }
+
+            Game.Game.MainGameInstance.OpenOtherInventory(this);
+        }
+        public void Highlight()
+        {
+            if (isPlayerInventory) { return; }
+
+            Game.Game.MainGameInstance.pressEGameObject.isActive = true;
+            Game.Game.MainGameInstance.pressEGameObject.transform.position = this.gameObject.transform.position + Vector2.up * 30;
         }
 
         public override void Initialize()

@@ -33,6 +33,11 @@ namespace STCEngine
         public abstract void DestroySelf();
         [JsonConstructor]protected Component() { }
     }
+    public interface InteractibleGameObject
+    {
+        public void Interact();
+        public void Highlight();
+    }
 
 
 
@@ -423,7 +428,7 @@ namespace STCEngine
         public bool isTrigger { get; set; } //whether it stops movement upon collision
         public Vector2 offset { get; set; }
         public string tag { get; set; }
-        public abstract bool IsColliding(BoxCollider other); //udelat override v tehle classe i pro circle, elipsu,...
+        public abstract bool IsColliding(Collider other); //udelat override v tehle classe i pro circle, elipsu,...
         public abstract bool IsColliding(string tag);
         public abstract bool IsColliding(string tag, out Collider? collider);
         public abstract Collider[] OverlapCollider(bool includeTriggers = false);
@@ -461,10 +466,39 @@ namespace STCEngine
         /// </summary>
         /// <param name="otherCollider"></param>
         /// <returns>Whether this collider overlaps with the given collider</returns>
-        public override bool IsColliding(BoxCollider otherCollider)
+        public override bool IsColliding(Collider otherCollider)
         {
-            var relativeDistance = otherCollider.gameObject.transform.position + otherCollider.offset - gameObject.transform.position - offset;
-            return ((Math.Abs(relativeDistance.x) < (size.x + otherCollider.size.x) / 2) && (Math.Abs(relativeDistance.y) < (size.y + otherCollider.size.y) / 2));
+            if(otherCollider.GetType() == typeof(BoxCollider))
+            {
+                BoxCollider otherCollider1 = otherCollider as BoxCollider;
+                var relativeDistance = otherCollider.gameObject.transform.position + otherCollider.offset - gameObject.transform.position - offset;
+                return ((Math.Abs(relativeDistance.x) < (size.x + otherCollider1.size.x) / 2) && (Math.Abs(relativeDistance.y) < (size.y + otherCollider1.size.y) / 2));
+            }
+            else if (otherCollider.GetType() == typeof(CircleCollider))
+            {
+                CircleCollider otherCollider1 = otherCollider as CircleCollider;
+                //return ((Math.Abs(relativeDistance.x) < (size.x/2 + otherCollider1.radius)) && (Math.Abs(relativeDistance.y) < (size.y/2 + otherCollider1.radius)));
+                //var relativeDistance = otherCollider.gameObject.transform.position + otherCollider.offset - gameObject.transform.position - offset;
+                //return ((Math.Abs(relativeDistance.x) < (otherCollider1.size.x / 2 + radius)) && (Math.Abs(relativeDistance.y) < (otherCollider1.size.y / 2 + radius)));
+
+                var relativeDistance = otherCollider.gameObject.transform.position + otherCollider.offset - gameObject.transform.position - offset;
+                //yoinknuto z https://stackoverflow.com/questions/401847/circle-rectangle-collision-detection-intersection :)
+                Vector2 circleDistance = Vector2.zero;
+                circleDistance.x = MathF.Abs(relativeDistance.x);
+                circleDistance.y = MathF.Abs(relativeDistance.y);
+
+                if (circleDistance.x > (size.x / 2 + otherCollider1.radius)) { return false; }
+                if (circleDistance.y > (size.y / 2 + otherCollider1.radius)) { return false; }
+
+                if (circleDistance.x <= (size.x / 2)) { return true; }
+                if (circleDistance.y <= (size.y / 2)) { return true; }
+
+                int cornerDistance_sq = (int)(MathF.Pow((circleDistance.x - size.x / 2), 2) +
+                                     MathF.Pow((circleDistance.y - size.y / 2), 2));
+
+                return (cornerDistance_sq <= (MathF.Pow(otherCollider1.radius, 2)));
+            }
+            throw new Exception("Error with determining collider type");
         }
 
         /// <summary>
@@ -476,7 +510,7 @@ namespace STCEngine
         {
             foreach (Collider col in EngineClass.registeredColliders)
             {
-                if(col.tag == tag && IsColliding(col as BoxCollider)) { return true; } 
+                if(col.tag == tag && IsColliding(col)) { return true; } 
             }
             return false;
         }
@@ -490,7 +524,7 @@ namespace STCEngine
         {
             foreach (Collider col in EngineClass.registeredColliders)
             {
-                if (col.tag == tag && IsColliding(col as BoxCollider)) { collider = col; return true; }
+                if (col.tag == tag && IsColliding(col)) { collider = col; return true; }
             }
             collider = null;
             return false;
@@ -513,6 +547,133 @@ namespace STCEngine
 
         [JsonConstructor] BoxCollider() { }
         public override void Initialize() 
+        {
+            EngineClass.RegisterCollider(this);
+
+            if (debugDraw)
+            {
+                EngineClass.AddDebugRectangle(this, 0);
+            }
+        }
+        public override void DestroySelf()
+        {
+            if (gameObject.GetComponent<BoxCollider>() != null) { gameObject.RemoveComponent<BoxCollider>(); return; }
+            if (debugDraw) { EngineClass.RemoveDebugRectangle(this); }
+            EngineClass.UnregisterCollider(this);
+
+        }
+    }
+
+    /// <summary>
+    /// A component responsible for detecting collisions in a circle area
+    /// </summary>
+    public class CircleCollider : Collider
+    {
+        public override string Type { get; } = nameof(CircleCollider);
+        public int radius { get; set; }
+
+
+        public bool debugDraw { get; private set; }
+        /// <summary>
+        /// Creates the box collider of the given size and with a given offset from gameObjects position 
+        /// </summary>
+        /// <param name="radius"></param>
+        /// <param name="tag"></param>
+        /// <param name="offset"></param>
+        /// <param name="isTrigger"></param>
+        /// <param name="debugDraw"></param>
+        public CircleCollider(int radius, string tag, Vector2? offset = null, bool isTrigger = false, bool debugDraw = false)
+        {
+            this.tag = tag;
+            this.radius = radius;
+            this.offset = offset ?? Vector2.zero;
+            this.isTrigger = isTrigger;
+            this.debugDraw = debugDraw;
+        }
+        /// <summary>
+        /// Checks if this collider is coliding with the given collider
+        /// </summary>
+        /// <param name="otherCollider"></param>
+        /// <returns>Whether this collider overlaps with the given collider</returns>
+        public override bool IsColliding(Collider otherCollider)
+        {
+            if (otherCollider.GetType() == typeof(CircleCollider))
+            {
+                CircleCollider otherCollider1 = otherCollider as CircleCollider;
+                var relativeDistance = otherCollider.gameObject.transform.position + otherCollider.offset - gameObject.transform.position - offset;
+                return (MathF.Abs(relativeDistance.x) < radius + otherCollider1.radius && MathF.Abs(relativeDistance.y) < radius + otherCollider1.radius);
+            }
+            else if (otherCollider.GetType() == typeof(BoxCollider))
+            {
+                BoxCollider otherCollider1 = otherCollider as BoxCollider;
+                //return ((Math.Abs(relativeDistance.x) < (otherCollider1.size.x / 2 + radius)) && (Math.Abs(relativeDistance.y) < (otherCollider1.size.y / 2 + radius)));
+                var relativeDistance = otherCollider.gameObject.transform.position + otherCollider.offset - gameObject.transform.position - offset;
+
+                //yoinknuto z https://stackoverflow.com/questions/401847/circle-rectangle-collision-detection-intersection :)
+                Vector2 circleDistance = Vector2.zero;
+                circleDistance.x = MathF.Abs(relativeDistance.x);
+                circleDistance.y = MathF.Abs(relativeDistance.y);
+
+                if (circleDistance.x > (otherCollider1.size.x / 2 + radius)) { return false; }
+                if (circleDistance.y > (otherCollider1.size.y / 2 + radius)) { return false; }
+
+                if (circleDistance.x <= (otherCollider1.size.x / 2)) { return true; }
+                if (circleDistance.y <= (otherCollider1.size.y / 2)) { return true; }
+
+                int cornerDistance_sq = (int)(MathF.Pow((circleDistance.x - otherCollider1.size.x / 2), 2) +
+                                     MathF.Pow((circleDistance.y - otherCollider1.size.y / 2), 2));
+
+                return (cornerDistance_sq <= (MathF.Pow(radius, 2)));
+            }
+            throw new Exception("Error with determining collider type");
+        }
+
+        /// <summary>
+        /// Checks if this collider is coliding with a collider with the given tag
+        /// </summary>
+        /// <param name="tag"></param>
+        /// <returns>Whether this collider overlaps with a collider with the given tag</returns>
+        public override bool IsColliding(string tag)
+        {
+            foreach (Collider col in EngineClass.registeredColliders)
+            {
+                if (col.tag == tag && IsColliding(col)) { return true; }
+            }
+            return false;
+        }
+        /// <summary>
+        /// Checks if this collider is coliding with a collider with the given tag
+        /// </summary>
+        /// <param name="tag"></param>
+        /// <param name="collider"></param>
+        /// <returns>Whether this collider overlaps with a collider with the given tag</returns>
+        public override bool IsColliding(string tag, out Collider? collider)
+        {
+            foreach (Collider col in EngineClass.registeredColliders)
+            {
+                if (col.tag == tag && IsColliding(col)) { collider = col; return true; }
+            }
+            collider = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Returns all the colliders colliding with this one, option to include triggers
+        /// </summary>
+        /// <param name="includeTriggers"></param>
+        /// <returns>Array of colliding colliers</returns>
+        public override Collider[] OverlapCollider(bool includeTriggers = false)
+        {
+            List<Collider> outList = new List<Collider>();
+            foreach (Collider col in EngineClass.registeredColliders)
+            {
+                if (col.IsColliding(this) && (!(!includeTriggers && col.isTrigger))) { outList.Add(col); }
+            }
+            return outList.ToArray();
+        }
+
+        [JsonConstructor] CircleCollider() { }
+        public override void Initialize()
         {
             EngineClass.RegisterCollider(this);
 
@@ -731,6 +892,8 @@ namespace STCEngine
                         return jsonDoc.RootElement.Deserialize<Tilemap>(options) as Tilemap;
                     case nameof(BoxCollider):
                         return jsonDoc.RootElement.Deserialize<BoxCollider>(options) as BoxCollider;
+                    case nameof(CircleCollider):
+                        return jsonDoc.RootElement.Deserialize<CircleCollider>(options) as CircleCollider;
                     case nameof(UISprite):
                         return jsonDoc.RootElement.Deserialize<UISprite>(options) as UISprite;
                     case nameof(Inventory):

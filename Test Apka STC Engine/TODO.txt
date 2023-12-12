@@ -6,7 +6,7 @@ DONE		3. UI system
 DONE			UI
 DONE			Item system
 DONE			Logic
-				Other container
+DONE			Other container
 			6. Dvere (toggle hitbox)
 			7. NPC system
 				NPC Sprites, animations,...

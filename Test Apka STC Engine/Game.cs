@@ -23,6 +23,7 @@ namespace STCEngine.Game
         private float movementSpeed = 10;
         public BoxCollider playerCol;
         public BoxCollider playerTopCol, playerBotCol, playerLeftCol, playerRightCol; //hitboxes used for wall collision detection
+        public GameObject? pressEGameObject;
 
         private float horizontalInput, verticalInput;
 
@@ -93,8 +94,13 @@ namespace STCEngine.Game
             tilemap.AddComponent(new Tilemap("Assets/Level/Tilemap.json"));
             tilemap.transform.position = new Vector2(tilemap.GetComponent<Tilemap>().tileMapImage.Width / 2, tilemap.GetComponent<Tilemap>().tileMapImage.Height / 2);
 
+            pressEGameObject = new GameObject("Press E GameObject", Vector2.zero, false);
+            pressEGameObject.AddComponent(new Sprite("Assets/PressEImage.png"));
+
             string fileName = "Assets/Level/playerZed.json";
             testGameObject2 = GameObject.CreateGameObjectFromJSON(fileName);
+            testGameObject2.RemoveComponent<BoxCollider>();
+            testGameObject2.AddComponent(new CircleCollider(100, "a", Vector2.zero, false, true));
             testGameObject2.GetComponent<Animator>().Play("TestAnimation2");
 
             pauseScreen = new GameObject("Pause Screen", new Transform(Vector2.zero, 0, Vector2.one));
@@ -112,10 +118,6 @@ namespace STCEngine.Game
             randomDroppedItem.AddComponent(new DroppedItem(new ItemInInventory("Slimeball", 3, "Assets/Items/Slimeball.png")));
 
             testInventory = new Inventory();
-            //testKamenaStena = new GameObject("Kamena stena", new Transform(new Vector2(700, 75), 0, Vector2.one));
-            //testKamenaStena.AddComponent(new Sprite("Assets/Basic Wall.png"));
-            //testKamenaStena.AddComponent(new BoxCollider(Vector2.one * 64, Vector2.zero, false, true));
-            //Debug.Log(testKamenaStena.GetComponent<Sprite>().orderInLayer.ToString());
         }
 
         /// <summary>
@@ -161,6 +163,11 @@ namespace STCEngine.Game
         public override void LateUpdate()
         {
             
+        }
+
+        public void InteractButtonPressed()
+        {
+
         }
 
         public void Pause()
@@ -219,6 +226,7 @@ namespace STCEngine.Game
                 if (paused) { Unpause(); }
                 else { Pause(); }
             }
+            if(e.KeyCode == Keys.E) { InteractButtonPressed(); }
 
             //movement inputs
             if(e.KeyCode == Keys.A || e.KeyCode == Keys.Left)
