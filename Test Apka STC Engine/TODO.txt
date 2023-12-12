@@ -2,12 +2,17 @@
 DONE		2. Cteni levelu z jsonu (jen skupina gameobjectu)
 DONE		3. UI system
 	DONE		Pause screen
-			5. Inventory
+DONE		5. Inventory
 DONE			UI
 DONE			Item system
 DONE			Logic
 DONE			Other container
 			6. Dvere (toggle hitbox)
+				Interact system
+DONE				CircleCollider
+					Highlighting
+				Chestky
+				Dvere
 			7. NPC system
 				NPC Sprites, animations,...
 				NPC Stats
