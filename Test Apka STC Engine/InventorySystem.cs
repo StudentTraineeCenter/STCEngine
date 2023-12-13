@@ -8,16 +8,17 @@ using System.Text.Json.Serialization;
 
 namespace STCEngine
 {
-    public class Inventory : Component, InteractibleGameObject
+    public class Inventory : Component, IInteractibleGameObject
     {
         [JsonIgnore] public readonly int slotSpacing = 30; [JsonIgnore] public readonly int slotSize = 64; [JsonIgnore] public readonly Image inventorySlotBackgroundImage = Image.FromFile("Assets/Inventory-Background.png");
         public override string Type { get; } = nameof(Inventory);
-        [JsonIgnore] public int emptySlots { get => 30 - items.Count; }
+        [JsonIgnore] public int emptySlots { get => 15 - items.Count; }
         public List<ItemInInventory> items { get; set; } = new List<ItemInInventory>();
         public bool isPlayerInventory;
         //[JsonIgnore] public List<InventorySlot> inventorySlots = new List<InventorySlot>();
 
-        public Inventory() { }
+        [JsonConstructor] public Inventory() { }
+        public Inventory(bool isPlayerInventory) { this.isPlayerInventory = isPlayerInventory; }
         /// <summary>
         /// Attempts to add the item to the inventory
         /// </summary>
@@ -74,13 +75,54 @@ namespace STCEngine
         }
         public void ShowInventory()
         {
-            RefreshInventory();
+            RefreshInventory(false, true);
         }
         public void HideInventory()
         {
         }
-        public void RefreshInventory(bool removedItem = false)
+        /// <summary>
+        /// Updates the inventory UI
+        /// </summary>
+        /// <param name="removedItem"></param>
+        public void RefreshInventory(bool removedItem = false, bool updateWholeInventory = false)
         {
+            if (updateWholeInventory)
+            {
+                for (int i = 0; i < items.Count; i++)
+                {
+                    //combines the image of the item with the amount
+                    Bitmap combinedImage = new Bitmap(96, 96);
+                    using (Graphics g = Graphics.FromImage(combinedImage))
+                    {
+                        g.DrawImage(items[i].icon, 0, 0, 96, 96);
+                        if (items[i].itemCount != 1) { g.DrawString(items[i].itemCount.ToString(), new Font("Arial", 15, FontStyle.Regular), new SolidBrush(Color.Black), 0, 0); }
+                    }
+
+                    if (isPlayerInventory)
+                    {
+                        Engine.EngineClass.playerInventoryUI.Rows[(int)(i / 5)].Cells[i % 5].Value = combinedImage;
+                        Engine.EngineClass.playerInventoryUI.Rows[(int)(i / 5)].Cells[i % 5].ToolTipText = $"{items[i].itemName} x {items[i].itemCount}";
+                    }
+                    else
+                    {
+                        Engine.EngineClass.otherInventoryUI.Rows[(int)(i / 5)].Cells[i % 5].Value = combinedImage;
+                        Engine.EngineClass.otherInventoryUI.Rows[(int)(i / 5)].Cells[i % 5].ToolTipText = $"{items[i].itemName} x {items[i].itemCount}";
+                    }
+                }
+                for (int i = items.Count; i < items.Count + emptySlots; i++)
+                {
+                    if (isPlayerInventory)
+                    {
+                        Engine.EngineClass.playerInventoryUI.Rows[(int)(i / 5)].Cells[i % 5].Value = Engine.EngineClass.emptyImage;
+                        Engine.EngineClass.playerInventoryUI.Rows[(int)(i / 5)].Cells[i % 5].ToolTipText = "";
+                    }
+                    else
+                    {
+                        Engine.EngineClass.otherInventoryUI.Rows[(int)(i / 5)].Cells[i % 5].Value = Engine.EngineClass.emptyImage;
+                        Engine.EngineClass.otherInventoryUI.Rows[(int)(i / 5)].Cells[i % 5].ToolTipText = "";
+                    }
+                }
+            }
             for (int i = 0; i < items.Count; i++)
             {
                 //combines the image of the item with the amount
@@ -130,12 +172,15 @@ namespace STCEngine
             {
                 RemoveItem(item);
                 otherInventory.AddItem(item);
-                Debug.Log("transfered item");
                 return true;
             }
             else { return false; }
         }
-
+        /// <summary>
+        /// Called when an inventory slot is clicked
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public void ItemClicked(object? sender, DataGridViewCellEventArgs e)
         {
             //Debug.Log(sender.GetType());
@@ -150,9 +195,13 @@ namespace STCEngine
                 DropItem(items[e.RowIndex * 5 + e.ColumnIndex]);
             }
         }
+        /// <summary>
+        /// Drops the specified item to the ground
+        /// </summary>
+        /// <param name="item"></param>
         public void DropItem(ItemInInventory item)
         {
-            Debug.Log($"Dropped {item.itemName}x{item.itemCount}");
+            Debug.LogInfo($"Dropped {item.itemName}x{item.itemCount}");
             RemoveItem(item);
             GameObject droppedItem = new GameObject($"Dropped Item {item.itemName}x{item.itemCount}, {new Random().Next()}", new List<Component> { new DroppedItem(item), new Transform(Game.Game.MainGameInstance.player.transform.position, 0, Vector2.one*2.5f), new Sprite(item.fileSourceDirectory) });
             droppedItem.GetComponent<DroppedItem>().enabled = false;
@@ -161,29 +210,45 @@ namespace STCEngine
             //droppedItem.GetComponent<DroppedItem>().enabled = true;
 
         }
+        /// <summary>
+        /// Drops the item at the specified index to the ground
+        /// </summary>
+        /// <param name="itemIndex"></param>
         public void DropItem(int itemIndex)
         {
             DropItem(items[itemIndex]);
             //Debug.Log($"Dropped {items[itemIndex].itemName}x{items[itemIndex].itemCount}");
         }
-
+        /// <summary>
+        /// Interact button pressed when this is the closest interactible object in range
+        /// </summary>
         public void Interact()
         {
             if (isPlayerInventory) { return; }
-
-            Game.Game.MainGameInstance.OpenOtherInventory(this);
+            if (Game.Game.MainGameInstance.twoInventoriesOpen) { Game.Game.MainGameInstance.CloseOtherInventory(); }
+            else { Game.Game.MainGameInstance.OpenOtherInventory(this); if (!Game.Game.MainGameInstance.playerInventoryPanel.Visible) { Game.Game.MainGameInstance.playerInventoryPanel.Visible = true; } }
         }
         public void Highlight()
         {
             if (isPlayerInventory) { return; }
 
             Game.Game.MainGameInstance.pressEGameObject.isActive = true;
-            Game.Game.MainGameInstance.pressEGameObject.transform.position = this.gameObject.transform.position + Vector2.up * 30;
+            Game.Game.MainGameInstance.pressEGameObject.transform.position = this.gameObject.transform.position + Vector2.up * (-100);
         }
+        public void StopHighlight()
+        {
+            if (isPlayerInventory) { return; }
 
+            Game.Game.MainGameInstance.pressEGameObject.isActive = false;
+        }
+        public void SetupInteractCollider(int range)
+        {
+            if (isPlayerInventory) { return; }
+            gameObject.AddComponent(new CircleCollider(range, "Interactible", Vector2.zero, true, true));
+        }
         public override void Initialize()
         {
-            
+            Task.Delay(10).ContinueWith(t => SetupInteractCollider(75));
         }
 
         public override void DestroySelf()

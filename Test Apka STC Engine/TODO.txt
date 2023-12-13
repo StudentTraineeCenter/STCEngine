@@ -10,8 +10,8 @@ DONE			Other container
 			6. Dvere (toggle hitbox)
 				Interact system
 DONE				CircleCollider
-					Highlighting
-				Chestky
+DONE				Highlighting
+DONE			Chestky
 				Dvere
 			7. NPC system
 				NPC Sprites, animations,...

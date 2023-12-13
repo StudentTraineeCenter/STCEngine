@@ -33,10 +33,13 @@ namespace STCEngine
         public abstract void DestroySelf();
         [JsonConstructor]protected Component() { }
     }
-    public interface InteractibleGameObject
+    public interface IInteractibleGameObject
     {
+        //public CircleCollider interactCollider;
         public void Interact();
         public void Highlight();
+        public void StopHighlight();
+        public void SetupInteractCollider(int range);
     }
 
 
@@ -76,19 +79,20 @@ namespace STCEngine
         public override string Type { get; } = nameof(Sprite);
         [JsonIgnore] private Image? _image; 
         [JsonIgnore] public Image image { get { if (_image == null) { _image = Image.FromFile(fileSourceDirectory); } return _image; } set => _image = value; }
-        public int orderInLayer { get; private set; }
+        public int orderInLayer { get => _orderInLayer; set { EngineClass.ChangeSpriteRenderOrder(gameObject, value); _orderInLayer = value; } }//higher numbers render on top of lower numbers
+        private int _orderInLayer { get; set; }
         public string fileSourceDirectory { get; set; }
         public Sprite(string fileSourceDirectory, int orderInLayer = int.MaxValue)
         {
             this.fileSourceDirectory = fileSourceDirectory;
             this.image = Image.FromFile(fileSourceDirectory);
-            this.orderInLayer = orderInLayer;
+            this._orderInLayer = orderInLayer;
         }
         //[JsonConstructor] public Sprite() { } //not needed
         public override void Initialize() 
         {
             EngineClass.AddSpriteToRender(gameObject, orderInLayer);
-            this.orderInLayer = EngineClass.spritesToRender.IndexOf(gameObject);
+            this._orderInLayer = EngineClass.spritesToRender.IndexOf(gameObject);
         }
         public override void DestroySelf()
         {
@@ -136,8 +140,9 @@ namespace STCEngine
             }
         }
         public Vector2 offset { get; set; } = Vector2.zero;
-        
-        public int orderInUILayer { get; private set; }
+
+        public int orderInUILayer { get => _orderInUILayer; set { EngineClass.ChangeUISpriteRenderOrder(gameObject, value); _orderInUILayer = value; } }//higher numbers render on top of lower numbers
+        private int _orderInUILayer { get; set; }
         public string fileSourceDirectory { get; set; }
         public UISprite(string fileSourceDirectory, ScreenAnchor screenAnchor, Vector2 offset, int orderInLayer = int.MaxValue)
         {
@@ -145,26 +150,26 @@ namespace STCEngine
             this.screenAnchor = screenAnchor;
             this.fileSourceDirectory = fileSourceDirectory;
             this.image = Image.FromFile(fileSourceDirectory);
-            this.orderInUILayer = orderInLayer;
+            this._orderInUILayer = orderInLayer;
         }
         public UISprite(string fileSourceDirectory, ScreenAnchor screenAnchor, int orderInLayer = int.MaxValue)
         {
             this.screenAnchor = screenAnchor;
             this.fileSourceDirectory = fileSourceDirectory;
             this.image = Image.FromFile(fileSourceDirectory);
-            this.orderInUILayer = orderInLayer;
+            this._orderInUILayer = orderInLayer;
         }
         public UISprite(string fileSourceDirectory, int orderInLayer = int.MaxValue)
         {
             this.fileSourceDirectory = fileSourceDirectory;
             this.image = Image.FromFile(fileSourceDirectory);
-            this.orderInUILayer = orderInLayer;
+            this._orderInUILayer = orderInLayer;
         }
         //[JsonConstructor] public Sprite() { } //not needed
         public override void Initialize()
         {
             EngineClass.AddUISpriteToRender(gameObject, orderInUILayer);
-            //this.orderInUILayer = EngineClass.UISpritesToRender.IndexOf(gameObject);
+            this._orderInUILayer = EngineClass.UISpritesToRender.IndexOf(gameObject);
         }
         public override void DestroySelf()
         {
@@ -179,7 +184,8 @@ namespace STCEngine
     public class Tilemap : Component
     {
         public override string Type { get; } = nameof(Tilemap);
-        public int orderInLayer { get; private set; }//higher numbers render on top of lower numbers
+        public int orderInLayer { get => _orderInLayer; set { Engine.EngineClass.ChangeSpriteRenderOrder(gameObject, value);  _orderInLayer = value; } }//higher numbers render on top of lower numbers
+        private int _orderInLayer { get; set; }
         private Dictionary<string, string> tileSources { get; set; }
         public string[] tilemapString { get; set; }
         [JsonIgnore] private Image[,] _tiles;
@@ -201,6 +207,7 @@ namespace STCEngine
             tileSources = tilemapValues.tileSources;
             tileSize = new Vector2(tilemapValues.tileWidth, tilemapValues.tileHeight);
             mapSize = new Vector2(tilemapValues.mapWidth, tilemapValues.mapHeight);
+            this._orderInLayer = orderInLayer;
 
             //creates the tilemap
             CreateTilemap();
@@ -273,7 +280,7 @@ namespace STCEngine
         public override void Initialize() 
         {
             EngineClass.AddSpriteToRender(gameObject, orderInLayer);
-            this.orderInLayer = EngineClass.spritesToRender.IndexOf(gameObject);
+            this._orderInLayer = EngineClass.spritesToRender.IndexOf(gameObject);
         }
         public override void DestroySelf()
         {
@@ -419,7 +426,8 @@ namespace STCEngine
         }
     }
     #endregion
-    
+
+    #region Colliders
     /// <summary>
     /// Base class for all components responsible for detecting collisions
     /// </summary>
@@ -429,8 +437,8 @@ namespace STCEngine
         public Vector2 offset { get; set; }
         public string tag { get; set; }
         public abstract bool IsColliding(Collider other); //udelat override v tehle classe i pro circle, elipsu,...
-        public abstract bool IsColliding(string tag);
-        public abstract bool IsColliding(string tag, out Collider? collider);
+        public abstract bool IsColliding(string tag, bool includeTriggers);
+        public abstract bool IsColliding(string tag, bool includeTriggers,out Collider? collider);
         public abstract Collider[] OverlapCollider(bool includeTriggers = false);
         [JsonConstructor] protected Collider() { }
 
@@ -506,11 +514,11 @@ namespace STCEngine
         /// </summary>
         /// <param name="tag"></param>
         /// <returns>Whether this collider overlaps with a collider with the given tag</returns>
-        public override bool IsColliding(string tag)
+        public override bool IsColliding(string tag, bool includeTriggers)
         {
             foreach (Collider col in EngineClass.registeredColliders)
             {
-                if(col.tag == tag && IsColliding(col)) { return true; } 
+                if(col.tag == tag && IsColliding(col) && (!(!includeTriggers && col.isTrigger))) { return true; } 
             }
             return false;
         }
@@ -520,11 +528,11 @@ namespace STCEngine
         /// <param name="tag"></param>
         /// <param name="collider"></param>
         /// <returns>Whether this collider overlaps with a collider with the given tag</returns>
-        public override bool IsColliding(string tag, out Collider? collider)
+        public override bool IsColliding(string tag, bool includeTriggers, out Collider? collider)
         {
             foreach (Collider col in EngineClass.registeredColliders)
             {
-                if (col.tag == tag && IsColliding(col)) { collider = col; return true; }
+                if (col.tag == tag && IsColliding(col) && (!(!includeTriggers && col.isTrigger))) { collider = col; return true; }
             }
             collider = null;
             return false;
@@ -633,11 +641,11 @@ namespace STCEngine
         /// </summary>
         /// <param name="tag"></param>
         /// <returns>Whether this collider overlaps with a collider with the given tag</returns>
-        public override bool IsColliding(string tag)
+        public override bool IsColliding(string tag, bool includeTriggers)
         {
             foreach (Collider col in EngineClass.registeredColliders)
             {
-                if (col.tag == tag && IsColliding(col)) { return true; }
+                if (col.tag == tag && IsColliding(col) && (!(!includeTriggers && col.isTrigger))) { return true; }
             }
             return false;
         }
@@ -647,11 +655,11 @@ namespace STCEngine
         /// <param name="tag"></param>
         /// <param name="collider"></param>
         /// <returns>Whether this collider overlaps with a collider with the given tag</returns>
-        public override bool IsColliding(string tag, out Collider? collider)
+        public override bool IsColliding(string tag, bool includeTriggers,out Collider? collider)
         {
             foreach (Collider col in EngineClass.registeredColliders)
             {
-                if (col.tag == tag && IsColliding(col)) { collider = col; return true; }
+                if (col.tag == tag && IsColliding(col) && (!(!includeTriggers && col.isTrigger))) { collider = col; return true; }
             }
             collider = null;
             return false;
@@ -690,6 +698,8 @@ namespace STCEngine
 
         }
     }
+    #endregion
+
     #endregion
 
 

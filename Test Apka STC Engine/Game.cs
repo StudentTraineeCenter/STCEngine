@@ -26,8 +26,9 @@ namespace STCEngine.Game
         public GameObject? pressEGameObject;
 
         private float horizontalInput, verticalInput;
+        private GameObject? interactingGameObject, highlightedGameObject;
 
-        private GameObject testKamenaStena, testGameObject2;
+        private GameObject testGameObject3, testGameObject2;
         private Inventory testInventory;
         //starts the game
         public Game() : base(windowSize, "Hraaa :)") {  }
@@ -86,22 +87,26 @@ namespace STCEngine.Game
             Animation anim = new Animation("TestAnimation", animFrames, true);
             playerAnim = player.AddComponent(new Animator(anim)) as Animator;
 
-            playerInventory = player.AddComponent(new Inventory());
-            playerInventory.isPlayerInventory = true;
+            playerInventory = player.AddComponent(new Inventory(true));
             #endregion
 
             tilemap = new GameObject("Tilemap", new Vector2(0, 0));
             tilemap.AddComponent(new Tilemap("Assets/Level/Tilemap.json"));
             tilemap.transform.position = new Vector2(tilemap.GetComponent<Tilemap>().tileMapImage.Width / 2, tilemap.GetComponent<Tilemap>().tileMapImage.Height / 2);
 
-            pressEGameObject = new GameObject("Press E GameObject", Vector2.zero, false);
+            pressEGameObject = new GameObject("Press E GameObject",new Transform(Vector2.zero, 0, Vector2.one * 1.5f), false);
             pressEGameObject.AddComponent(new Sprite("Assets/PressEImage.png"));
 
             string fileName = "Assets/Level/playerZed.json";
             testGameObject2 = GameObject.CreateGameObjectFromJSON(fileName);
             testGameObject2.RemoveComponent<BoxCollider>();
-            testGameObject2.AddComponent(new CircleCollider(100, "a", Vector2.zero, false, true));
+            testGameObject2.AddComponent(new CircleCollider(50, "a", Vector2.zero, false, true));
             testGameObject2.GetComponent<Animator>().Play("TestAnimation2");
+            testGameObject2.AddComponent(new Inventory());
+
+            testGameObject3 = GameObject.CreateGameObjectFromJSON("Assets/Level/Chest1.json");
+            //testGameObject3.AddComponent(new Inventory());
+            //testGameObject3.transform.position += new Vector2(200, 0);
 
             pauseScreen = new GameObject("Pause Screen", new Transform(Vector2.zero, 0, Vector2.one));
             pauseScreen.AddComponent(new UISprite("Assets/PauseScreenOverlayBG.png", UISprite.ScreenAnchor.MiddleCentre));
@@ -117,7 +122,8 @@ namespace STCEngine.Game
             randomDroppedItem.AddComponent(new Sprite("Assets/Items/Slimeball.png"));
             randomDroppedItem.AddComponent(new DroppedItem(new ItemInInventory("Slimeball", 3, "Assets/Items/Slimeball.png")));
 
-            testInventory = new Inventory();
+            pressEGameObject.GetComponent<Sprite>().orderInLayer = int.MaxValue;
+            //testInventory = new Inventory();
         }
 
         /// <summary>
@@ -154,7 +160,42 @@ namespace STCEngine.Game
             }
 
             //collecting dropped items
-            Collider col; if (playerCol.IsColliding("droppedItem", out col)) { col.gameObject.GetComponent<DroppedItem>().CollectItem(); }
+            Collider droppedCol; if (playerCol.IsColliding("droppedItem", true, out droppedCol)) { droppedCol.gameObject.GetComponent<DroppedItem>().CollectItem(); }
+            Collider? interactCol = null; float closestDistance = float.MaxValue;
+            foreach(Collider col in playerCol.OverlapCollider(true))
+            {
+                if(col.tag == "Interactible")
+                {
+                    if((col.gameObject.transform.position - player.transform.position).magnitude < closestDistance)
+                    {
+                        closestDistance = (col.gameObject.transform.position - player.transform.position).magnitude;
+                        interactCol = col;
+                    }
+                }
+            }
+
+            if (interactCol != null) 
+            { 
+                if(interactCol.gameObject.name != (highlightedGameObject != null ? highlightedGameObject.name : "")) 
+                { 
+                    if(interactingGameObject != null) { interactingGameObject.components.OfType<IInteractibleGameObject>().FirstOrDefault().Interact(); interactingGameObject = null; } //prestane interagovat stary
+                    //if(highlightedGameObject != null) { highlightedGameObject.components.OfType<IInteractibleGameObject>().FirstOrDefault().StopHighlight(); } //prestane highlightovat stary - neni treba, jen vypne pressEGameObject a pak ho zase zapne ;)
+                        
+                    interactCol.gameObject.components.OfType<IInteractibleGameObject>().FirstOrDefault().Highlight(); //highlightne novy
+                    highlightedGameObject = interactCol.gameObject;
+                }
+            }
+            else if(highlightedGameObject != null)
+            {
+                if (interactingGameObject != null)
+                {
+                    interactingGameObject.components.OfType<IInteractibleGameObject>().FirstOrDefault().Interact();
+                    Debug.Log($"Stopping interaction with {highlightedGameObject.name}");
+                }
+                highlightedGameObject.components.OfType<IInteractibleGameObject>().FirstOrDefault().StopHighlight();
+                highlightedGameObject = null;
+                interactingGameObject = null;
+            }
         }
 
         /// <summary>
@@ -167,7 +208,8 @@ namespace STCEngine.Game
 
         public void InteractButtonPressed()
         {
-
+            Collider interactCol;
+            if (highlightedGameObject != null) { highlightedGameObject.components.OfType<IInteractibleGameObject>().FirstOrDefault().Interact(); interactingGameObject = (interactingGameObject == null ? highlightedGameObject : null); }
         }
 
         public void Pause()
@@ -212,15 +254,15 @@ namespace STCEngine.Game
         {
             if(e.KeyCode == Keys.I) //inventory
             {
-                if (playerInventoryPanel.Visible) { ClosePlayerInventory(); }
+                if (playerInventoryPanel.Visible) { ClosePlayerInventory(); if (otherInventoryPanel.Visible) { CloseOtherInventory(); } }
                 else { OpenPlayerInventory(); }
-                if (otherInventoryPanel.Visible) { CloseOtherInventory(); }
+                
             }
-            if (e.KeyCode == Keys.O) //inventory
-            {
-                if (otherInventoryPanel.Visible) { CloseOtherInventory(); }
-                else { OpenOtherInventory(testInventory); }
-            }
+            //if (e.KeyCode == Keys.O) //inventory
+            //{
+            //    if (otherInventoryPanel.Visible) { CloseOtherInventory(); }
+            //    else { OpenOtherInventory(testInventory); }
+            //}
             if (e.KeyCode == Keys.Escape) //pause
             {
                 if (paused) { Unpause(); }

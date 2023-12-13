@@ -215,10 +215,10 @@ namespace STCEngine.Engine
 
             window.Controls.Add(playerInventoryPanel);
             window.Controls.Add(otherInventoryPanel);
-            otherInventoryPanel.GotFocus += new EventHandler((object? o, EventArgs e) => window.Focus());
-            playerInventoryPanel.GotFocus += new EventHandler((object? o, EventArgs e) => window.Focus());
-            playerInventoryUI.GotFocus += new EventHandler((object? o, EventArgs e) => window.Focus());
-            otherInventoryUI.GotFocus += new EventHandler((object? o, EventArgs e) => window.Focus());
+            //otherInventoryPanel.GotFocus += new EventHandler((object? o, EventArgs e) => window.Focus()); //neni treba, viz inventory slot - SetStyle(neco.Selectable, false); :)
+            //playerInventoryPanel.GotFocus += new EventHandler((object? o, EventArgs e) => window.Focus());
+            //playerInventoryUI.GotFocus += new EventHandler((object? o, EventArgs e) => window.Focus());
+            //otherInventoryUI.GotFocus += new EventHandler((object? o, EventArgs e) => window.Focus());
             //for (int i = 0; i < inventory.inventorySlots.Count; i++)
             //{
             //    window.Controls.Add(inventory.inventorySlots[i]);
@@ -378,7 +378,7 @@ namespace STCEngine.Engine
         /// </summary>
         /// <param name="GameObject"></param>
         /// <param name="order"></param>
-        public static void ChangeSpriteRenderOrder(GameObject GameObject, int order) { spritesToRender.Remove(GameObject); spritesToRender.Insert(order, GameObject); }
+        public static void ChangeSpriteRenderOrder(GameObject GameObject, int order) { spritesToRender.Remove(GameObject); spritesToRender.Insert(order > spritesToRender.Count ? spritesToRender.Count - 1 : order, GameObject); }
 
         //UI elements list
         /// <summary>
@@ -397,7 +397,7 @@ namespace STCEngine.Engine
         /// </summary>
         /// <param name="GameObject"></param>
         /// <param name="order"></param>
-        public static void ChangeUISpriteRenderOrder(GameObject GameObject, int order) { UISpritesToRender.Remove(GameObject); UISpritesToRender.Insert(order, GameObject); }
+        public static void ChangeUISpriteRenderOrder(GameObject GameObject, int order) { UISpritesToRender.Remove(GameObject); UISpritesToRender.Insert(order > UISpritesToRender.Count ? UISpritesToRender.Count-1 : order, GameObject); }
 
         //Debug boxes list
         public static void AddDebugRectangle(Collider Collider, int order = int.MaxValue) { if (order != int.MaxValue && order < debugRectangles.Count) { debugRectangles.Insert(order, Collider); return; } debugRectangles.Add(Collider); }
@@ -451,6 +451,7 @@ namespace STCEngine.Engine
         public InventoryItemSlots()
         {
             this.DoubleBuffered = true;
+            this.SetStyle(ControlStyles.Selectable, false);
             backgroundImage = Image.FromFile("Assets/Inventory-Background.png");
         }
 
@@ -513,8 +514,8 @@ namespace STCEngine
         /// <summary>
         /// Length of the vector as a float
         /// </summary>
-        [JsonIgnore] public float length { get => MathF.Sqrt(x*x + y*y); }
-        [JsonIgnore] public Vector2 normalized { get => length == 0 ? Vector2.zero : new Vector2(x / length, y / length); }
+        [JsonIgnore] public float magnitude { get => MathF.Sqrt(x*x + y*y); }
+        [JsonIgnore] public Vector2 normalized { get => magnitude == 0 ? Vector2.zero : new Vector2(x / magnitude, y / magnitude); }
         public Vector2(float x, float y)
         {
             this.x = x;
