@@ -12,7 +12,7 @@ DONE			Other container
 DONE				CircleCollider
 DONE				Highlighting
 DONE			Chestky
-				Dvere
+DONE			Dvere
 			7. NPC system
 				NPC Sprites, animations,...
 				NPC Stats

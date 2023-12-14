@@ -28,7 +28,7 @@ namespace STCEngine.Game
         private float horizontalInput, verticalInput;
         private GameObject? interactingGameObject, highlightedGameObject;
 
-        private GameObject testGameObject3, testGameObject2;
+        private GameObject testGameObject3, testGameObject2, testGameObject4;
         private Inventory testInventory;
         //starts the game
         public Game() : base(windowSize, "Hraaa :)") {  }
@@ -105,8 +105,8 @@ namespace STCEngine.Game
             testGameObject2.AddComponent(new Inventory());
 
             testGameObject3 = GameObject.CreateGameObjectFromJSON("Assets/Level/Chest1.json");
-            //testGameObject3.AddComponent(new Inventory());
-            //testGameObject3.transform.position += new Vector2(200, 0);
+
+            testGameObject4 = new GameObject("Test Dvere", new List<Component> { new Transform(new Vector2(300, 200), 0, Vector2.one), new BoxCollider(Vector2.one * 50, "wall", Vector2.zero, false, true), new ToggleCollider(), new Sprite("Assets/Basic Wall.png") });
 
             pauseScreen = new GameObject("Pause Screen", new Transform(Vector2.zero, 0, Vector2.one));
             pauseScreen.AddComponent(new UISprite("Assets/PauseScreenOverlayBG.png", UISprite.ScreenAnchor.MiddleCentre));
@@ -123,7 +123,8 @@ namespace STCEngine.Game
             randomDroppedItem.AddComponent(new DroppedItem(new ItemInInventory("Slimeball", 3, "Assets/Items/Slimeball.png")));
 
             pressEGameObject.GetComponent<Sprite>().orderInLayer = int.MaxValue;
-            //testInventory = new Inventory();
+
+            Debug.LogInfo("\nOnLoad Complete\n");
         }
 
         /// <summary>
@@ -131,8 +132,7 @@ namespace STCEngine.Game
         /// </summary>
         public override void OnExit()
         {
-
-            Debug.LogInfo("Application Quit");
+            Debug.LogInfo("\nApplication Quit");
         }
 
         /// <summary>
@@ -176,21 +176,20 @@ namespace STCEngine.Game
 
             if (interactCol != null) 
             { 
-                if(interactCol.gameObject.name != (highlightedGameObject != null ? highlightedGameObject.name : "")) 
+                if(interactCol.gameObject.name != (highlightedGameObject != null ? highlightedGameObject.name : "")) //prisel bliz k jinemu interactible objektu
                 { 
-                    if(interactingGameObject != null) { interactingGameObject.components.OfType<IInteractibleGameObject>().FirstOrDefault().Interact(); interactingGameObject = null; } //prestane interagovat stary
+                    if(interactingGameObject != null) { interactingGameObject.components.OfType<IInteractibleGameObject>().FirstOrDefault().StopInteract(); interactingGameObject = null; } //prestane interagovat stary
                     //if(highlightedGameObject != null) { highlightedGameObject.components.OfType<IInteractibleGameObject>().FirstOrDefault().StopHighlight(); } //prestane highlightovat stary - neni treba, jen vypne pressEGameObject a pak ho zase zapne ;)
                         
                     interactCol.gameObject.components.OfType<IInteractibleGameObject>().FirstOrDefault().Highlight(); //highlightne novy
                     highlightedGameObject = interactCol.gameObject;
                 }
             }
-            else if(highlightedGameObject != null)
+            else if(highlightedGameObject != null) //odesel od interactible objektu
             {
                 if (interactingGameObject != null)
                 {
-                    interactingGameObject.components.OfType<IInteractibleGameObject>().FirstOrDefault().Interact();
-                    Debug.Log($"Stopping interaction with {highlightedGameObject.name}");
+                    interactingGameObject.components.OfType<IInteractibleGameObject>().FirstOrDefault().StopInteract(); //prestane interagovat
                 }
                 highlightedGameObject.components.OfType<IInteractibleGameObject>().FirstOrDefault().StopHighlight();
                 highlightedGameObject = null;
@@ -214,6 +213,8 @@ namespace STCEngine.Game
 
         public void Pause()
         {
+            if (playerInventoryPanel.Visible) { ClosePlayerInventory(); }
+            if (otherInventoryPanel.Visible) { CloseOtherInventory(); }
             paused = true;
             pauseScreen.isActive = true;
         }

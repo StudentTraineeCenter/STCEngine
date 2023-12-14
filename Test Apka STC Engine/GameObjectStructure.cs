@@ -33,14 +33,6 @@ namespace STCEngine
         public abstract void DestroySelf();
         [JsonConstructor]protected Component() { }
     }
-    public interface IInteractibleGameObject
-    {
-        //public CircleCollider interactCollider;
-        public void Interact();
-        public void Highlight();
-        public void StopHighlight();
-        public void SetupInteractCollider(int range);
-    }
 
 
 
@@ -71,6 +63,7 @@ namespace STCEngine
         public override void Initialize(){}
     }
 
+    #region Rendering-related components
     /// <summary>
     /// A component responsible for holding visual information about the GameObject
     /// </summary>
@@ -288,7 +281,8 @@ namespace STCEngine
             EngineClass.RemoveSpriteToRender(gameObject);
         }
     }
-    
+    #endregion
+
     #region Animation-related components and classes
     /// <summary>
     /// A component responsible for animating a gameobject with a sprite component
@@ -476,6 +470,7 @@ namespace STCEngine
         /// <returns>Whether this collider overlaps with the given collider</returns>
         public override bool IsColliding(Collider otherCollider)
         {
+            if(!enabled || !otherCollider.enabled) { return false; }
             if(otherCollider.GetType() == typeof(BoxCollider))
             {
                 BoxCollider otherCollider1 = otherCollider as BoxCollider;
@@ -700,6 +695,74 @@ namespace STCEngine
     }
     #endregion
 
+    /// <summary>
+    /// Interface for all interactible objects with the E button
+    /// </summary>
+    public interface IInteractibleGameObject
+    {
+        //public CircleCollider interactCollider;
+        public void Interact();
+        public void StopInteract();
+        public void Highlight();
+        public void StopHighlight();
+        public void SetupInteractCollider(int range);
+    }
+
+    /// <summary>
+    /// Component responsible for an interactible object which can activate and deactivate a collider
+    /// </summary>
+    public class ToggleCollider : Component, IInteractibleGameObject
+    {
+        public override string Type => nameof(ToggleCollider);
+        [JsonIgnore] public BoxCollider connectedCollider { get; private set; }
+
+        [JsonConstructor] public ToggleCollider() { }
+
+        public void Interact() //toggles the hitbox
+        {
+            connectedCollider.enabled = !connectedCollider.enabled;
+        }
+        public void StopInteract() { }
+
+        public void Highlight()
+        {
+            Game.Game.MainGameInstance.pressEGameObject.isActive = true;
+            Game.Game.MainGameInstance.pressEGameObject.transform.position = this.gameObject.transform.position + Vector2.up * (-100);
+        }
+        public void StopHighlight()
+        {
+            Game.Game.MainGameInstance.pressEGameObject.isActive = false;
+        }
+        public void SetupInteractCollider(int range)
+        {
+            gameObject.AddComponent(new CircleCollider(range, "Interactible", Vector2.zero, true, true));
+        }
+
+        public override void DestroySelf()
+        {
+            
+        }
+
+        public override void Initialize()
+        {
+            Task.Delay(10).ContinueWith(t => DelayedInit());
+        }
+        private void DelayedInit()
+        {
+            BoxCollider? box = gameObject.GetComponent<BoxCollider>();
+            if (box == null)
+            {
+                Debug.LogError($"Toggle collider on GameObject {gameObject.name} doesn't have a BoxCollider to work with! \nRemoving ToggleCollider component...");
+                gameObject.RemoveComponent<ToggleCollider>();
+            }
+            else
+            {
+                connectedCollider = box;
+                SetupInteractCollider(75);
+            }
+        }
+    }
+
     #endregion
 
 
@@ -910,6 +973,8 @@ namespace STCEngine
                         return jsonDoc.RootElement.Deserialize<Inventory>(options) as Inventory;
                     case nameof(DroppedItem):
                         return jsonDoc.RootElement.Deserialize<DroppedItem>(options) as DroppedItem;
+                    case nameof(ToggleCollider):
+                        return jsonDoc.RootElement.Deserialize<ToggleCollider>(options) as ToggleCollider;
                     default:
                         throw new JsonException("'Type' doesn't match a known derived type");
                 }

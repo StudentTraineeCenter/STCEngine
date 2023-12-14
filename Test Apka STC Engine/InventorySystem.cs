@@ -183,9 +183,7 @@ namespace STCEngine
         /// <param name="e"></param>
         public void ItemClicked(object? sender, DataGridViewCellEventArgs e)
         {
-            //Debug.Log(sender.GetType());
-            Debug.Log($"{e.ColumnIndex}, {e.RowIndex}");
-            if(items.Count <= e.RowIndex * 5 + e.ColumnIndex) { Debug.Log("clicked empty slot"); return; }
+            if(items.Count <= e.RowIndex * 5 + e.ColumnIndex) {  return; }
             if (Game.Game.MainGameInstance.twoInventoriesOpen)
             {
                 if (!TransferItem(items[e.RowIndex*5+e.ColumnIndex], isPlayerInventory ? Game.Game.MainGameInstance.otherInventory : Game.Game.MainGameInstance.playerInventory)) { Debug.LogError("Error moving items between inventories"); }
@@ -227,6 +225,15 @@ namespace STCEngine
             if (isPlayerInventory) { return; }
             if (Game.Game.MainGameInstance.twoInventoriesOpen) { Game.Game.MainGameInstance.CloseOtherInventory(); }
             else { Game.Game.MainGameInstance.OpenOtherInventory(this); if (!Game.Game.MainGameInstance.playerInventoryPanel.Visible) { Game.Game.MainGameInstance.playerInventoryPanel.Visible = true; } }
+        }
+        public void StopInteract()
+        {
+            if (isPlayerInventory) { return; }
+
+            Game.Game.MainGameInstance.CloseOtherInventory();
+            Game.Game.MainGameInstance.ClosePlayerInventory();
+
+
         }
         public void Highlight()
         {

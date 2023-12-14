@@ -306,6 +306,7 @@ namespace STCEngine.Engine
                 {
                     foreach (Collider col in debugRectangles)
                     {
+                        if (!col.enabled) { continue; }
                         if(col.GetType() == typeof(BoxCollider))
                         {
                             BoxCollider box = col as BoxCollider;
