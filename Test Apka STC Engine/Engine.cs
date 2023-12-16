@@ -6,6 +6,7 @@ using System.Threading;
 //using System.Numerics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using STCEngine.Components;
 
 
 namespace STCEngine.Engine
@@ -28,6 +29,7 @@ namespace STCEngine.Engine
 
         public static InventoryItemSlots playerInventoryUI = new InventoryItemSlots(), otherInventoryUI = new InventoryItemSlots();
         public Panel playerInventoryPanel = new Panel(), otherInventoryPanel = new Panel();
+        public Panel NPCDialoguePanel = new Panel();
 
         public static Dictionary<string, GameObject> registeredGameObjects { get; private set; } = new Dictionary<string, GameObject>();
         public static List<GameObject> spritesToRender { get; private set; } = new List<GameObject>();
@@ -83,7 +85,10 @@ namespace STCEngine.Engine
             gameLoopTimer.Stop();
         }
 
-        public void CreatePauseScreenButtons()
+        /// <summary>
+        /// Creates the pause screen Quit and Resume buttons, must be called ONCE upon loading to use the pause screen
+        /// </summary>
+        public void InitializePauseScreenButtonsUI()
         {
             quitButton = new Button();
             quitButton.BackColor = Color.White; 
@@ -114,7 +119,10 @@ namespace STCEngine.Engine
             
         }
 
-        public void InitializeInventories()
+        /// <summary>
+        /// Creates the inventory UI, must be called ONCE upon loading to use the inventory system
+        /// </summary>
+        public void InitializeInventoriesUI()
         {
 
             //playerInventoryPanel.BackgroundImage = Image.FromFile("Assets/Inventory-Background.png");
@@ -215,7 +223,7 @@ namespace STCEngine.Engine
 
             window.Controls.Add(playerInventoryPanel);
             window.Controls.Add(otherInventoryPanel);
-            //otherInventoryPanel.GotFocus += new EventHandler((object? o, EventArgs e) => window.Focus()); //neni treba, viz inventory slot - SetStyle(neco.Selectable, false); :)
+            //otherInventoryPanel.GotFocus += new EventHandler((object? o, EventArgs e) => window.Focus()); //neni treba, viz inventory slot - SetStyle(ControlStyles.Selectable, false); :)
             //playerInventoryPanel.GotFocus += new EventHandler((object? o, EventArgs e) => window.Focus());
             //playerInventoryUI.GotFocus += new EventHandler((object? o, EventArgs e) => window.Focus());
             //otherInventoryUI.GotFocus += new EventHandler((object? o, EventArgs e) => window.Focus());
@@ -224,6 +232,77 @@ namespace STCEngine.Engine
             //    window.Controls.Add(inventory.inventorySlots[i]);
             //}
 
+        }
+
+        /// <summary>
+        /// Creates the NPC dialogue UI, must be called ONCE upon loading to use the NPC dialogue system
+        /// </summary>
+        public void InitializeNPCUI()
+        {
+
+            // Main dialogue text box
+            UITextBox dialogueTextBox = new UITextBox
+            {
+                Multiline = true,
+                ReadOnly = true,
+                //Left = (this.ClientSize.Width - Width) / 2,
+                Size = new Size(640, 384),
+                Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
+                Font = new Font("Arial", 12),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            dialogueTextBox.Text = "aaahoj :)";
+            //dialogueTextBox.Left = ((int)screenSize.x - dialogueTextBox.Width) / 2;
+
+            // NPC name text box
+            //UITextBox npcNameTextBox = new UITextBox
+            //{
+            //    Text = "NPC name",
+            //    ReadOnly = true,
+            //    Font = new Font("Arial", 10),
+            //    BorderStyle = BorderStyle.None,
+            //    BackColor = Color.WhiteSmoke,
+            //    Anchor = AnchorStyles.Top | AnchorStyles.Left,
+            //    //Location = new Point(10, 10),
+            //    AutoSize = true
+            //};
+
+            //// Response buttons
+            //Button responseButton1 = new Button
+            //{
+            //    Text = "Option 1",
+            //    Size = new System.Drawing.Size(100, 30),
+            //    Location = new System.Drawing.Point(10, 250)
+            //};
+
+            //Button responseButton2 = new Button
+            //{
+            //    Text = "Option 2",
+            //    Size = new System.Drawing.Size(100, 30),
+            //    Location = new System.Drawing.Point(120, 250)
+            //};
+
+            //Button responseButton3 = new Button
+            //{
+            //    Text = "Option 3",
+            //    Size = new System.Drawing.Size(100, 30),
+            //    Location = new System.Drawing.Point(230, 250)
+            //};
+
+            // Event handlers for response buttons
+            //responseButton1.Click += (sender, e) => HandleResponse("You chose Option 1.");
+            //responseButton2.Click += (sender, e) => HandleResponse("You chose Option 2.");
+            //responseButton3.Click += (sender, e) => HandleResponse("You chose Option 3.");
+
+            // Add controls to the form
+            NPCDialoguePanel.Controls.Add(dialogueTextBox);
+            //NPCDialoguePanel.Controls.Add(npcNameTextBox);
+            //NPCDialoguePanel.Controls.Add(responseButton1);
+            //NPCDialoguePanel.Controls.Add(responseButton2);
+            //NPCDialoguePanel.Controls.Add(responseButton3);
+            window.Controls.Add(NPCDialoguePanel);
+
+            window.Focus();
         }
 
 
@@ -333,7 +412,7 @@ namespace STCEngine.Engine
             }
             catch (Exception e) { Debug.LogError("Error running renderer, error message: " + e.Message); }
         }
-        public static void RunAnimations(object? sender, EventArgs eventArgs)
+        private static void RunAnimations(object? sender, EventArgs eventArgs)
         {
             if (paused) { return; }
             try
@@ -468,6 +547,24 @@ namespace STCEngine.Engine
                 col.DefaultCellStyle.BackColor = Color.Transparent;
                 col.DefaultCellStyle.SelectionBackColor = Color.Transparent;
             }
+        }
+    }
+    public class UITextBox : TextBox
+    {
+        public UITextBox()
+        {
+
+            this.SetStyle(ControlStyles.Selectable, false);
+            System.Reflection.PropertyInfo aProp = typeof(Control).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            aProp.SetValue(this, true, null);
+
+            //transparent background
+            SetStyle(ControlStyles.SupportsTransparentBackColor |
+         ControlStyles.OptimizedDoubleBuffer |
+         ControlStyles.AllPaintingInWmPaint |
+         ControlStyles.ResizeRedraw |
+         ControlStyles.UserPaint, true);
+            BackColor = Color.Transparent;
         }
     }
 }

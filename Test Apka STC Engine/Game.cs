@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using STCEngine.Engine;
 using System.Text.Json;
+using STCEngine.Components;
 
 namespace STCEngine.Game
 {
@@ -61,14 +62,20 @@ namespace STCEngine.Game
             Debug.LogInfo("Game started");
             backgroundColor = Color.Black;
 
-            CreatePauseScreenButtons();
+            
+            InitializePauseScreenButtonsUI();
+            InitializeNPCUI();
+            
+            player = new GameObject("Player",new Transform(new Vector2(100, 100), 0, new Vector2(0.6f, 0.6f)));
+            playerInventory = player.AddComponent(new Inventory(true));
+            InitializeInventoriesUI();
+            
             quitButton.Click += new EventHandler(QuitButton);
             resumeButton.Click += new EventHandler(ResumeButton);
 
 
             #region Player component setup
             //spawn player
-            player = new GameObject("Player",new Transform(new Vector2(100, 100), 0, new Vector2(0.6f, 0.6f)));
             player.AddComponent(new Sprite("Assets/Basic Enemy White 1.png"));
             playerCol = player.AddComponent(new BoxCollider(Vector2.one * 100, "player", Vector2.zero, false, true)) as BoxCollider;
 
@@ -87,7 +94,6 @@ namespace STCEngine.Game
             Animation anim = new Animation("TestAnimation", animFrames, true);
             playerAnim = player.AddComponent(new Animator(anim)) as Animator;
 
-            playerInventory = player.AddComponent(new Inventory(true));
             #endregion
 
             tilemap = new GameObject("Tilemap", new Vector2(0, 0));
@@ -113,9 +119,6 @@ namespace STCEngine.Game
             pauseScreen.transform.size = new Vector2(windowSize.x / pauseScreen.GetComponent<UISprite>().image.Width, windowSize.y / pauseScreen.GetComponent<UISprite>().image.Height);
             pauseScreen.isActive = false;
 
-            InitializeInventories();
-            otherInventoryPanel.Visible = false;
-            playerInventoryPanel.Visible = false;
             playerInventory.AddItem(new ItemInInventory[] { new ItemInInventory("mec", 1, "Assets/Items/Item-Test_Sword.png"), new ItemInInventory("Slimeball", 5, "Assets/Items/Slimeball.png") });
 
             var randomDroppedItem = new GameObject("dropped item", new Transform(Vector2.one * 200, 0, Vector2.one));
@@ -124,6 +127,9 @@ namespace STCEngine.Game
 
             pressEGameObject.GetComponent<Sprite>().orderInLayer = int.MaxValue;
 
+            
+            otherInventoryPanel.Visible = false;
+            playerInventoryPanel.Visible = false;
             Debug.LogInfo("\nOnLoad Complete\n");
         }
 

@@ -7,7 +7,7 @@ using STCEngine.Engine;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace STCEngine
+namespace STCEngine.Components
 {
     #region Components
     /// <summary>
@@ -740,7 +740,7 @@ namespace STCEngine
 
         public override void DestroySelf()
         {
-            
+            if (gameObject.GetComponent<ToggleCollider>() != null) { gameObject.RemoveComponent<ToggleCollider>(); return; }
         }
 
         public override void Initialize()
@@ -975,6 +975,8 @@ namespace STCEngine
                         return jsonDoc.RootElement.Deserialize<DroppedItem>(options) as DroppedItem;
                     case nameof(ToggleCollider):
                         return jsonDoc.RootElement.Deserialize<ToggleCollider>(options) as ToggleCollider;
+                    case nameof(NPC):
+                        return jsonDoc.RootElement.Deserialize<NPC>(options) as NPC;
                     default:
                         throw new JsonException("'Type' doesn't match a known derived type");
                 }
