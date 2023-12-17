@@ -16,14 +16,22 @@ namespace STCEngine.Components
 
         [JsonIgnore] public bool currentlyTalking = false;
         [JsonIgnore] public int talkCount = 0; //counts how many times the player talked to this NPC
+        [JsonConstructor] public NPC() { }
         private void StartDialogue(string? id = null)
         {
             currentlyTalking = true;
+            Engine.EngineClass.NPCResponseCallback += ResponseChosen;
         }
         private void SkipDialogue()
         {
             currentlyTalking = false;
         }
+        public void ResponseChosen(int index)
+        {
+            Debug.Log($"Chose response {index}");
+        }
+
+
         public override void Initialize()
         {
             Task.Delay(10).ContinueWith(t => SetupInteractCollider(75));
@@ -39,6 +47,10 @@ namespace STCEngine.Components
             if (currentlyTalking)
             {
                 SkipDialogue();
+            }
+            else
+            {
+                StartDialogue();
             }
 
         }

@@ -29,7 +29,7 @@ namespace STCEngine.Game
         private float horizontalInput, verticalInput;
         private GameObject? interactingGameObject, highlightedGameObject;
 
-        private GameObject testGameObject3, testGameObject2, testGameObject4;
+        private GameObject testGameObject3, testGameObject2, testGameObject4, testGameObject5;
         private Inventory testInventory;
         //starts the game
         public Game() : base(windowSize, "Hraaa :)") {  }
@@ -113,6 +113,8 @@ namespace STCEngine.Game
             testGameObject3 = GameObject.CreateGameObjectFromJSON("Assets/Level/Chest1.json");
 
             testGameObject4 = new GameObject("Test Dvere", new List<Component> { new Transform(new Vector2(300, 200), 0, Vector2.one), new BoxCollider(Vector2.one * 50, "wall", Vector2.zero, false, true), new ToggleCollider(), new Sprite("Assets/Basic Wall.png") });
+
+            testGameObject5 = new GameObject("Test NPC", new List<Component> { new Transform(new Vector2(400, 250), 0, Vector2.one), new BoxCollider(Vector2.one * 50, "wall", Vector2.zero, false, true), new NPC(), new Sprite("Assets/Basic Wall.png") });
 
             pauseScreen = new GameObject("Pause Screen", new Transform(Vector2.zero, 0, Vector2.one));
             pauseScreen.AddComponent(new UISprite("Assets/PauseScreenOverlayBG.png", UISprite.ScreenAnchor.MiddleCentre));

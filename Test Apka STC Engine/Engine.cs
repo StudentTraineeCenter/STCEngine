@@ -239,71 +239,115 @@ namespace STCEngine.Engine
         /// </summary>
         public void InitializeNPCUI()
         {
+            NPCDialoguePanel.ForeColor = Color.Azure;
+            NPCDialoguePanel.BackColor = Color.Azure;
+            //NPCDialoguePanel.Dock = DockStyle.Bottom;
+            NPCDialoguePanel.Top = (int)(screenSize.y*2/3);
+            NPCDialoguePanel.Height = (int)(screenSize.y / 3);
+            NPCDialoguePanel.Width = (int)screenSize.x;
+            System.Reflection.PropertyInfo aProp = typeof(Control).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            aProp.SetValue(NPCDialoguePanel, true, null);
 
             // Main dialogue text box
             UITextBox dialogueTextBox = new UITextBox
             {
-                Multiline = true,
-                ReadOnly = true,
-                //Left = (this.ClientSize.Width - Width) / 2,
-                Size = new Size(640, 384),
-                Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
-                Font = new Font("Arial", 12),
-                BorderStyle = BorderStyle.FixedSingle
+                TextColor = Color.Black,
+                Font = new Font("Arial", 28),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left,
+                Size = new Size((int)(screenSize.x * 4 / 5), (int)(screenSize.y * 4 / 15)),
+                Location = new Point(0, (int)(NPCDialoguePanel.Height / 5)),
             };
-            dialogueTextBox.Text = "aaahoj :)";
-            //dialogueTextBox.Left = ((int)screenSize.x - dialogueTextBox.Width) / 2;
 
-            // NPC name text box
-            //UITextBox npcNameTextBox = new UITextBox
-            //{
-            //    Text = "NPC name",
-            //    ReadOnly = true,
-            //    Font = new Font("Arial", 10),
-            //    BorderStyle = BorderStyle.None,
-            //    BackColor = Color.WhiteSmoke,
-            //    Anchor = AnchorStyles.Top | AnchorStyles.Left,
-            //    //Location = new Point(10, 10),
-            //    AutoSize = true
-            //};
+            dialogueTextBox.Text = 
+                "Ralof: Hey, you. You're finally awake. You were trying to cross the border, right? Walked right into that Imperial ambush, same as us, and that thief over there. " +
+                "Lokir: Damn you Stormcloaks. Skyrim was fine until you came along. Empire was nice and lazy. If they hadn't been looking for you, I could've stolen that horse and been half way to Hammerfell. " +
+                    "You there. You and me -- we should be here. It's these Stormcloaks the Empire wants. " +
+                "Ralof: We're all brothers and sisters in binds now, thief. " +
+                "Imperial Soldier: Shut up back there! " +
+                "Lokir: And what's wrong with him? " +
+                "Ralof: Watch your tongue! You're speaking to Ulfric Stormcloak, the true High King. " +
+                "Lokir: Ulfric? The Jarl of Windhelm? You're the leader of the rebellion. But if they captured you... Oh gods, where are they taking us? " +
+                "Ralof: I don't know where we're going, but Sovngarde awaits. Lokir: No, this can't be happening. This isn't happening. Ralof: Hey, what village are you from, horse thief? " +
+                "Lokir: Why do you care? " +
+                "Ralof: A Nord's last thoughts should be of home. " +
+                "Lokir: Rorikstead. I'm...I'm from Rorikstead. " +
+                "Imperial Soldier: General Tullius, sir! The headsman is waiting! " +
+                "General Tullius: Good. Let's get this over with. " +
+                "Lokir: Shor, Mara, Dibella, Kynareth, Akatosh. Divines, please help me. Ralof: Look at him, General Tullius the Military Governor. And it looks like the Thalmor are with him. Damn elves. " +
+                    "I bet they had something to do with this. This is Helgen. I used to be sweet on a girl from here. Wonder if Vilod is still making that mead with juniper berries mixed in. " +
+                    "Funny...when I was a boy, Imperial walls and towers used to make me feel so safe. " +
+                "Haming: Who are they, daddy? Where are they going? Torolf: You need to go inside, little cub. " +
+                "Haming: Why? I want to watch the soldiers. " +
+                "Torolf: Inside the house. Now. " +
+                "Imperial Soldier: Whoa. " +
+                "Lokir: Why are they stopping? " +
+                "Ralof: Why do you think? End of the line.";
 
-            //// Response buttons
-            //Button responseButton1 = new Button
-            //{
-            //    Text = "Option 1",
-            //    Size = new System.Drawing.Size(100, 30),
-            //    Location = new System.Drawing.Point(10, 250)
-            //};
 
-            //Button responseButton2 = new Button
-            //{
-            //    Text = "Option 2",
-            //    Size = new System.Drawing.Size(100, 30),
-            //    Location = new System.Drawing.Point(120, 250)
-            //};
+            //NPC name text box
+            UITextBox npcNameTextBox = new UITextBox
+            {
+                TextColor = Color.Black,
+                Font = new Font("Arial", 35),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left,
+                Size = new Size((int)(screenSize.x*4/5), (int)(screenSize.y / 15)),
+                Location = new Point(0, 0),
+            };
+            npcNameTextBox.Text = "Blender21";
 
-            //Button responseButton3 = new Button
-            //{
-            //    Text = "Option 3",
-            //    Size = new System.Drawing.Size(100, 30),
-            //    Location = new System.Drawing.Point(230, 250)
-            //};
+            // Response buttons
+            Button responseButton1 = new Button
+            {
+                Text = "Option 1",
+                Anchor = AnchorStyles.Right | AnchorStyles.Top,
+                Size = new Size((int)(screenSize.x / 5), (int)(NPCDialoguePanel.Height/3)),
+                Location = new Point((int)(screenSize.x / 10), 0),
+                Left = (int)(NPCDialoguePanel.Width * 4 / 5),
+                BackColor = Color.Aqua,
+                ForeColor = Color.Black
+            };
+            Button responseButton2 = new Button
+            {
+                Text = "Option 1",
+                Anchor = AnchorStyles.Right | AnchorStyles.Top,
+                Size = new Size((int)(screenSize.x / 5), (int)(NPCDialoguePanel.Height / 3)),
+                Location = new Point((int)(screenSize.x / 10), (int)(NPCDialoguePanel.Height / 3)),
+                Left = (int)(NPCDialoguePanel.Width * 4 / 5),
+                BackColor = Color.Aqua,
+                ForeColor = Color.Black
+            };
+            Button responseButton3 = new Button
+            {
+                Text = "Option 1",
+                Anchor = AnchorStyles.Right | AnchorStyles.Top,
+                Size = new Size((int)(screenSize.x / 5), (int)(NPCDialoguePanel.Height / 3)),
+                Location = new Point((int)(screenSize.x / 10), (int)(NPCDialoguePanel.Height *2 / 3)),
+                Left = (int)(NPCDialoguePanel.Width*4/5),
+                BackColor = Color.Aqua,
+                ForeColor = Color.Black
+            };
 
             // Event handlers for response buttons
-            //responseButton1.Click += (sender, e) => HandleResponse("You chose Option 1.");
-            //responseButton2.Click += (sender, e) => HandleResponse("You chose Option 2.");
-            //responseButton3.Click += (sender, e) => HandleResponse("You chose Option 3.");
+            responseButton1.Click += new EventHandler((sender, e) => NPCResponseCallback.Invoke(0));
+            responseButton2.Click += new EventHandler((sender, e) => NPCResponseCallback.Invoke(1));
+            responseButton3.Click += new EventHandler((sender, e) => NPCResponseCallback.Invoke(2));
+            responseButton1.GotFocus += new EventHandler((sender, e) => window.Focus());
+            responseButton2.GotFocus += new EventHandler((sender, e) => window.Focus());
+            responseButton3.GotFocus += new EventHandler((sender, e) => window.Focus());
 
             // Add controls to the form
+            NPCDialoguePanel.Controls.Add(responseButton1);
+            NPCDialoguePanel.Controls.Add(responseButton2);
+            NPCDialoguePanel.Controls.Add(responseButton3);
+            NPCDialoguePanel.Controls.Add(npcNameTextBox);
             NPCDialoguePanel.Controls.Add(dialogueTextBox);
-            //NPCDialoguePanel.Controls.Add(npcNameTextBox);
-            //NPCDialoguePanel.Controls.Add(responseButton1);
-            //NPCDialoguePanel.Controls.Add(responseButton2);
-            //NPCDialoguePanel.Controls.Add(responseButton3);
             window.Controls.Add(NPCDialoguePanel);
+            NPCDialoguePanel.GotFocus += new EventHandler((sender, e) => window.Focus());
 
             window.Focus();
         }
+        public delegate void NPCResponseCallbacks(int index);
+        public static NPCResponseCallbacks NPCResponseCallback;
 
 
         #region Inner logic classes (GameLoop, Renderer, Animations,...)
@@ -385,6 +429,7 @@ namespace STCEngine.Engine
                 {
                     foreach (Collider col in debugRectangles)
                     {
+                        if(col == null) { continue; }
                         if (!col.enabled) { continue; }
                         if(col.GetType() == typeof(BoxCollider))
                         {
@@ -549,22 +594,29 @@ namespace STCEngine.Engine
             }
         }
     }
-    public class UITextBox : TextBox
+    public class UITextBox : Control
     {
+        public string Text { get; set; }
+        public Font Font { get; set; } = new Font("Arial", 11, FontStyle.Regular);
+        public Color TextColor { get; set; }
         public UITextBox()
         {
-
+            this.DoubleBuffered = true;
             this.SetStyle(ControlStyles.Selectable, false);
-            System.Reflection.PropertyInfo aProp = typeof(Control).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            aProp.SetValue(this, true, null);
+        }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            //base.OnPaint(e);
 
-            //transparent background
-            SetStyle(ControlStyles.SupportsTransparentBackColor |
-         ControlStyles.OptimizedDoubleBuffer |
-         ControlStyles.AllPaintingInWmPaint |
-         ControlStyles.ResizeRedraw |
-         ControlStyles.UserPaint, true);
-            BackColor = Color.Transparent;
+            //Source: ChatGPT + dokumentace :)
+            if (!string.IsNullOrEmpty(this.Text))
+            {
+                // Create a rectangle that defines the area for text drawing
+                Rectangle textRectangle = new Rectangle(0, 0, this.Width, this.Height);
+
+                // Draw the text within the specified rectangle with word wrapping
+                e.Graphics.DrawString(this.Text, this.Font, new SolidBrush(TextColor), textRectangle);
+            }
         }
     }
 }
