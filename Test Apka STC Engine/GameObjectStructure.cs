@@ -740,7 +740,10 @@ namespace STCEngine.Components
 
         public override void DestroySelf()
         {
-            if (gameObject.GetComponent<ToggleCollider>() != null) { gameObject.RemoveComponent<ToggleCollider>(); return; }
+            bool exitFlag = false;
+            if (gameObject.GetComponent<ToggleCollider>() != null) { gameObject.RemoveComponent<ToggleCollider>(); exitFlag = true; }
+            if (gameObject.GetComponent<CircleCollider>() != null) { gameObject.RemoveComponent<CircleCollider>(); exitFlag = true; }
+            if (exitFlag) { return; }
         }
 
         public override void Initialize()

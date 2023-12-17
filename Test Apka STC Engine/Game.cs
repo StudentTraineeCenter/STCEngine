@@ -14,6 +14,8 @@ namespace STCEngine.Game
         public static Game MainGameInstance;
         public bool twoInventoriesOpen { get => otherInventory != null; }
         public Inventory? otherInventory;
+        public bool npcDialogueOpen { get => activeNPC != null; }
+        public NPC? activeNPC;
 
         private static Vector2 windowSize = new Vector2(1920, 1080);
         public GameObject? player;
@@ -112,9 +114,21 @@ namespace STCEngine.Game
 
             testGameObject3 = GameObject.CreateGameObjectFromJSON("Assets/Level/Chest1.json");
 
+            #region test npc setup
             testGameObject4 = new GameObject("Test Dvere", new List<Component> { new Transform(new Vector2(300, 200), 0, Vector2.one), new BoxCollider(Vector2.one * 50, "wall", Vector2.zero, false, true), new ToggleCollider(), new Sprite("Assets/Basic Wall.png") });
+            Dialogue startingTestDialogue = new Dialogue("start", new DialoguePart[] { new DialoguePart("Ahoj!", 3000), new DialoguePart("Jak se dneska máš?", 5000) }, new Response[] { new Response("dobre", "Dobře :)"), new Response("blbe", "Blbě :(") });
+            List<Dialogue> testDialogues = new List<Dialogue>
+            {
+                new Dialogue("dobre", new DialoguePart[] { new DialoguePart("Ah, to rád slyším!", 3000), new DialoguePart("Jen tak dál :)", 3000)}),
+                new Dialogue("blbe", new DialoguePart[] { new DialoguePart("Ah, to nerad slyším...", 3000), new DialoguePart("Co se stalo?", 3000)}, new Response[]{new Response("nic", "Nic..."), new Response("kocka", "Umřela mi kočka..."), new Response("spageti", "Moc špagety kódu...")}),
+                new Dialogue("kocka", new DialoguePart[] { new DialoguePart("To je velmi smutné", 3000), new DialoguePart("Tak přežívej", 3000)}),
+                new Dialogue("spageti", new DialoguePart[] { new DialoguePart("Sám si ho napsal...", 3000), new DialoguePart("Je to jen tvoje chyba ;)", 3000)}),
+                new Dialogue("nic", new DialoguePart[] { new DialoguePart("Ok, nebudu se vyptávat", 3000), new DialoguePart("Snad se to brzy vyřeší", 3000)})
+            };
+            NPC testNPC = new NPC("Test npc", startingTestDialogue, testDialogues);
 
-            testGameObject5 = new GameObject("Test NPC", new List<Component> { new Transform(new Vector2(400, 250), 0, Vector2.one), new BoxCollider(Vector2.one * 50, "wall", Vector2.zero, false, true), new NPC(), new Sprite("Assets/Basic Wall.png") });
+            testGameObject5 = new GameObject("Test NPC", new List<Component> { new Transform(new Vector2(400, 250), 0, Vector2.one), new BoxCollider(Vector2.one * 50, "wall", Vector2.zero, false, true), testNPC, new Sprite("Assets/Basic Wall.png") });
+            #endregion
 
             pauseScreen = new GameObject("Pause Screen", new Transform(Vector2.zero, 0, Vector2.one));
             pauseScreen.AddComponent(new UISprite("Assets/PauseScreenOverlayBG.png", UISprite.ScreenAnchor.MiddleCentre));
@@ -223,6 +237,7 @@ namespace STCEngine.Game
         {
             if (playerInventoryPanel.Visible) { ClosePlayerInventory(); }
             if (otherInventoryPanel.Visible) { CloseOtherInventory(); }
+            //if (npcDialogueOpen) { activeNPC.EndDialogue(); } //rozbije to, ale asi to nejak bude treba implementovat
             paused = true;
             pauseScreen.isActive = true;
         }

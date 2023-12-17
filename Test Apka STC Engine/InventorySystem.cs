@@ -261,6 +261,10 @@ namespace STCEngine.Components
         public override void DestroySelf()
         {
             items.Clear();
+            bool exitFlag = false;
+            if (gameObject.GetComponent<Inventory>() != null) { gameObject.RemoveComponent<Inventory>(); exitFlag = true; }
+            if (gameObject.GetComponent<CircleCollider>() != null) { gameObject.RemoveComponent<CircleCollider>(); exitFlag = true; }
+            if (exitFlag) { return; }
         }
 
     }

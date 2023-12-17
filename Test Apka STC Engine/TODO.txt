@@ -14,9 +14,9 @@ DONE				Highlighting
 DONE			Chestky
 DONE			Dvere
 			7. NPC system
-				NPC Sprites, animations,...
-				NPC Stats
-				NPC Dialogues
+DELAYED		NPC Sprites, animations,...
+				??	NPC Stats
+DONE			NPC Dialogues
 			8. Fight system/Farmareni
 			9. Vic itemu, quests, level, polish
 				Mob drops

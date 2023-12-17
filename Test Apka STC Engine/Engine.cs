@@ -29,7 +29,8 @@ namespace STCEngine.Engine
 
         public static InventoryItemSlots playerInventoryUI = new InventoryItemSlots(), otherInventoryUI = new InventoryItemSlots();
         public Panel playerInventoryPanel = new Panel(), otherInventoryPanel = new Panel();
-        public Panel NPCDialoguePanel = new Panel();
+        public static Panel NPCDialoguePanel = new Panel(); public static UITextBox NPCDialogueText; public static UITextBox NPCDialogueName;
+        public static Button NPCDialogueResponse1; public static Button NPCDialogueResponse2; public static Button NPCDialogueResponse3;
 
         public static Dictionary<string, GameObject> registeredGameObjects { get; private set; } = new Dictionary<string, GameObject>();
         public static List<GameObject> spritesToRender { get; private set; } = new List<GameObject>();
@@ -249,7 +250,7 @@ namespace STCEngine.Engine
             aProp.SetValue(NPCDialoguePanel, true, null);
 
             // Main dialogue text box
-            UITextBox dialogueTextBox = new UITextBox
+            NPCDialogueText = new UITextBox
             {
                 TextColor = Color.Black,
                 Font = new Font("Arial", 28),
@@ -258,7 +259,7 @@ namespace STCEngine.Engine
                 Location = new Point(0, (int)(NPCDialoguePanel.Height / 5)),
             };
 
-            dialogueTextBox.Text = 
+            NPCDialogueText.Text = 
                 "Ralof: Hey, you. You're finally awake. You were trying to cross the border, right? Walked right into that Imperial ambush, same as us, and that thief over there. " +
                 "Lokir: Damn you Stormcloaks. Skyrim was fine until you came along. Empire was nice and lazy. If they hadn't been looking for you, I could've stolen that horse and been half way to Hammerfell. " +
                     "You there. You and me -- we should be here. It's these Stormcloaks the Empire wants. " +
@@ -285,7 +286,7 @@ namespace STCEngine.Engine
 
 
             //NPC name text box
-            UITextBox npcNameTextBox = new UITextBox
+            NPCDialogueName = new UITextBox
             {
                 TextColor = Color.Black,
                 Font = new Font("Arial", 35),
@@ -293,10 +294,10 @@ namespace STCEngine.Engine
                 Size = new Size((int)(screenSize.x*4/5), (int)(screenSize.y / 15)),
                 Location = new Point(0, 0),
             };
-            npcNameTextBox.Text = "Blender21";
+            NPCDialogueName.Text = "Blender21";
 
             // Response buttons
-            Button responseButton1 = new Button
+            NPCDialogueResponse1 = new Button
             {
                 Text = "Option 1",
                 Anchor = AnchorStyles.Right | AnchorStyles.Top,
@@ -306,7 +307,7 @@ namespace STCEngine.Engine
                 BackColor = Color.Aqua,
                 ForeColor = Color.Black
             };
-            Button responseButton2 = new Button
+            NPCDialogueResponse2 = new Button
             {
                 Text = "Option 1",
                 Anchor = AnchorStyles.Right | AnchorStyles.Top,
@@ -316,7 +317,7 @@ namespace STCEngine.Engine
                 BackColor = Color.Aqua,
                 ForeColor = Color.Black
             };
-            Button responseButton3 = new Button
+            NPCDialogueResponse3 = new Button
             {
                 Text = "Option 1",
                 Anchor = AnchorStyles.Right | AnchorStyles.Top,
@@ -328,23 +329,30 @@ namespace STCEngine.Engine
             };
 
             // Event handlers for response buttons
-            responseButton1.Click += new EventHandler((sender, e) => NPCResponseCallback.Invoke(0));
-            responseButton2.Click += new EventHandler((sender, e) => NPCResponseCallback.Invoke(1));
-            responseButton3.Click += new EventHandler((sender, e) => NPCResponseCallback.Invoke(2));
-            responseButton1.GotFocus += new EventHandler((sender, e) => window.Focus());
-            responseButton2.GotFocus += new EventHandler((sender, e) => window.Focus());
-            responseButton3.GotFocus += new EventHandler((sender, e) => window.Focus());
+            NPCDialogueResponse1.Click += new EventHandler((sender, e) => NPCResponseCallback.Invoke(0));
+            NPCDialogueResponse2.Click += new EventHandler((sender, e) => NPCResponseCallback.Invoke(1));
+            NPCDialogueResponse3.Click += new EventHandler((sender, e) => NPCResponseCallback.Invoke(2));
+            NPCDialogueResponse1.GotFocus += new EventHandler((sender, e) => window.Focus());
+            NPCDialogueResponse2.GotFocus += new EventHandler((sender, e) => window.Focus());
+            NPCDialogueResponse3.GotFocus += new EventHandler((sender, e) => window.Focus());
 
             // Add controls to the form
-            NPCDialoguePanel.Controls.Add(responseButton1);
-            NPCDialoguePanel.Controls.Add(responseButton2);
-            NPCDialoguePanel.Controls.Add(responseButton3);
-            NPCDialoguePanel.Controls.Add(npcNameTextBox);
-            NPCDialoguePanel.Controls.Add(dialogueTextBox);
+            NPCDialoguePanel.Controls.Add(NPCDialogueResponse1);
+            NPCDialoguePanel.Controls.Add(NPCDialogueResponse2);
+            NPCDialoguePanel.Controls.Add(NPCDialogueResponse3);
+            NPCDialoguePanel.Controls.Add(NPCDialogueName);
+            NPCDialoguePanel.Controls.Add(NPCDialogueText);
             window.Controls.Add(NPCDialoguePanel);
             NPCDialoguePanel.GotFocus += new EventHandler((sender, e) => window.Focus());
 
+            NPCDialogueResponse1.Visible = false;
+            NPCDialogueResponse2.Visible = false;
+            NPCDialogueResponse3.Visible = false;
+            NPCDialoguePanel.Visible = false;
+
             window.Focus();
+            Debug.LogInfo("Finished setting up NPC dialogue UI");
+
         }
         public delegate void NPCResponseCallbacks(int index);
         public static NPCResponseCallbacks NPCResponseCallback;
