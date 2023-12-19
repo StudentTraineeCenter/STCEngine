@@ -1,0 +1,56 @@
+{
+  "components": [
+    {
+      "Type": "Transform",
+      "position": {
+        "x": 300,
+        "y": 200
+      },
+      "rotation": 0,
+      "size": {
+        "x": 1,
+        "y": 1
+      },
+      "enabled": true
+    },
+    {
+      "Type": "BoxCollider",
+      "size": {
+        "x": 50,
+        "y": 50
+      },
+      "debugDraw": true,
+      "isTrigger": false,
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "tag": "wall",
+      "enabled": true
+    },
+    {
+      "Type": "ToggleCollider",
+      "enabled": true
+    },
+    {
+      "Type": "Sprite",
+      "orderInLayer": 4,
+      "fileSourceDirectory": "Assets/Basic Wall.png",
+      "enabled": true
+    },
+    {
+      "Type": "CircleCollider",
+      "radius": 75,
+      "debugDraw": true,
+      "isTrigger": true,
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "tag": "Interactible",
+      "enabled": true
+    }
+  ],
+  "name": "Test Dvere",
+  "isActive": true
+}

@@ -19,6 +19,7 @@ namespace STCEngine.Components
         //[JsonIgnore] public int talkCount = 0; //counts how many times the player talked to this NPC
         [JsonIgnore] private static CancellationTokenSource cancellationTokenSource;
         [JsonIgnore] private Response[] currentlyActiveResponses;
+        [JsonIgnore] private bool exitFlag;
         [JsonConstructor] public NPC() { }
         public NPC(string npcName, Dialogue startingDialogue, List<Dialogue> dialogues)
         {
@@ -52,6 +53,7 @@ namespace STCEngine.Components
 
             for (int i = 0; i < dialogue.parts.Length; i++)
             {
+                if (exitFlag) { return;  }
                 cancellationTokenSource = new CancellationTokenSource();
                 CancellationToken cancellationToken = cancellationTokenSource.Token;
                 try
@@ -91,6 +93,8 @@ namespace STCEngine.Components
         }
         public void EndDialogue()
         {
+            exitFlag = true;
+            cancellationTokenSource?.Cancel();
             Game.Game.MainGameInstance.activeNPC = null;
             currentlyActiveResponses = Array.Empty<Response>();
             HideResponses();
@@ -153,6 +157,7 @@ namespace STCEngine.Components
             else
             {
                 Game.Game.MainGameInstance.activeNPC = this;
+                exitFlag = false;
                 EngineClass.NPCResponseCallback += ResponseChosen;
                 StartDialogue();
             }
@@ -160,6 +165,7 @@ namespace STCEngine.Components
         }
         public void StopInteract()
         {
+            Debug.Log("Stop interact");
             EndDialogue();
         }
         public void Highlight()

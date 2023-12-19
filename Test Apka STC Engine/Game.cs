@@ -19,7 +19,7 @@ namespace STCEngine.Game
 
         private static Vector2 windowSize = new Vector2(1920, 1080);
         public GameObject? player;
-        public GameObject? tilemap;
+        //public GameObject? tilemap;
         public GameObject? pauseScreen;
         private Animator? playerAnim;
         public Inventory? playerInventory;
@@ -31,29 +31,13 @@ namespace STCEngine.Game
         private float horizontalInput, verticalInput;
         private GameObject? interactingGameObject, highlightedGameObject;
 
-        private GameObject testGameObject3, testGameObject2, testGameObject4, testGameObject5;
-        private Inventory testInventory;
-        //starts the game
+        //private Inventory testInventory;
+        
+        /// <summary>
+        /// Starts the game
+        /// </summary>
         public Game() : base(windowSize, "Hraaa :)") {  }
 
-        /// <summary>
-        /// Quits the application, called upon clicking the quit button when the game is paused
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void QuitButton(object? sender, EventArgs e)
-        {
-            Application.Exit();
-        }
-        /// <summary>
-        /// Resumes the game, called upon clicking the resume button when the game is paused
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ResumeButton(object? sender, EventArgs e)
-        {
-            Unpause();
-        }
 
         /// <summary>
         /// Called upon starting the game
@@ -64,88 +48,117 @@ namespace STCEngine.Game
             Debug.LogInfo("Game started");
             backgroundColor = Color.Black;
 
-            
+            LoadLevel("Assets/Level");
             InitializePauseScreenButtonsUI();
             InitializeNPCUI();
-            
-            player = new GameObject("Player",new Transform(new Vector2(100, 100), 0, new Vector2(0.6f, 0.6f)));
-            playerInventory = player.AddComponent(new Inventory(true));
             InitializeInventoriesUI();
-            
-            quitButton.Click += new EventHandler(QuitButton);
-            resumeButton.Click += new EventHandler(ResumeButton);
 
-
-            #region Player component setup
-            //spawn player
-            player.AddComponent(new Sprite("Assets/Basic Enemy White 1.png"));
-            playerCol = player.AddComponent(new BoxCollider(Vector2.one * 100, "player", Vector2.zero, false, true)) as BoxCollider;
-
-            var hitboxWidth = 1f; //values lower than 1 might cause walking into walls
-            playerTopCol = player.AddComponent(new BoxCollider(Vector2.up * movementSpeed *hitboxWidth+ Vector2.right * 100, "playerWalk", Vector2.up * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
-            playerBotCol = player.AddComponent(new BoxCollider(Vector2.up * movementSpeed * hitboxWidth + Vector2.right * 100, "playerWalk", -Vector2.up * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
-            playerRightCol = player.AddComponent(new BoxCollider(Vector2.right * movementSpeed * hitboxWidth + Vector2.up * 100, "playerWalk", Vector2.right * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
-            playerLeftCol = player.AddComponent(new BoxCollider(Vector2.right * movementSpeed * hitboxWidth + Vector2.up * 100, "playerWalk", -Vector2.right * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
-
-            AnimationFrame[] animFrames = {
-                new AnimationFrame("Assets/Basic Enemy White 1.png", 100),
-                new AnimationFrame("Assets/Basic Enemy White 2.png", 100),
-                new AnimationFrame("Assets/Basic Enemy White 3.png", 100)
-            };
-            
-            Animation anim = new Animation("TestAnimation", animFrames, true);
-            playerAnim = player.AddComponent(new Animator(anim)) as Animator;
-
-            #endregion
-
-            tilemap = new GameObject("Tilemap", new Vector2(0, 0));
-            tilemap.AddComponent(new Tilemap("Assets/Level/Tilemap.json"));
-            tilemap.transform.position = new Vector2(tilemap.GetComponent<Tilemap>().tileMapImage.Width / 2, tilemap.GetComponent<Tilemap>().tileMapImage.Height / 2);
-
-            pressEGameObject = new GameObject("Press E GameObject",new Transform(Vector2.zero, 0, Vector2.one * 1.5f), false);
-            pressEGameObject.AddComponent(new Sprite("Assets/PressEImage.png"));
-
-            string fileName = "Assets/Level/playerZed.json";
-            testGameObject2 = GameObject.CreateGameObjectFromJSON(fileName);
-            testGameObject2.RemoveComponent<BoxCollider>();
-            testGameObject2.AddComponent(new CircleCollider(50, "a", Vector2.zero, false, true));
-            testGameObject2.GetComponent<Animator>().Play("TestAnimation2");
-            testGameObject2.AddComponent(new Inventory());
-
-            testGameObject3 = GameObject.CreateGameObjectFromJSON("Assets/Level/Chest1.json");
-
-            #region test npc setup
-            testGameObject4 = new GameObject("Test Dvere", new List<Component> { new Transform(new Vector2(300, 200), 0, Vector2.one), new BoxCollider(Vector2.one * 50, "wall", Vector2.zero, false, true), new ToggleCollider(), new Sprite("Assets/Basic Wall.png") });
-            Dialogue startingTestDialogue = new Dialogue("start", new DialoguePart[] { new DialoguePart("Ahoj!", 3000), new DialoguePart("Jak se dneska máš?", 5000) }, new Response[] { new Response("dobre", "Dobře :)"), new Response("blbe", "Blbě :(") });
-            List<Dialogue> testDialogues = new List<Dialogue>
+            player = GameObject.Find("Player");
+            playerAnim = player.GetComponent<Animator>();
+            playerInventory = player.GetComponent<Inventory>();
+            var playerColliders = player.GetComponents<BoxCollider>();
+            foreach(BoxCollider boxCol in playerColliders)
             {
-                new Dialogue("dobre", new DialoguePart[] { new DialoguePart("Ah, to rád slyším!", 3000), new DialoguePart("Jen tak dál :)", 3000)}),
-                new Dialogue("blbe", new DialoguePart[] { new DialoguePart("Ah, to nerad slyším...", 3000), new DialoguePart("Co se stalo?", 3000)}, new Response[]{new Response("nic", "Nic..."), new Response("kocka", "Umřela mi kočka..."), new Response("spageti", "Moc špagety kódu...")}),
-                new Dialogue("kocka", new DialoguePart[] { new DialoguePart("To je velmi smutné", 3000), new DialoguePart("Tak přežívej", 3000)}),
-                new Dialogue("spageti", new DialoguePart[] { new DialoguePart("Sám si ho napsal...", 3000), new DialoguePart("Je to jen tvoje chyba ;)", 3000)}),
-                new Dialogue("nic", new DialoguePart[] { new DialoguePart("Ok, nebudu se vyptávat", 3000), new DialoguePart("Snad se to brzy vyřeší", 3000)})
-            };
-            NPC testNPC = new NPC("Test npc", startingTestDialogue, testDialogues);
+                switch (boxCol.tag)
+                {
+                    case "player":
+                        playerCol = boxCol;
+                        break;
+                    case "playerWalkUp":                        
+                        playerTopCol = boxCol;
+                        break;
+                    case "playerWalkDown":  
+                        playerBotCol = boxCol;
+                        break;
+                    case "playerWalkRight": 
+                        playerRightCol = boxCol;
+                        break;
+                    case "playerWalkLeft": 
+                        playerLeftCol = boxCol; 
+                        break;
+                }
+                
+            }
 
-            testGameObject5 = new GameObject("Test NPC", new List<Component> { new Transform(new Vector2(400, 250), 0, Vector2.one), new BoxCollider(Vector2.one * 50, "wall", Vector2.zero, false, true), testNPC, new Sprite("Assets/Basic Wall.png") });
+            pauseScreen = GameObject.Find("Pause Screen");
+            pressEGameObject = GameObject.Find("Press E GameObject");
+
+            #region Old scene setup (inactive)
+            //player = new GameObject("Player", new Transform(new Vector2(100, 100), 0, new Vector2(0.6f, 0.6f)));
+            //playerInventory = player.AddComponent(new Inventory(true));
+
+            //quitButton.Click += new EventHandler(QuitButton);
+            //resumeButton.Click += new EventHandler(ResumeButton);
+
+
+            //#region Player component setup
+            ////spawn player
+            //player.AddComponent(new Sprite("Assets/Basic Enemy White 1.png"));
+            //playerCol = player.AddComponent(new BoxCollider(Vector2.one * 100, "player", Vector2.zero, false, true)) as BoxCollider;
+
+            //var hitboxWidth = 1f; //values lower than 1 might cause walking into walls
+            //playerTopCol = player.AddComponent(new BoxCollider(Vector2.up * movementSpeed * hitboxWidth + Vector2.right * 100, "playerWalk", Vector2.up * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
+            //playerBotCol = player.AddComponent(new BoxCollider(Vector2.up * movementSpeed * hitboxWidth + Vector2.right * 100, "playerWalk", -Vector2.up * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
+            //playerRightCol = player.AddComponent(new BoxCollider(Vector2.right * movementSpeed * hitboxWidth + Vector2.up * 100, "playerWalk", Vector2.right * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
+            //playerLeftCol = player.AddComponent(new BoxCollider(Vector2.right * movementSpeed * hitboxWidth + Vector2.up * 100, "playerWalk", -Vector2.right * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
+
+            //AnimationFrame[] animFrames = {
+            //    new AnimationFrame("Assets/Basic Enemy White 1.png", 100),
+            //    new AnimationFrame("Assets/Basic Enemy White 2.png", 100),
+            //    new AnimationFrame("Assets/Basic Enemy White 3.png", 100)
+            //};
+
+            //Animation anim = new Animation("TestAnimation", animFrames, true);
+            //playerAnim = player.AddComponent(new Animator(anim)) as Animator;
+
+            //#endregion
+
+            ////tilemap = new GameObject("Tilemap", new Vector2(0, 0));
+            ////tilemap.AddComponent(new Tilemap("Assets/Level/Tilemap.json"));
+            ////tilemap.transform.position = new Vector2(tilemap.GetComponent<Tilemap>().tileMapImage.Width / 2, tilemap.GetComponent<Tilemap>().tileMapImage.Height / 2);
+
+            //pressEGameObject = new GameObject("Press E GameObject", new Transform(Vector2.zero, 0, Vector2.one * 1.5f), false);
+            //pressEGameObject.AddComponent(new Sprite("Assets/PressEImage.png"));
+
+            //string fileName = "Assets/Level/playerZed.json";
+            //testGameObject2 = GameObject.CreateGameObjectFromJSON(fileName);
+            //testGameObject2.RemoveComponent<BoxCollider>();
+            //testGameObject2.AddComponent(new CircleCollider(50, "a", Vector2.zero, false, true));
+            //testGameObject2.GetComponent<Animator>().Play("TestAnimation2");
+            //testGameObject2.AddComponent(new Inventory());
+
+            //testGameObject3 = GameObject.CreateGameObjectFromJSON("Assets/Level/Chest1.json");
+
+            //#region test npc setup
+            //testGameObject4 = new GameObject("Test Dvere", new List<Component> { new Transform(new Vector2(300, 200), 0, Vector2.one), new BoxCollider(Vector2.one * 50, "wall", Vector2.zero, false, true), new ToggleCollider(), new Sprite("Assets/Basic Wall.png") });
+            //Dialogue startingTestDialogue = new Dialogue("start", new DialoguePart[] { new DialoguePart("Ahoj!", 3000), new DialoguePart("Jak se dneska máš?", 5000) }, new Response[] { new Response("dobre", "Dobře :)"), new Response("blbe", "Blbě :(") });
+            //List<Dialogue> testDialogues = new List<Dialogue>
+            //{
+            //    new Dialogue("dobre", new DialoguePart[] { new DialoguePart("Ah, to rád slyším!", 3000), new DialoguePart("Jen tak dál :)", 3000)}),
+            //    new Dialogue("blbe", new DialoguePart[] { new DialoguePart("Ah, to nerad slyším...", 3000), new DialoguePart("Co se stalo?", 3000)}, new Response[]{new Response("nic", "Nic..."), new Response("kocka", "Umřela mi kočka..."), new Response("spageti", "Moc špagety kódu...")}),
+            //    new Dialogue("kocka", new DialoguePart[] { new DialoguePart("To je velmi smutné", 3000), new DialoguePart("Tak přežívej", 3000)}),
+            //    new Dialogue("spageti", new DialoguePart[] { new DialoguePart("Sám si ho napsal...", 3000), new DialoguePart("Je to jen tvoje chyba ;)", 3000)}),
+            //    new Dialogue("nic", new DialoguePart[] { new DialoguePart("Ok, nebudu se vyptávat", 3000), new DialoguePart("Snad se to brzy vyřeší", 3000)})
+            //};
+            //NPC testNPC = new NPC("Test npc", startingTestDialogue, testDialogues);
+
+            //testGameObject5 = new GameObject("Test NPC", new List<Component> { new Transform(new Vector2(400, 250), 0, Vector2.one), new BoxCollider(Vector2.one * 50, "wall", Vector2.zero, false, true), testNPC, new Sprite("Assets/Basic Wall.png") });
+            //#endregion
+
+            //pauseScreen = new GameObject("Pause Screen", new Transform(Vector2.zero, 0, Vector2.one));
+            //pauseScreen.AddComponent(new UISprite("Assets/PauseScreenOverlayBG.png", UISprite.ScreenAnchor.MiddleCentre));
+            //pauseScreen.transform.size = new Vector2(windowSize.x / pauseScreen.GetComponent<UISprite>().image.Width, windowSize.y / pauseScreen.GetComponent<UISprite>().image.Height);
+            //pauseScreen.isActive = false;
+
+            //playerInventory.AddItem(new ItemInInventory[] { new ItemInInventory("mec", 1, "Assets/Items/Item-Test_Sword.png"), new ItemInInventory("Slimeball", 5, "Assets/Items/Slimeball.png") });
+
+            //var randomDroppedItem = new GameObject("dropped item", new Transform(Vector2.one * 200, 0, Vector2.one));
+            //randomDroppedItem.AddComponent(new Sprite("Assets/Items/Slimeball.png"));
+            //randomDroppedItem.AddComponent(new DroppedItem(new ItemInInventory("Slimeball", 3, "Assets/Items/Slimeball.png")));
+
+            //pressEGameObject.GetComponent<Sprite>().orderInLayer = int.MaxValue;
             #endregion
 
-            pauseScreen = new GameObject("Pause Screen", new Transform(Vector2.zero, 0, Vector2.one));
-            pauseScreen.AddComponent(new UISprite("Assets/PauseScreenOverlayBG.png", UISprite.ScreenAnchor.MiddleCentre));
-            pauseScreen.transform.size = new Vector2(windowSize.x / pauseScreen.GetComponent<UISprite>().image.Width, windowSize.y / pauseScreen.GetComponent<UISprite>().image.Height);
-            pauseScreen.isActive = false;
-
-            playerInventory.AddItem(new ItemInInventory[] { new ItemInInventory("mec", 1, "Assets/Items/Item-Test_Sword.png"), new ItemInInventory("Slimeball", 5, "Assets/Items/Slimeball.png") });
-
-            var randomDroppedItem = new GameObject("dropped item", new Transform(Vector2.one * 200, 0, Vector2.one));
-            randomDroppedItem.AddComponent(new Sprite("Assets/Items/Slimeball.png"));
-            randomDroppedItem.AddComponent(new DroppedItem(new ItemInInventory("Slimeball", 3, "Assets/Items/Slimeball.png")));
-
-            pressEGameObject.GetComponent<Sprite>().orderInLayer = int.MaxValue;
-
-            
-            otherInventoryPanel.Visible = false;
-            playerInventoryPanel.Visible = false;
             Debug.LogInfo("\nOnLoad Complete\n");
         }
 
@@ -264,7 +277,11 @@ namespace STCEngine.Game
         }
         public void CloseOtherInventory()
         {
-            otherInventoryUI.CellClick -= new DataGridViewCellEventHandler(otherInventory.ItemClicked);
+            try //nekdy se to rozbije 
+            {
+                otherInventoryUI.CellClick -= new DataGridViewCellEventHandler(otherInventory.ItemClicked);
+            }
+            catch { }
             otherInventory = null;
             otherInventoryPanel.Visible = false;
         }
@@ -344,6 +361,24 @@ namespace STCEngine.Game
             else { horizontalInput = left ? -1 : 1; }
             if ((up && down) || (!up && !down)) { verticalInput = 0; }
             else { verticalInput = down ? 1 : -1; }
+        }
+        /// <summary>
+        /// Quits the application, called upon clicking the quit button when the game is paused
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void QuitButton(object? sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+        /// <summary>
+        /// Resumes the game, called upon clicking the resume button when the game is paused
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ResumeButton(object? sender, EventArgs e)
+        {
+            Unpause();
         }
 
     }

@@ -1,0 +1,142 @@
+{
+  "components": [
+    {
+      "Type": "Transform",
+      "position": {
+        "x": 100,
+        "y": 100
+      },
+      "rotation": 0,
+      "size": {
+        "x": 0.6,
+        "y": 0.6
+      },
+      "enabled": true
+    },
+    {
+      "Type": "Inventory",
+      "items": [
+        {
+          "itemCount": 1,
+          "itemName": "mec",
+          "fileSourceDirectory": "Assets/Items/Item-Test_Sword.png"
+        },
+        {
+          "itemCount": 5,
+          "itemName": "Slimeball",
+          "fileSourceDirectory": "Assets/Items/Slimeball.png"
+        }
+      ],
+      "isPlayerInventory":true,
+      "enabled": true
+    },
+    {
+      "Type": "Sprite",
+      "orderInLayer": 0,
+      "fileSourceDirectory": "Assets/Basic Enemy White 1.png",
+      "enabled": true
+    },
+    {
+      "Type": "BoxCollider",
+      "size": {
+        "x": 100,
+        "y": 100
+      },
+      "debugDraw": true,
+      "isTrigger": false,
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "tag": "player",
+      "enabled": true
+    },
+    {
+      "Type": "BoxCollider",
+      "size": {
+        "x": 100,
+        "y": 10
+      },
+      "debugDraw": true,
+      "isTrigger": true,
+      "offset": {
+        "x": 0,
+        "y": 56
+      },
+      "tag": "playerWalkUp",
+      "enabled": true
+    },
+    {
+      "Type": "BoxCollider",
+      "size": {
+        "x": 100,
+        "y": 10
+      },
+      "debugDraw": true,
+      "isTrigger": true,
+      "offset": {
+        "x": -0,
+        "y": -56
+      },
+      "tag": "playerWalkDown",
+      "enabled": true
+    },
+    {
+      "Type": "BoxCollider",
+      "size": {
+        "x": 10,
+        "y": 100
+      },
+      "debugDraw": true,
+      "isTrigger": true,
+      "offset": {
+        "x": 56,
+        "y": 0
+      },
+      "tag": "playerWalkRight",
+      "enabled": true
+    },
+    {
+      "Type": "BoxCollider",
+      "size": {
+        "x": 10,
+        "y": 100
+      },
+      "debugDraw": true,
+      "isTrigger": true,
+      "offset": {
+        "x": -56,
+        "y": -0
+      },
+      "tag": "playerWalkLeft",
+      "enabled": true
+    },
+    {
+      "Type": "Animator",
+      "animations": {
+        "TestAnimation": {
+          "name": "TestAnimation",
+          "animationFrames": [
+            {
+              "fileSourceDirectory": "Assets/Basic Enemy White 1.png",
+              "time": 100
+            },
+            {
+              "fileSourceDirectory": "Assets/Basic Enemy White 2.png",
+              "time": 100
+            },
+            {
+              "fileSourceDirectory": "Assets/Basic Enemy White 3.png",
+              "time": 100
+            }
+          ],
+          "loop": true
+        }
+      },
+      "playBackSpeed": 1,
+      "enabled": true
+    }
+  ],
+  "name": "Player",
+  "isActive": true
+}

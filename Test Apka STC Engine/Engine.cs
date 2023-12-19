@@ -224,6 +224,10 @@ namespace STCEngine.Engine
 
             window.Controls.Add(playerInventoryPanel);
             window.Controls.Add(otherInventoryPanel);
+
+            otherInventoryPanel.Visible = false;
+            playerInventoryPanel.Visible = false;
+
             //otherInventoryPanel.GotFocus += new EventHandler((object? o, EventArgs e) => window.Focus()); //neni treba, viz inventory slot - SetStyle(ControlStyles.Selectable, false); :)
             //playerInventoryPanel.GotFocus += new EventHandler((object? o, EventArgs e) => window.Focus());
             //playerInventoryUI.GotFocus += new EventHandler((object? o, EventArgs e) => window.Focus());
@@ -383,6 +387,7 @@ namespace STCEngine.Engine
 
                 foreach (GameObject gameObject in spritesToRender)
                 {
+                    if (gameObject == null) { continue; } //kdo vi proc se to stava, ale tohle zabrani crashi ;)
                     Sprite? sprite = gameObject.GetComponent<Sprite>();
                     //if(gameObject.name == "Kamena stena") { Debug.Log(sprite.image.Height.ToString()); }
                     if (sprite != null && sprite.enabled && gameObject.isActive)
@@ -407,6 +412,7 @@ namespace STCEngine.Engine
                 }
                 foreach(GameObject gameObject in UISpritesToRender)
                 {
+                    if(gameObject == null) { continue; } 
                     UISprite? UISprite = gameObject.GetComponent<UISprite>();
                     if (UISprite != null && UISprite.enabled && gameObject.isActive)
                     {
@@ -414,7 +420,7 @@ namespace STCEngine.Engine
                         //{
                         //Debug.Log($"graphics.DrawImage({gameObject.transform.position.x - UISprite.image.Width * gameObject.transform.size.x / 2 + UISprite.offset.x + UISprite.screenAnchorOffset.x}, {gameObject.transform.position.y - UISprite.image.Height * gameObject.transform.size.y / 2 + UISprite.offset.y + UISprite.screenAnchorOffset.y}, {UISprite.image.Width * gameObject.transform.size.x}, {UISprite.image.Height * gameObject.transform.size.y}");
                         graphics.DrawImage(UISprite.image, gameObject.transform.position.x - UISprite.image.Width * gameObject.transform.size.x / 2 + UISprite.offset.x + UISprite.screenAnchorOffset.x, gameObject.transform.position.y - UISprite.image.Height * gameObject.transform.size.y / 2 + UISprite.offset.y + UISprite.screenAnchorOffset.y, UISprite.image.Width * gameObject.transform.size.x, UISprite.image.Height * gameObject.transform.size.y);
-                        if(gameObject.name == "Pause Screen")
+                        if(gameObject.name == "Pause Screen") //eyyy vecere, spaghetti :p
                         {
                             quitButton.Enabled = true;
                             resumeButton.Enabled = true;
@@ -476,6 +482,22 @@ namespace STCEngine.Engine
                 }
             }catch(Exception e) { Debug.LogError("Error running animations, error message: " + e.Message); }
         }
+        #endregion
+
+        #region JSON help functions
+        /// <summary>
+        /// Loads all the json GameObject files in the given directory
+        /// </summary>
+        /// <param name="directory"></param>
+        public static void LoadLevel(string directory)
+        {
+            DirectoryInfo dir = new DirectoryInfo(directory);
+            foreach (FileInfo file in dir.GetFiles("*.json"))
+            {
+                GameObject.CreateGameObjectFromJSON(file.FullName);
+            }
+        }
+
         #endregion
 
         #region Game logic classes

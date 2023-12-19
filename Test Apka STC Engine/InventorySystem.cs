@@ -14,7 +14,7 @@ namespace STCEngine.Components
         public override string Type { get; } = nameof(Inventory);
         [JsonIgnore] public int emptySlots { get => 15 - items.Count; }
         public List<ItemInInventory> items { get; set; } = new List<ItemInInventory>();
-        public bool isPlayerInventory;
+        public bool isPlayerInventory { get; set; }
         //[JsonIgnore] public List<InventorySlot> inventorySlots = new List<InventorySlot>();
 
         [JsonConstructor] public Inventory() { }
@@ -224,7 +224,7 @@ namespace STCEngine.Components
         {
             if (isPlayerInventory) { return; }
             if (Game.Game.MainGameInstance.twoInventoriesOpen) { Game.Game.MainGameInstance.CloseOtherInventory(); }
-            else { Game.Game.MainGameInstance.OpenOtherInventory(this); if (!Game.Game.MainGameInstance.playerInventoryPanel.Visible) { Game.Game.MainGameInstance.playerInventoryPanel.Visible = true; } }
+            else { Game.Game.MainGameInstance.OpenOtherInventory(this); if (!Game.Game.MainGameInstance.playerInventoryPanel.Visible) { Game.Game.MainGameInstance.playerInventoryPanel.Visible = true; Game.Game.MainGameInstance.playerInventory.ShowInventory(); } }
         }
         public void StopInteract()
         {
@@ -255,6 +255,7 @@ namespace STCEngine.Components
         }
         public override void Initialize()
         {
+            if (isPlayerInventory) { Game.Game.MainGameInstance.playerInventory = this; }
             Task.Delay(10).ContinueWith(t => SetupInteractCollider(75));
         }
 

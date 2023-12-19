@@ -1,0 +1,79 @@
+{
+  "components": [
+    {
+      "Type": "Transform",
+      "position": {
+        "x": 300,
+        "y": 500
+      },
+      "rotation": 0,
+      "size": {
+        "x": 1,
+        "y": 1
+      },
+      "enabled": true
+    },
+    {
+      "Type": "Sprite",
+      "orderInLayer": 2,
+      "fileSourceDirectory": "Assets/Basic Enemy White 1.png",
+      "enabled": true
+    },
+    {
+      "Type": "Animator",
+      "animations": {
+        "TestAnimation2": {
+          "name": "TestAnimation2",
+          "animationFrames": [
+            {
+              "fileSourceDirectory": "Assets/Basic Enemy White 1.png",
+              "time": 99
+            },
+            {
+              "fileSourceDirectory": "Assets/Basic Enemy White 2.png",
+              "time": 99
+            },
+            {
+              "fileSourceDirectory": "Assets/Basic Enemy White 3.png",
+              "time": 99
+            }
+          ],
+          "loop": true
+        }
+      },
+      "playBackSpeed": 1,
+      "enabled": true
+    },
+    {
+      "Type": "CircleCollider",
+      "radius": 50,
+      "debugDraw": true,
+      "isTrigger": false,
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "tag": "a",
+      "enabled": true
+    },
+    {
+      "Type": "Inventory",
+      "items": [],
+      "enabled": true
+    },
+    {
+      "Type": "CircleCollider",
+      "radius": 75,
+      "debugDraw": true,
+      "isTrigger": true,
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "tag": "Interactible",
+      "enabled": true
+    }
+  ],
+  "name": "Test Animated Circle Chest 2",
+  "isActive": true
+}

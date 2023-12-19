@@ -158,7 +158,7 @@ namespace STCEngine.Components
             this.image = Image.FromFile(fileSourceDirectory);
             this._orderInUILayer = orderInLayer;
         }
-        //[JsonConstructor] public Sprite() { } //not needed
+        [JsonConstructor] public UISprite() { } //not needed
         public override void Initialize()
         {
             EngineClass.AddUISpriteToRender(gameObject, orderInUILayer);
@@ -177,34 +177,52 @@ namespace STCEngine.Components
     public class Tilemap : Component
     {
         public override string Type { get; } = nameof(Tilemap);
-        public int orderInLayer { get => _orderInLayer; set { Engine.EngineClass.ChangeSpriteRenderOrder(gameObject, value);  _orderInLayer = value; } }//higher numbers render on top of lower numbers
-        private int _orderInLayer { get; set; }
-        private Dictionary<string, string> tileSources { get; set; }
+        public int OrderInLayer { get => orderInLayer; set { EngineClass.ChangeSpriteRenderOrder(gameObject, value);  orderInLayer = value; } }//higher numbers render on top of lower numbers
+        private int orderInLayer { get; set; }
+        public Dictionary<string, string> tileSources { get; set; }
         public string[] tilemapString { get; set; }
-        [JsonIgnore] private Image[,] _tiles;
-        [JsonIgnore] public Image[,] tiles { get => _tiles; set { _tiles = value; UpdateTiles(); } }
+        [JsonIgnore] private Image[,]? _tiles;
+        [JsonIgnore] public Image[,]? tiles { get => _tiles; set { _tiles = value; UpdateTiles(); } }
         [JsonIgnore] public Image tileMapImage;
         public Vector2 tileSize { get; set; }
         public Vector2 mapSize { get; set; }
 
         //to edit the origin, move the gameObject the tilemap is attached to
-        public Tilemap(string jsonSourcePath, int orderInLayer = 0)
+        //public Tilemap(string jsonSourcePath, int orderInLayer = 0)
+        //{
+        //    //loads the json into a new object
+        //    string text = File.ReadAllText(jsonSourcePath);
+        //    var tilemapValues = JsonSerializer.Deserialize<TilemapValues>(text);
+
+        //    //copies all the values from that object
+        //    tilemapString = tilemapValues.tilemapString;
+
+        //    tileSources = tilemapValues.tileSources;
+        //    tileSize = new Vector2(tilemapValues.tileWidth, tilemapValues.tileHeight);
+        //    mapSize = new Vector2(tilemapValues.mapWidth, tilemapValues.mapHeight);
+        //    this._orderInLayer = orderInLayer;
+
+        //    //creates the tilemap
+        //    CreateTilemap();
+        //}
+        /// <summary>
+        /// Creating tilemaps with this constructor is not recommended, rather use .json files with tilemap component
+        /// </summary>
+        /// <param name="tileSources"></param>
+        /// <param name="tilemapString"></param>
+        /// <param name="tileSize"></param>
+        /// <param name="mapSize"></param>
+        /// <param name="orderInLayer"></param>
+        public Tilemap(Dictionary<string, string> tileSources, string[] tilemapString, Vector2 tileSize, Vector2 mapSize, int orderInLayer)
         {
-            //loads the json into a new object
-            string text = File.ReadAllText(jsonSourcePath);
-            var tilemapValues = JsonSerializer.Deserialize<TilemapValues>(text);
-
-            //copies all the values from that object
-            tilemapString = tilemapValues.tilemapString;
-
-            tileSources = tilemapValues.tileSources;
-            tileSize = new Vector2(tilemapValues.tileWidth, tilemapValues.tileHeight);
-            mapSize = new Vector2(tilemapValues.mapWidth, tilemapValues.mapHeight);
-            this._orderInLayer = orderInLayer;
-
-            //creates the tilemap
-            CreateTilemap();
+            this.tileSources = tileSources;
+            this.tilemapString = tilemapString;
+            this.tileSize = tileSize;
+            this.mapSize = mapSize;
+            this.orderInLayer = orderInLayer;
         }
+
+
         /// <summary>
         /// Creates tiles array and adds it to the render queue
         /// </summary>
@@ -220,7 +238,7 @@ namespace STCEngine.Components
                 {
                     for (int x = 0; x < mapSize.x; x++)
                     {
-                        _tiles[x, y] = tileSources.TryGetValue(tilemapString[x + y * (int)mapSize.x], out string? value) ? Image.FromFile(value) : throw new Exception("bambusovina");
+                        _tiles[x, y] = tileSources.TryGetValue(tilemapString[x + y * (int)mapSize.x], out string? value) ? Image.FromFile(value) : throw new Exception("Wrong tilemap configuration");
                     }
                 }
                 tiles = _tiles;
@@ -231,6 +249,7 @@ namespace STCEngine.Components
                 Debug.LogError("Error creating tilemap, error message: " + e.Message);
             }
         }
+        
         /// <summary>
         /// Combines the multidimensional array of images into one image to be rendered
         /// </summary>
@@ -260,20 +279,21 @@ namespace STCEngine.Components
             tileMapImage = combinedImage;
         }
 
-        private class TilemapValues
-        {
-            public string[] tilemapString { get; set; }
-            public Dictionary<string, string> tileSources { get; set; }
-            public float mapWidth { get; set; }
-            public float mapHeight { get; set; }
-            public float tileWidth { get; set; }
-            public float tileHeight { get; set; }
-        }
+        //private class TilemapValues
+        //{
+        //    public string[] tilemapString { get; set; }
+        //    public Dictionary<string, string> tileSources { get; set; }
+        //    public float mapWidth { get; set; }
+        //    public float mapHeight { get; set; }
+        //    public float tileWidth { get; set; }
+        //    public float tileHeight { get; set; }
+        //}
         [JsonConstructor] public Tilemap(){}
         public override void Initialize() 
         {
-            EngineClass.AddSpriteToRender(gameObject, orderInLayer);
-            this._orderInLayer = EngineClass.spritesToRender.IndexOf(gameObject);
+            CreateTilemap();
+            EngineClass.AddSpriteToRender(gameObject, OrderInLayer);
+            this.orderInLayer = EngineClass.spritesToRender.IndexOf(gameObject);
         }
         public override void DestroySelf()
         {
@@ -824,6 +844,17 @@ namespace STCEngine.Components
             AddComponent(transform);
             GameObjectCreated();
         }
+
+        /// <summary>
+        /// Searches for a GameObject by name
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns>GameObject of the given name, if not found null</returns>
+        public static GameObject? Find(string name)
+        {
+            return EngineClass.registeredGameObjects.TryGetValue(name, out GameObject value) ? value : null;
+        }
+
         /// <summary>
         /// Creates a new GameObject from a JSON file with the given source path
         /// </summary>
@@ -844,6 +875,18 @@ namespace STCEngine.Components
                 return newGameObject;
             }catch(Exception e) { Debug.LogError("GameObject couldnt be created from json, error message: " + e.Message); }
             return null;
+        }
+        /// <summary>
+        /// Serializes the GameObject and saves it to the given directory
+        /// </summary>
+        /// <param name="gameObject"></param>
+        /// <param name="destinationDirectory"></param>
+        public void SerializeGameObject(string destinationDirectory)
+        {
+            string serializedGameObjectString = JsonSerializer.Serialize<GameObject>(this, new JsonSerializerOptions { WriteIndented = true, Converters = { new ComponentConverter() } });
+            string fileName = this.name + ".json";
+            File.WriteAllText(destinationDirectory + "/" + fileName, serializedGameObjectString);
+
         }
         /// <summary>
         /// Called upon creating a GameObject, registers the object in the Engine class and prints a debug

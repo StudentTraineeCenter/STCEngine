@@ -15,7 +15,7 @@
     },
     {
       "Type": "Sprite",
-      "orderInLayer": 100,
+      "orderInLayer": 3,
       "fileSourceDirectory": "Assets/Basic Wall.png",
       "enabled": true
     },
@@ -31,14 +31,27 @@
         "x": 0,
         "y": 0
       },
+      "tag": null,
       "enabled": true
     },
     {
       "Type": "Inventory",
       "items": [],
-      "isPlayerInventory": false
+      "enabled": true
+    },
+    {
+      "Type": "CircleCollider",
+      "radius": 75,
+      "debugDraw": true,
+      "isTrigger": true,
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "tag": "Interactible",
+      "enabled": true
     }
   ],
-  "name": "Chest1",
+  "name": "Test Chest 1",
   "isActive": true
 }

@@ -1,0 +1,44 @@
+{
+  "components": [
+    {
+      "Type": "Transform",
+      "position": {
+        "x": 500,
+        "y": 500
+      },
+      "rotation": 0,
+      "size": {
+        "x": 1,
+        "y": 1
+      },
+      "enabled": true
+    },
+    {
+      "Type": "Sprite",
+      "orderInLayer": 100,
+      "fileSourceDirectory": "Assets/Basic Wall.png",
+      "enabled": true
+    },
+    {
+      "Type": "BoxCollider",
+      "size": {
+        "x": 100,
+        "y": 100
+      },
+      "debugDraw": true,
+      "isTrigger": false,
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "enabled": true
+    },
+    {
+      "Type": "Inventory",
+      "items": [],
+      "isPlayerInventory": false
+    }
+  ],
+  "name": "Test Chest 1",
+  "isActive": true
+}
