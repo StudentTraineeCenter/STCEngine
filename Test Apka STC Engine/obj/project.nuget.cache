@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "MACZaA4JTXcZGAXc479XwUTrEoQbrTHkZw2tEvzW9tyaMjvCC6XwR07Gu73FHmfE2FWIAUoWeTZyztyoJSF6OA==",
+  "dgSpecHash": "ue1NJs1JLJj1tnYRfOOVrJJVlmPZBrIj3yF+sSRCHcai66/J3lJWE9xKMtOsC9gPO+m9aKghXrkuvp2ZQlA5kg==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Martin\\source\\repos\\2DGameEngineSTC\\Test Apka STC Engine\\STCEngine.csproj",
+  "projectFilePath": "C:\\Users\\Martin\\Source\\Repos\\STCEngine\\Test Apka STC Engine\\STCEngine.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

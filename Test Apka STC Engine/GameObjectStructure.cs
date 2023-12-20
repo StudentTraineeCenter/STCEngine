@@ -31,7 +31,7 @@ namespace STCEngine.Components
         /// Function that gets called upon destroying this component or the GameObject its attached to
         /// </summary>
         public abstract void DestroySelf();
-        [JsonConstructor]protected Component() { }
+        [JsonConstructor] protected Component() { }
     }
 
 
@@ -60,7 +60,7 @@ namespace STCEngine.Components
             Debug.LogWarning("Tried to destroy Transform component, destroying the whole GameObject");
             gameObject.DestroySelf();
         }
-        public override void Initialize(){}
+        public override void Initialize() { }
     }
 
     #region Rendering-related components
@@ -70,7 +70,7 @@ namespace STCEngine.Components
     public class Sprite : Component
     {
         public override string Type { get; } = nameof(Sprite);
-        [JsonIgnore] private Image? _image; 
+        [JsonIgnore] private Image? _image;
         [JsonIgnore] public Image image { get { if (_image == null) { _image = Image.FromFile(fileSourceDirectory); } return _image; } set => _image = value; }
         public int orderInLayer { get => _orderInLayer; set { EngineClass.ChangeSpriteRenderOrder(gameObject, value); _orderInLayer = value; } }//higher numbers render on top of lower numbers
         private int _orderInLayer { get; set; }
@@ -82,7 +82,7 @@ namespace STCEngine.Components
             this._orderInLayer = orderInLayer;
         }
         //[JsonConstructor] public Sprite() { } //not needed
-        public override void Initialize() 
+        public override void Initialize()
         {
             EngineClass.AddSpriteToRender(gameObject, orderInLayer);
             this._orderInLayer = EngineClass.spritesToRender.IndexOf(gameObject);
@@ -177,7 +177,7 @@ namespace STCEngine.Components
     public class Tilemap : Component
     {
         public override string Type { get; } = nameof(Tilemap);
-        public int OrderInLayer { get => orderInLayer; set { EngineClass.ChangeSpriteRenderOrder(gameObject, value);  orderInLayer = value; } }//higher numbers render on top of lower numbers
+        public int OrderInLayer { get => orderInLayer; set { EngineClass.ChangeSpriteRenderOrder(gameObject, value); orderInLayer = value; } }//higher numbers render on top of lower numbers
         private int orderInLayer { get; set; }
         public Dictionary<string, string> tileSources { get; set; }
         public string[] tilemapString { get; set; }
@@ -249,7 +249,7 @@ namespace STCEngine.Components
                 Debug.LogError("Error creating tilemap, error message: " + e.Message);
             }
         }
-        
+
         /// <summary>
         /// Combines the multidimensional array of images into one image to be rendered
         /// </summary>
@@ -288,8 +288,8 @@ namespace STCEngine.Components
         //    public float tileWidth { get; set; }
         //    public float tileHeight { get; set; }
         //}
-        [JsonConstructor] public Tilemap(){}
-        public override void Initialize() 
+        [JsonConstructor] public Tilemap() { }
+        public override void Initialize()
         {
             CreateTilemap();
             EngineClass.AddSpriteToRender(gameObject, OrderInLayer);
@@ -323,7 +323,7 @@ namespace STCEngine.Components
 
             this.playBackSpeed = Math.Clamp(playBackSpeed, 0, float.PositiveInfinity);
         }
-        
+
         /// <summary>
         /// Adds an animation to the animator, which can later be played using the Play function
         /// </summary>
@@ -333,28 +333,29 @@ namespace STCEngine.Components
         /// Plays the animation of the given name
         /// </summary>
         /// <param name="animationName"></param>
-        public void Play(string animationName) 
-        { 
-            if(sprite == null) { sprite = gameObject.GetComponent<Sprite>(); }
-            if (animations.TryGetValue(animationName, out Animation? animation)) { EngineClass.AddSpriteAnimation(animation); animation.sprite = sprite; currentlyPlayingAnimation = animation; animation.animator = this; } 
-            else { Debug.LogError($"Animation {animationName} not found and couldnt be played."); }     
+        public void Play(string animationName)
+        {
+            if (sprite == null) { sprite = gameObject.GetComponent<Sprite>(); }
+            if (animations.TryGetValue(animationName, out Animation? animation)) { EngineClass.AddSpriteAnimation(animation); animation.sprite = sprite; currentlyPlayingAnimation = animation; animation.animator = this; }
+            else { Debug.LogError($"Animation {animationName} not found and couldnt be played."); }
         }
         public void Stop()
         {
             try
             {
-                EngineClass.RemoveSpriteAnimation(currentlyPlayingAnimation??throw new Exception("Trying to stop animator that isnt playing!"));
+                EngineClass.RemoveSpriteAnimation(currentlyPlayingAnimation ?? throw new Exception("Trying to stop animator that isnt playing!"));
                 currentlyPlayingAnimation = null;
-            }catch(Exception e) { Debug.LogError(e.Message); }
+            }
+            catch (Exception e) { Debug.LogError(e.Message); }
         }
 
 
         [JsonConstructor] public Animator() { }
-        public override void Initialize() {}
+        public override void Initialize() { }
         public override void DestroySelf()
         {
             if (isPlaying) { Stop(); }
-            if(gameObject.GetComponent<Animator>() != null) { gameObject.RemoveComponent<Animator>(); return; }
+            if (gameObject.GetComponent<Animator>() != null) { gameObject.RemoveComponent<Animator>(); return; }
         }
     }
     /// <summary>
@@ -374,7 +375,7 @@ namespace STCEngine.Components
         //    this.image = image;
         //    this.time = time;
         //}
-        
+
         ///<summary>
         /// Creates a frame of an animation from the source of the image and the time how long this image should stay in the animation in ms
         /// </summary>
@@ -395,28 +396,28 @@ namespace STCEngine.Components
         public bool loop { get; set; }
         [JsonIgnore] public Animator animator { get; set; }
         [JsonIgnore] private int timer { get; set; }
-        [JsonIgnore] private int nextFrameTimer{ get; set; }
+        [JsonIgnore] private int nextFrameTimer { get; set; }
         [JsonIgnore] private int animationFrame { get; set; }
         [JsonIgnore] public Sprite? sprite { get; set; }
 
-    /// <summary>
-    /// Internal function, should NEVER be called by the user!
-    /// To start an animation, call the "Play" function in the animator component!
-    /// </summary>
-    public void RunAnimation()
+        /// <summary>
+        /// Internal function, should NEVER be called by the user!
+        /// To start an animation, call the "Play" function in the animator component!
+        /// </summary>
+        public void RunAnimation()
         {
-            if(sprite == null) { Debug.LogError("Animation sprite not found (was the RunAnimation function called manually? To play an animation, use the \"Play\" function in the Animator component!)"); }
-            if(timer > nextFrameTimer)
+            if (sprite == null) { Debug.LogError("Animation sprite not found (was the RunAnimation function called manually? To play an animation, use the \"Play\" function in the Animator component!)"); }
+            if (timer > nextFrameTimer)
             {
                 //Debug.Log(timer.ToString() + ", " + animationFrame);
-                if(animationFrame < animationFrames.Count() - 1)
+                if (animationFrame < animationFrames.Count() - 1)
                 {
-                    sprite.image = animationFrames[animationFrame+1].image;
+                    sprite.image = animationFrames[animationFrame + 1].image;
                     nextFrameTimer = animationFrames[animationFrame + 1].time;
                     timer = 0;
                     animationFrame++;
                 }
-                else if(loop)
+                else if (loop)
                 {
                     sprite.image = animationFrames[0].image;
                     nextFrameTimer = animationFrames[0].time;
@@ -428,7 +429,7 @@ namespace STCEngine.Components
                     animator.Stop();
                 }
             }
-            timer+=10;
+            timer += 10;
         }
 
         public Animation(string name, AnimationFrame[] animationFrames, bool loop)
@@ -452,7 +453,7 @@ namespace STCEngine.Components
         public string tag { get; set; }
         public abstract bool IsColliding(Collider other); //udelat override v tehle classe i pro circle, elipsu,...
         public abstract bool IsColliding(string tag, bool includeTriggers);
-        public abstract bool IsColliding(string tag, bool includeTriggers,out Collider? collider);
+        public abstract bool IsColliding(string tag, bool includeTriggers, out Collider? collider);
         public abstract Collider[] OverlapCollider(bool includeTriggers = false);
         [JsonConstructor] protected Collider() { }
 
@@ -464,7 +465,7 @@ namespace STCEngine.Components
     {
         public override string Type { get; } = nameof(BoxCollider);
         public Vector2 size { get; set; }
-        
+
 
         public bool debugDraw { get; private set; }
         /// <summary>
@@ -490,8 +491,8 @@ namespace STCEngine.Components
         /// <returns>Whether this collider overlaps with the given collider</returns>
         public override bool IsColliding(Collider otherCollider)
         {
-            if(!enabled || !otherCollider.enabled) { return false; }
-            if(otherCollider.GetType() == typeof(BoxCollider))
+            if (!enabled || !otherCollider.enabled) { return false; }
+            if (otherCollider.GetType() == typeof(BoxCollider))
             {
                 BoxCollider otherCollider1 = otherCollider as BoxCollider;
                 var relativeDistance = otherCollider.gameObject.transform.position + otherCollider.offset - gameObject.transform.position - offset;
@@ -533,7 +534,7 @@ namespace STCEngine.Components
         {
             foreach (Collider col in EngineClass.registeredColliders)
             {
-                if(col.tag == tag && IsColliding(col) && (!(!includeTriggers && col.isTrigger))) { return true; } 
+                if (col.tag == tag && IsColliding(col) && (!(!includeTriggers && col.isTrigger))) { return true; }
             }
             return false;
         }
@@ -561,7 +562,7 @@ namespace STCEngine.Components
         public override Collider[] OverlapCollider(bool includeTriggers = false)
         {
             List<Collider> outList = new List<Collider>();
-            foreach(Collider col in EngineClass.registeredColliders)
+            foreach (Collider col in EngineClass.registeredColliders)
             {
                 if (col.IsColliding(this) && (!(!includeTriggers && col.isTrigger))) { outList.Add(col); }
             }
@@ -569,7 +570,7 @@ namespace STCEngine.Components
         }
 
         [JsonConstructor] BoxCollider() { }
-        public override void Initialize() 
+        public override void Initialize()
         {
             EngineClass.RegisterCollider(this);
 
@@ -670,7 +671,7 @@ namespace STCEngine.Components
         /// <param name="tag"></param>
         /// <param name="collider"></param>
         /// <returns>Whether this collider overlaps with a collider with the given tag</returns>
-        public override bool IsColliding(string tag, bool includeTriggers,out Collider? collider)
+        public override bool IsColliding(string tag, bool includeTriggers, out Collider? collider)
         {
             foreach (Collider col in EngineClass.registeredColliders)
             {
@@ -794,18 +795,20 @@ namespace STCEngine.Components
     /// </summary>
     public class GameObject
     {
-        
+
         public List<Component> components { get; set; } = new List<Component>(); //is converted to the specific derivatives when creating a json file
         public string name { get; set; }
         /// <summary>
         /// Defines whether the object is currently active/enabled in the game, inactive GameObjects do not affect the game in any way
         /// </summary>
-        public bool isActive { get => _isActive; 
-            set 
+        public bool isActive
+        {
+            get => _isActive;
+            set
             {
                 isActiveChanged(!_isActive); //zatim nevyuzito :)
                 _isActive = value;
-            } 
+            }
         }
         private bool _isActive { get; set; }
         [JsonIgnore] public Transform transform { get; set; }
@@ -873,7 +876,8 @@ namespace STCEngine.Components
                 }
                 newGameObject.GameObjectCreated();
                 return newGameObject;
-            }catch(Exception e) { Debug.LogError("GameObject couldnt be created from json, error message: " + e.Message); }
+            }
+            catch (Exception e) { Debug.LogError("GameObject couldnt be created from json, error message: " + e.Message); }
             return null;
         }
         /// <summary>
@@ -897,7 +901,7 @@ namespace STCEngine.Components
             {
                 transform = components.OfType<Transform>().Single()/* ?? throw new Exception($"GameObject does not contain a (mandatory) Transform component")*/;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Debug.LogError($"GameObject \"{name}\" couldn't be created, error message: " + e.Message + " (did you forget to add a Transform component?)");
                 return;
@@ -930,14 +934,23 @@ namespace STCEngine.Components
         public void RemoveComponent<T>() where T : Component
         {
             var component = GetComponent<T>();
-            if(component == null) { Debug.LogError($"Tried removing a non-existing component {typeof(T)} from GameObject {name}!"); return; }
+            if (component == null) { Debug.LogError($"Tried removing a non-existing component {typeof(T)} from GameObject {name}!"); return; }
 
             Type targetType = typeof(T);
             if (targetType == typeof(Transform)) { Debug.LogWarning("Can't remove Transform component from GameObject!"); return; }
-            
+
             components.Remove(component);
             component.DestroySelf();
             Debug.LogInfo($"Component {targetType} has been removed from GameObject {this.name}");
+        }
+        public void RemoveComponent(Component component)
+        {
+            if (component == null) { Debug.LogError($"Tried removing a non-existing component {component.GetType()} from GameObject {name}!"); return; }
+            if (component.GetType() == typeof(Transform)) { Debug.LogError($"Cannot remove Transform component from GameObject! (name: {name})"); return; }
+
+            components.Remove(component);
+            component.DestroySelf();
+            Debug.LogInfo($"Component {component.GetType()} has been removed from GameObject {this.name}");
         }
         /// <summary>
         /// Returns a reference to the component of given type on the GameObject
@@ -948,7 +961,7 @@ namespace STCEngine.Components
         {
             Type targetType = typeof(T);
             var foundComponent = components.FirstOrDefault(c => targetType.IsAssignableFrom(c.GetType()));
-            
+
             // Use reflection to create an instance of the specified type and cast the found component to it.
             return foundComponent != null ? (T)Convert.ChangeType(foundComponent, targetType) : null;
         }
@@ -963,8 +976,8 @@ namespace STCEngine.Components
             var foundComponents = components.FindAll(c => targetType.IsAssignableFrom(c.GetType()));
 
             List<T>? convertedComponents = new List<T>();
-            
-            foreach(Component a in foundComponents)
+
+            foreach (Component a in foundComponents)
             {
                 // Use reflection to create an instance of the specified type and cast the found component to it.
                 convertedComponents.Add((T)Convert.ChangeType(a, targetType));
@@ -979,9 +992,9 @@ namespace STCEngine.Components
         public void DestroySelf()
         {
             int componentsAmount = components.Count;
-            for(int i = 0; i < componentsAmount; i++) { if (components[0].GetType() != typeof(Transform)) { components[0].DestroySelf(); /*RemoveComponent<Component>();*/ } else if(components.Count > 1) { components[1].DestroySelf(); } }
+            for (int i = 0; i < componentsAmount; i++) { if (components[0].GetType() != typeof(Transform)) { components[0].DestroySelf(); /*RemoveComponent<Component>();*/ } else if (components.Count > 1) { components[1].DestroySelf(); } }
             //this.isActive = false;
-            if(components.Count > 1) { Debug.LogError($"Error destroying Gameobject, some component didn't destroy itself!"); return; }
+            if (components.Count > 1) { Debug.LogError($"Error destroying Gameobject, some component didn't destroy itself!"); return; }
             EngineClass.UnregisterGameObject(this);
             Debug.LogInfo($"GameObject {name} should be destroyed. (remove all references to this object)");
         }
@@ -1035,6 +1048,6 @@ namespace STCEngine.Components
             JsonSerializer.Serialize(writer, value, value.GetType(), options);
         }
     }
-   
+
 }
 

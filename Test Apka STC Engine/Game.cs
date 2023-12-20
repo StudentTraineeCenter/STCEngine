@@ -18,32 +18,35 @@ namespace STCEngine.Game
         public NPC? activeNPC;
 
         private static Vector2 windowSize = new Vector2(1920, 1080);
+        private float movementSpeed = 10;
+
         public GameObject? player;
-        //public GameObject? tilemap;
-        public GameObject? pauseScreen;
+        public CombatStats playerStats;
         private Animator? playerAnim;
         public Inventory? playerInventory;
-        private float movementSpeed = 10;
         public BoxCollider playerCol;
         public BoxCollider playerTopCol, playerBotCol, playerLeftCol, playerRightCol; //hitboxes used for wall collision detection
+
+        public GameObject? pauseScreen;
         public GameObject? pressEGameObject;
 
         private float horizontalInput, verticalInput;
         private GameObject? interactingGameObject, highlightedGameObject;
 
         //private Inventory testInventory;
-        
+
         /// <summary>
         /// Starts the game
         /// </summary>
-        public Game() : base(windowSize, "Hraaa :)") {  }
+        public Game() : base(windowSize, "Hraaa :)") { }
 
 
         /// <summary>
         /// Called upon starting the game
         /// </summary>
-        public override void OnLoad() 
+        public override void OnLoad()
         {
+            //:)
             MainGameInstance = this;
             Debug.LogInfo("Game started");
             backgroundColor = Color.Black;
@@ -57,31 +60,33 @@ namespace STCEngine.Game
             playerAnim = player.GetComponent<Animator>();
             playerInventory = player.GetComponent<Inventory>();
             var playerColliders = player.GetComponents<BoxCollider>();
-            foreach(BoxCollider boxCol in playerColliders)
+            foreach (BoxCollider boxCol in playerColliders)
             {
                 switch (boxCol.tag)
                 {
                     case "player":
                         playerCol = boxCol;
                         break;
-                    case "playerWalkUp":                        
+                    case "playerWalkUp":
                         playerTopCol = boxCol;
                         break;
-                    case "playerWalkDown":  
+                    case "playerWalkDown":
                         playerBotCol = boxCol;
                         break;
-                    case "playerWalkRight": 
+                    case "playerWalkRight":
                         playerRightCol = boxCol;
                         break;
-                    case "playerWalkLeft": 
-                        playerLeftCol = boxCol; 
+                    case "playerWalkLeft":
+                        playerLeftCol = boxCol;
                         break;
                 }
-                
+
             }
 
             pauseScreen = GameObject.Find("Pause Screen");
             pressEGameObject = GameObject.Find("Press E GameObject");
+
+
 
             #region Old scene setup (inactive)
             //player = new GameObject("Player", new Transform(new Vector2(100, 100), 0, new Vector2(0.6f, 0.6f)));
@@ -175,6 +180,7 @@ namespace STCEngine.Game
         /// </summary>
         public override void Update()
         {
+            #region Player movement logic
             if (horizontalInput != 0 || verticalInput != 0)
             {
                 var modifiedMovementInput = new Vector2(horizontalInput, verticalInput);
@@ -193,15 +199,17 @@ namespace STCEngine.Game
             {
                 playerAnim.Stop();
             }
+            #endregion
 
+            #region Interaction logic
             //collecting dropped items
             Collider droppedCol; if (playerCol.IsColliding("droppedItem", true, out droppedCol)) { droppedCol.gameObject.GetComponent<DroppedItem>().CollectItem(); }
             Collider? interactCol = null; float closestDistance = float.MaxValue;
-            foreach(Collider col in playerCol.OverlapCollider(true))
+            foreach (Collider col in playerCol.OverlapCollider(true))
             {
-                if(col.tag == "Interactible")
+                if (col.tag == "Interactible")
                 {
-                    if((col.gameObject.transform.position - player.transform.position).magnitude < closestDistance)
+                    if ((col.gameObject.transform.position - player.transform.position).magnitude < closestDistance)
                     {
                         closestDistance = (col.gameObject.transform.position - player.transform.position).magnitude;
                         interactCol = col;
@@ -209,18 +217,18 @@ namespace STCEngine.Game
                 }
             }
 
-            if (interactCol != null) 
-            { 
-                if(interactCol.gameObject.name != (highlightedGameObject != null ? highlightedGameObject.name : "")) //prisel bliz k jinemu interactible objektu
-                { 
-                    if(interactingGameObject != null) { interactingGameObject.components.OfType<IInteractibleGameObject>().FirstOrDefault().StopInteract(); interactingGameObject = null; } //prestane interagovat stary
-                    //if(highlightedGameObject != null) { highlightedGameObject.components.OfType<IInteractibleGameObject>().FirstOrDefault().StopHighlight(); } //prestane highlightovat stary - neni treba, jen vypne pressEGameObject a pak ho zase zapne ;)
-                        
+            if (interactCol != null)
+            {
+                if (interactCol.gameObject.name != (highlightedGameObject != null ? highlightedGameObject.name : "")) //prisel bliz k jinemu interactible objektu
+                {
+                    if (interactingGameObject != null) { interactingGameObject.components.OfType<IInteractibleGameObject>().FirstOrDefault().StopInteract(); interactingGameObject = null; } //prestane interagovat stary
+                                                                                                                                                                                             //if(highlightedGameObject != null) { highlightedGameObject.components.OfType<IInteractibleGameObject>().FirstOrDefault().StopHighlight(); } //prestane highlightovat stary - neni treba, jen vypne pressEGameObject a pak ho zase zapne ;)
+
                     interactCol.gameObject.components.OfType<IInteractibleGameObject>().FirstOrDefault().Highlight(); //highlightne novy
                     highlightedGameObject = interactCol.gameObject;
                 }
             }
-            else if(highlightedGameObject != null) //odesel od interactible objektu
+            else if (highlightedGameObject != null) //odesel od interactible objektu
             {
                 if (interactingGameObject != null)
                 {
@@ -230,6 +238,18 @@ namespace STCEngine.Game
                 highlightedGameObject = null;
                 interactingGameObject = null;
             }
+            #endregion
+
+            #region Combat logic
+            if (playerCol.IsColliding("EnemyHurtbox", true, out Collider? enemyCol)) //got hit by an enemy
+            {
+                playerStats.health -= enemyCol.gameObject.GetComponent<CombatStats>().damage;
+                //change health bar
+                if (playerStats.health <= 0) { PlayerDeath(); }
+            }
+
+
+            #endregion
         }
 
         /// <summary>
@@ -237,28 +257,28 @@ namespace STCEngine.Game
         /// </summary>
         public override void LateUpdate()
         {
-            
+
         }
 
+        public void PlayerDeath()
+        {
+            Debug.LogInfo("\n----------------------------------------------------------------------");
+            Debug.LogInfo("\n THE PLAYER HAS DIED, RELOADING STARTING SCENE IN 1 SECOND");
+            Debug.LogInfo("\n----------------------------------------------------------------------");
+            ClearScene();
+            Task.Delay(1000).ContinueWith(t => LoadLevel("Assets/Level"));
+        }
+
+        /// <summary>
+        /// Called when E is pressed when near an interactible GameObject
+        /// </summary>
         public void InteractButtonPressed()
         {
             Collider interactCol;
             if (highlightedGameObject != null) { highlightedGameObject.components.OfType<IInteractibleGameObject>().FirstOrDefault().Interact(); interactingGameObject = (interactingGameObject == null ? highlightedGameObject : null); }
         }
 
-        public void Pause()
-        {
-            if (playerInventoryPanel.Visible) { ClosePlayerInventory(); }
-            if (otherInventoryPanel.Visible) { CloseOtherInventory(); }
-            //if (npcDialogueOpen) { activeNPC.EndDialogue(); } //rozbije to, ale asi to nejak bude treba implementovat
-            paused = true;
-            pauseScreen.isActive = true;
-        }
-        public void Unpause()
-        {
-            paused = false;
-            pauseScreen.isActive = false;
-        }
+
         public void OpenPlayerInventory()
         {
             playerInventory.ShowInventory();
@@ -293,11 +313,13 @@ namespace STCEngine.Game
         /// <param name="e"></param>
         public override void GetKeyDown(KeyEventArgs e)
         {
-            if(e.KeyCode == Keys.I) //inventory
+            if (e.KeyCode == Keys.I) //inventory
             {
+                //PlayerDeath();
+                //return;
                 if (playerInventoryPanel.Visible) { ClosePlayerInventory(); if (otherInventoryPanel.Visible) { CloseOtherInventory(); } }
                 else { OpenPlayerInventory(); }
-                
+
             }
             //if (e.KeyCode == Keys.O) //inventory
             //{
@@ -309,10 +331,10 @@ namespace STCEngine.Game
                 if (paused) { Unpause(); }
                 else { Pause(); }
             }
-            if(e.KeyCode == Keys.E) { InteractButtonPressed(); }
+            if (e.KeyCode == Keys.E) { InteractButtonPressed(); }
 
             //movement inputs
-            if(e.KeyCode == Keys.A || e.KeyCode == Keys.Left)
+            if (e.KeyCode == Keys.A || e.KeyCode == Keys.Left)
             {
                 left = true;
             }
@@ -333,8 +355,25 @@ namespace STCEngine.Game
             if ((up && down) || (!up && !down)) { verticalInput = 0; }
             else { verticalInput = down ? 1 : -1; }
         }
-
-
+        /// <summary>
+        /// Pauses the game
+        /// </summary>
+        public override void Pause()
+        {
+            if (playerInventoryPanel.Visible) { ClosePlayerInventory(); }
+            if (otherInventoryPanel.Visible) { CloseOtherInventory(); }
+            //if (npcDialogueOpen) { activeNPC.EndDialogue(); } //rozbije to, ale asi to nejak bude treba implementovat
+            paused = true;
+            pauseScreen.isActive = true;
+        }
+        /// <summary>
+        /// Unpauses the game
+        /// </summary>
+        public override void Unpause()
+        {
+            paused = false;
+            pauseScreen.isActive = false;
+        }
         /// <summary>
         /// Called the frame a key is released
         /// </summary>
@@ -382,6 +421,6 @@ namespace STCEngine.Game
         }
 
     }
-    
+
 
 }

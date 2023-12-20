@@ -26,6 +26,7 @@ namespace STCEngine.Engine
         private static System.Windows.Forms.Timer gameLoopTimer = new System.Windows.Forms.Timer();
         public Button resumeButton, quitButton;
         public static bool paused;
+        private bool changingScene;
 
         public static InventoryItemSlots playerInventoryUI = new InventoryItemSlots(), otherInventoryUI = new InventoryItemSlots();
         public Panel playerInventoryPanel = new Panel(), otherInventoryPanel = new Panel();
@@ -75,9 +76,6 @@ namespace STCEngine.Engine
             gameLoopTimer.Interval = 1;
             gameLoopTimer.Start();
 
-
-
-
             Application.Run(window);
 
             OnExit();
@@ -85,6 +83,8 @@ namespace STCEngine.Engine
             animationTimer.Stop();
             gameLoopTimer.Stop();
         }
+        public abstract void Pause();
+        public abstract void Unpause();
 
         /// <summary>
         /// Creates the pause screen Quit and Resume buttons, must be called ONCE upon loading to use the pause screen
@@ -92,19 +92,19 @@ namespace STCEngine.Engine
         public void InitializePauseScreenButtonsUI()
         {
             quitButton = new Button();
-            quitButton.BackColor = Color.White; 
+            quitButton.BackColor = Color.White;
             quitButton.ForeColor = Color.Black;
             quitButton.Text = "Quit";
             quitButton.Font = new Font(quitButton.Font.FontFamily, 30);
             quitButton.Size = new Size(300, 150);
-            quitButton.Location = new Point((int)screenSize.x / 2 - 200 - quitButton.Size.Width/2, (int)screenSize.y / 3 * 2);
+            quitButton.Location = new Point((int)screenSize.x / 2 - 200 - quitButton.Size.Width / 2, (int)screenSize.y / 3 * 2);
             quitButton.MouseEnter += new EventHandler((object? o, EventArgs e) => quitButton.BackColor = Color.SteelBlue);
             quitButton.MouseLeave += new EventHandler((object? o, EventArgs e) => quitButton.BackColor = Color.White);
             window.Controls.Add(quitButton);
-            
+
             resumeButton = new Button();
             resumeButton.BackColor = Color.White;
-            resumeButton.ForeColor = Color.Black; 
+            resumeButton.ForeColor = Color.Black;
             resumeButton.Text = "Resume";
             resumeButton.Font = new Font(resumeButton.Font.FontFamily, 30);
             resumeButton.Size = new Size(300, 150);
@@ -117,7 +117,7 @@ namespace STCEngine.Engine
             resumeButton.Enabled = false;
             quitButton.Visible = false;
             resumeButton.Visible = false;
-            
+
         }
 
         /// <summary>
@@ -153,7 +153,7 @@ namespace STCEngine.Engine
             playerInventoryUI.BorderStyle = BorderStyle.None;
             playerInventoryUI.CellBorderStyle = DataGridViewCellBorderStyle.None;
             playerInventoryUI.Size = new Size(640, 384);
-            playerInventoryUI.AllowUserToAddRows = false;playerInventoryUI.AllowUserToDeleteRows = false;playerInventoryUI.AllowUserToOrderColumns = false;playerInventoryUI.AllowUserToResizeRows = false;playerInventoryUI.AllowUserToResizeColumns = false;
+            playerInventoryUI.AllowUserToAddRows = false; playerInventoryUI.AllowUserToDeleteRows = false; playerInventoryUI.AllowUserToOrderColumns = false; playerInventoryUI.AllowUserToResizeRows = false; playerInventoryUI.AllowUserToResizeColumns = false;
 
             otherInventoryUI.ColumnHeadersVisible = false;
             otherInventoryUI.RowHeadersVisible = false;
@@ -169,10 +169,10 @@ namespace STCEngine.Engine
             playerInventoryUI.Rows.Add(new DataGridViewRow());
             playerInventoryUI.Rows[0].Height = 128;
 
-            
+
             DataGridViewImageColumn template = playerInventoryUI.Columns[0] as DataGridViewImageColumn;
             DataGridViewRow template2 = playerInventoryUI.Rows[0];
-            
+
 
             playerInventoryUI.Rows.Clear();
             playerInventoryUI.Columns.Clear();
@@ -181,14 +181,14 @@ namespace STCEngine.Engine
             playerInventoryUI.Rows.AddRange(template2.Clone() as DataGridViewRow, template2.Clone() as DataGridViewRow, template2.Clone() as DataGridViewRow);
             playerInventoryPanel.Controls.Add(playerInventoryUI);
             playerInventoryUI.Dock = DockStyle.None;//DockStyle.Top | DockStyle.Right | DockStyle.Bottom | DockStyle.Left; 
-            
-            for(int i = 0; i < playerInventoryUI.Rows.Count; i++) 
-            { 
-                for(int j = 0; j < playerInventoryUI.Rows[i].Cells.Count; j++) 
-                { 
-                    playerInventoryUI.Rows[i].Cells[j].Value = emptyImage; 
+
+            for (int i = 0; i < playerInventoryUI.Rows.Count; i++)
+            {
+                for (int j = 0; j < playerInventoryUI.Rows[i].Cells.Count; j++)
+                {
+                    playerInventoryUI.Rows[i].Cells[j].Value = emptyImage;
                     playerInventoryUI.Rows[i].Cells[j].ToolTipText = "";
-                } 
+                }
             }
             playerInventoryUI.CellClick += new DataGridViewCellEventHandler(Game.Game.MainGameInstance.playerInventory.ItemClicked);
             #endregion
@@ -210,13 +210,13 @@ namespace STCEngine.Engine
             otherInventoryPanel.Controls.Add(otherInventoryUI);
             otherInventoryUI.Dock = DockStyle.None;
 
-            for (int i = 0; i < otherInventoryUI.Rows.Count; i++) 
-            { 
-                for (int j = 0; j < otherInventoryUI.Rows[i].Cells.Count; j++) 
-                { 
-                    otherInventoryUI.Rows[i].Cells[j].Value = emptyImage; 
+            for (int i = 0; i < otherInventoryUI.Rows.Count; i++)
+            {
+                for (int j = 0; j < otherInventoryUI.Rows[i].Cells.Count; j++)
+                {
+                    otherInventoryUI.Rows[i].Cells[j].Value = emptyImage;
                     otherInventoryUI.Rows[i].Cells[j].ToolTipText = "";
-                } 
+                }
             }
             //otherInventoryUI.CellClick += new DataGridViewCellEventHandler(Game.Game.MainGameInstance.otherInventory.ItemClicked);
             #endregion
@@ -247,7 +247,7 @@ namespace STCEngine.Engine
             NPCDialoguePanel.ForeColor = Color.Azure;
             NPCDialoguePanel.BackColor = Color.Azure;
             //NPCDialoguePanel.Dock = DockStyle.Bottom;
-            NPCDialoguePanel.Top = (int)(screenSize.y*2/3);
+            NPCDialoguePanel.Top = (int)(screenSize.y * 2 / 3);
             NPCDialoguePanel.Height = (int)(screenSize.y / 3);
             NPCDialoguePanel.Width = (int)screenSize.x;
             System.Reflection.PropertyInfo aProp = typeof(Control).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -263,7 +263,7 @@ namespace STCEngine.Engine
                 Location = new Point(0, (int)(NPCDialoguePanel.Height / 5)),
             };
 
-            NPCDialogueText.Text = 
+            NPCDialogueText.Text =
                 "Ralof: Hey, you. You're finally awake. You were trying to cross the border, right? Walked right into that Imperial ambush, same as us, and that thief over there. " +
                 "Lokir: Damn you Stormcloaks. Skyrim was fine until you came along. Empire was nice and lazy. If they hadn't been looking for you, I could've stolen that horse and been half way to Hammerfell. " +
                     "You there. You and me -- we should be here. It's these Stormcloaks the Empire wants. " +
@@ -295,7 +295,7 @@ namespace STCEngine.Engine
                 TextColor = Color.Black,
                 Font = new Font("Arial", 35),
                 Anchor = AnchorStyles.Top | AnchorStyles.Left,
-                Size = new Size((int)(screenSize.x*4/5), (int)(screenSize.y / 15)),
+                Size = new Size((int)(screenSize.x * 4 / 5), (int)(screenSize.y / 15)),
                 Location = new Point(0, 0),
             };
             NPCDialogueName.Text = "Blender21";
@@ -305,7 +305,7 @@ namespace STCEngine.Engine
             {
                 Text = "Option 1",
                 Anchor = AnchorStyles.Right | AnchorStyles.Top,
-                Size = new Size((int)(screenSize.x / 5), (int)(NPCDialoguePanel.Height/3)),
+                Size = new Size((int)(screenSize.x / 5), (int)(NPCDialoguePanel.Height / 3)),
                 Location = new Point((int)(screenSize.x / 10), 0),
                 Left = (int)(NPCDialoguePanel.Width * 4 / 5),
                 BackColor = Color.Aqua,
@@ -326,8 +326,8 @@ namespace STCEngine.Engine
                 Text = "Option 1",
                 Anchor = AnchorStyles.Right | AnchorStyles.Top,
                 Size = new Size((int)(screenSize.x / 5), (int)(NPCDialoguePanel.Height / 3)),
-                Location = new Point((int)(screenSize.x / 10), (int)(NPCDialoguePanel.Height *2 / 3)),
-                Left = (int)(NPCDialoguePanel.Width*4/5),
+                Location = new Point((int)(screenSize.x / 10), (int)(NPCDialoguePanel.Height * 2 / 3)),
+                Left = (int)(NPCDialoguePanel.Width * 4 / 5),
                 BackColor = Color.Aqua,
                 ForeColor = Color.Black
             };
@@ -379,10 +379,11 @@ namespace STCEngine.Engine
         /// </summary>
         private void Renderer(object? sender, PaintEventArgs args)
         {
+            if (changingScene) { return; }
             try
             {
                 Graphics graphics = args.Graphics;
-            
+
                 graphics.Clear(backgroundColor);
 
                 foreach (GameObject gameObject in spritesToRender)
@@ -398,7 +399,7 @@ namespace STCEngine.Engine
                         //}
                     }
                     Tilemap? tilemap = gameObject.GetComponent<Tilemap>();
-                    if(tilemap != null && tilemap.enabled && gameObject.isActive)
+                    if (tilemap != null && tilemap.enabled && gameObject.isActive)
                     {
                         graphics.DrawImage(tilemap.tileMapImage, gameObject.transform.position.x - tilemap.tileMapImage.Width / 2, gameObject.transform.position.y - tilemap.tileMapImage.Height / 2, tilemap.tileMapImage.Width, tilemap.tileMapImage.Height);
                         //for(int y = 0; y < tilemap.mapSize.y; y++)
@@ -410,9 +411,9 @@ namespace STCEngine.Engine
                         //}
                     }
                 }
-                foreach(GameObject gameObject in UISpritesToRender)
+                foreach (GameObject gameObject in UISpritesToRender)
                 {
-                    if(gameObject == null) { continue; } 
+                    if (gameObject == null) { continue; }
                     UISprite? UISprite = gameObject.GetComponent<UISprite>();
                     if (UISprite != null && UISprite.enabled && gameObject.isActive)
                     {
@@ -420,7 +421,7 @@ namespace STCEngine.Engine
                         //{
                         //Debug.Log($"graphics.DrawImage({gameObject.transform.position.x - UISprite.image.Width * gameObject.transform.size.x / 2 + UISprite.offset.x + UISprite.screenAnchorOffset.x}, {gameObject.transform.position.y - UISprite.image.Height * gameObject.transform.size.y / 2 + UISprite.offset.y + UISprite.screenAnchorOffset.y}, {UISprite.image.Width * gameObject.transform.size.x}, {UISprite.image.Height * gameObject.transform.size.y}");
                         graphics.DrawImage(UISprite.image, gameObject.transform.position.x - UISprite.image.Width * gameObject.transform.size.x / 2 + UISprite.offset.x + UISprite.screenAnchorOffset.x, gameObject.transform.position.y - UISprite.image.Height * gameObject.transform.size.y / 2 + UISprite.offset.y + UISprite.screenAnchorOffset.y, UISprite.image.Width * gameObject.transform.size.x, UISprite.image.Height * gameObject.transform.size.y);
-                        if(gameObject.name == "Pause Screen") //eyyy vecere, spaghetti :p
+                        if (gameObject.name == "Pause Screen") //eyyy vecere, spaghetti :p
                         {
                             quitButton.Enabled = true;
                             resumeButton.Enabled = true;
@@ -443,19 +444,20 @@ namespace STCEngine.Engine
                 {
                     foreach (Collider col in debugRectangles)
                     {
-                        if(col == null) { continue; }
+                        if (col == null) { continue; }
                         if (!col.enabled) { continue; }
-                        if(col.GetType() == typeof(BoxCollider))
+                        if (col.GetType() == typeof(BoxCollider))
                         {
                             BoxCollider box = col as BoxCollider;
                             if (box == null) { Debug.LogError("ERROR LOADING COLLIDER DEBUG RECTANGLE"); continue; }
                             graphics.DrawRectangle(new Pen(box.isTrigger ? Color.Cyan : Color.Orange, 2), box.gameObject.transform.position.x + box.offset.x - box.size.x / 2, box.gameObject.transform.position.y + box.offset.y - box.size.y / 2, box.size.x, box.size.y);
-                        }else if(col.GetType() == typeof(CircleCollider))
+                        }
+                        else if (col.GetType() == typeof(CircleCollider))
                         {
                             CircleCollider circle = col as CircleCollider;
                             if (circle == null) { Debug.LogError("ERROR LOADING COLLIDER DEBUG RECTANGLE"); continue; }
                             //Debug.Log($"Drawing circle at ({circle.gameObject.transform.position.x + circle.offset.x - circle.radius}, {circle.gameObject.transform.position.y + circle.offset.y - circle.radius}) with size {circle.radius * 2}");
-                            graphics.DrawEllipse(new Pen(circle.isTrigger ? Color.Cyan : Color.Orange, 2), circle.gameObject.transform.position.x + circle.offset.x - circle.radius, circle.gameObject.transform.position.y + circle.offset.y - circle.radius, circle.radius*2, circle.radius*2);
+                            graphics.DrawEllipse(new Pen(circle.isTrigger ? Color.Cyan : Color.Orange, 2), circle.gameObject.transform.position.x + circle.offset.x - circle.radius, circle.gameObject.transform.position.y + circle.offset.y - circle.radius, circle.radius * 2, circle.radius * 2);
                         }
 
 
@@ -471,8 +473,14 @@ namespace STCEngine.Engine
             }
             catch (Exception e) { Debug.LogError("Error running renderer, error message: " + e.Message); }
         }
-        private static void RunAnimations(object? sender, EventArgs eventArgs)
+        /// <summary>
+        /// Calls the RunAnimation function in all currently playing Animator components
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="eventArgs"></param>
+        private void RunAnimations(object? sender, EventArgs eventArgs)
         {
+            if (changingScene) { return; }
             if (paused) { return; }
             try
             {
@@ -480,22 +488,44 @@ namespace STCEngine.Engine
                 {
                     anim.RunAnimation();
                 }
-            }catch(Exception e) { Debug.LogError("Error running animations, error message: " + e.Message); }
+            }
+            catch (Exception e) { Debug.LogError("Error running animations, error message: " + e.Message); }
         }
         #endregion
 
         #region JSON help functions
         /// <summary>
+        /// Clears the scene from all GameObjects
+        /// </summary>
+        public void ClearScene()
+        {
+            changingScene = true;
+            Task.Delay(10).ContinueWith(t =>
+            {
+                registeredGameObjects.Clear();
+                spritesToRender.Clear();
+                UISpritesToRender.Clear();
+                debugRectangles.Clear();
+                runningAnimations.Clear();
+                registeredColliders.Clear();
+            });
+            changingScene = false;
+
+
+        }
+        /// <summary>
         /// Loads all the json GameObject files in the given directory
         /// </summary>
         /// <param name="directory"></param>
-        public static void LoadLevel(string directory)
+        public void LoadLevel(string directory)
         {
+            changingScene = true;
             DirectoryInfo dir = new DirectoryInfo(directory);
             foreach (FileInfo file in dir.GetFiles("*.json"))
             {
                 GameObject.CreateGameObjectFromJSON(file.FullName);
             }
+            changingScene = false;
         }
 
         #endregion
@@ -505,8 +535,10 @@ namespace STCEngine.Engine
         public abstract void LateUpdate();
         public abstract void OnLoad();
         public abstract void OnExit();
-        private void Window_KeyDown(object? sender, KeyEventArgs e) { GetKeyDown(e); } public abstract void GetKeyDown(KeyEventArgs e);
-        private void Window_KeyUp(object? sender, KeyEventArgs e) { GetKeyUp(e); } public abstract void GetKeyUp(KeyEventArgs e);
+        private void Window_KeyDown(object? sender, KeyEventArgs e) { GetKeyDown(e); }
+        public abstract void GetKeyDown(KeyEventArgs e);
+        private void Window_KeyUp(object? sender, KeyEventArgs e) { GetKeyUp(e); }
+        public abstract void GetKeyUp(KeyEventArgs e);
         #endregion
 
         #region List Registrations ------------------------------------------------------------------------
@@ -552,12 +584,12 @@ namespace STCEngine.Engine
         /// </summary>
         /// <param name="GameObject"></param>
         /// <param name="order"></param>
-        public static void ChangeUISpriteRenderOrder(GameObject GameObject, int order) { UISpritesToRender.Remove(GameObject); UISpritesToRender.Insert(order > UISpritesToRender.Count ? UISpritesToRender.Count-1 : order, GameObject); }
+        public static void ChangeUISpriteRenderOrder(GameObject GameObject, int order) { UISpritesToRender.Remove(GameObject); UISpritesToRender.Insert(order > UISpritesToRender.Count ? UISpritesToRender.Count - 1 : order, GameObject); }
 
         //Debug boxes list
         public static void AddDebugRectangle(Collider Collider, int order = int.MaxValue) { if (order != int.MaxValue && order < debugRectangles.Count) { debugRectangles.Insert(order, Collider); return; } debugRectangles.Add(Collider); }
         public static void RemoveDebugRectangle(Collider Collider) { debugRectangles.Remove(Collider); }
-        
+
         /// <summary>
         /// Registers the Animation to the animation queue
         /// </summary>
@@ -590,16 +622,16 @@ namespace STCEngine.Engine
         protected override void PaintBackground(Graphics graphics, Rectangle clipBounds, Rectangle gridBounds)
         {
             base.PaintBackground(graphics, clipBounds, gridBounds);
-            
+
             //painting background image
-            for(int i = 0; i < (int)(Parent.Width / backgroundImage.Width); i++)
+            for (int i = 0; i < (int)(Parent.Width / backgroundImage.Width); i++)
             {
-                for(int j = 0; j < (int)(Parent.Height / backgroundImage.Height); j++)
+                for (int j = 0; j < (int)(Parent.Height / backgroundImage.Height); j++)
                 {
-                    graphics.DrawImage(backgroundImage, i* backgroundImage.Width, j* backgroundImage.Height, backgroundImage.Width, backgroundImage.Height);
+                    graphics.DrawImage(backgroundImage, i * backgroundImage.Width, j * backgroundImage.Height, backgroundImage.Width, backgroundImage.Height);
                 }
             }
-            
+
             //making the original background transparent
             if (!alreadyTransparent) { SetCellsTransparent(); alreadyTransparent = true; }
         }
@@ -658,7 +690,7 @@ namespace STCEngine
         static void Main(string[] args)
         {
             STCEngine.Game.Game testGame = new Game.Game();
-            
+
             //var a = new Vector2();
             //a.x = 1;
             //a.y = 23;
@@ -694,7 +726,7 @@ namespace STCEngine
         /// <summary>
         /// Length of the vector as a float
         /// </summary>
-        [JsonIgnore] public float magnitude { get => MathF.Sqrt(x*x + y*y); }
+        [JsonIgnore] public float magnitude { get => MathF.Sqrt(x * x + y * y); }
         [JsonIgnore] public Vector2 normalized { get => magnitude == 0 ? Vector2.zero : new Vector2(x / magnitude, y / magnitude); }
         public Vector2(float x, float y)
         {
@@ -730,5 +762,5 @@ namespace STCEngine
             return "(" + x + ", " + y + ")";
         }
     }
-    
+
 }

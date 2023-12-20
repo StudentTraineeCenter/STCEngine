@@ -26,8 +26,8 @@ namespace STCEngine.Components
         /// <returns>Whether the action was succesful</returns>
         public bool AddItem(ItemInInventory item)
         {
-            if(emptySlots == 0) { return false; }
-            if(items.Any(p => p.itemName == item.itemName))
+            if (emptySlots == 0) { return false; }
+            if (items.Any(p => p.itemName == item.itemName))
             {
                 items.First(p => p.itemName == item.itemName).itemCount += item.itemCount;
             }
@@ -47,12 +47,12 @@ namespace STCEngine.Components
         public bool AddItem(ItemInInventory[] items)
         {
             var emptySlots1 = emptySlots;
-            foreach(ItemInInventory i in items)
+            foreach (ItemInInventory i in items)
             {
-                if(!items.Any(p => p.itemName == i.itemName)) { emptySlots1--; }
+                if (!items.Any(p => p.itemName == i.itemName)) { emptySlots1--; }
             }
-            if(emptySlots1 < 0) { return false; }
-            foreach(ItemInInventory i in items)
+            if (emptySlots1 < 0) { return false; }
+            foreach (ItemInInventory i in items)
             {
                 AddItem(i);
             }
@@ -132,13 +132,13 @@ namespace STCEngine.Components
                     g.DrawImage(items[i].icon, 0, 0, 96, 96);
                     if (items[i].itemCount != 1) { g.DrawString(items[i].itemCount.ToString(), new Font("Arial", 15, FontStyle.Regular), new SolidBrush(Color.Black), 0, 0); }
                 }
-                
+
                 if (isPlayerInventory)
                 {
                     Engine.EngineClass.playerInventoryUI.Rows[(int)(i / 5)].Cells[i % 5].Value = combinedImage;
                     Engine.EngineClass.playerInventoryUI.Rows[(int)(i / 5)].Cells[i % 5].ToolTipText = $"{items[i].itemName} x {items[i].itemCount}";
                 }
-                else 
+                else
                 {
                     Engine.EngineClass.otherInventoryUI.Rows[(int)(i / 5)].Cells[i % 5].Value = combinedImage;
                     Engine.EngineClass.otherInventoryUI.Rows[(int)(i / 5)].Cells[i % 5].ToolTipText = $"{items[i].itemName} x {items[i].itemCount}";
@@ -183,10 +183,10 @@ namespace STCEngine.Components
         /// <param name="e"></param>
         public void ItemClicked(object? sender, DataGridViewCellEventArgs e)
         {
-            if(items.Count <= e.RowIndex * 5 + e.ColumnIndex) {  return; }
+            if (items.Count <= e.RowIndex * 5 + e.ColumnIndex) { return; }
             if (Game.Game.MainGameInstance.twoInventoriesOpen)
             {
-                if (!TransferItem(items[e.RowIndex*5+e.ColumnIndex], isPlayerInventory ? Game.Game.MainGameInstance.otherInventory : Game.Game.MainGameInstance.playerInventory)) { Debug.LogError("Error moving items between inventories"); }
+                if (!TransferItem(items[e.RowIndex * 5 + e.ColumnIndex], isPlayerInventory ? Game.Game.MainGameInstance.otherInventory : Game.Game.MainGameInstance.playerInventory)) { Debug.LogError("Error moving items between inventories"); }
             }
             else
             {
@@ -201,7 +201,7 @@ namespace STCEngine.Components
         {
             Debug.LogInfo($"Dropped {item.itemName}x{item.itemCount}");
             RemoveItem(item);
-            GameObject droppedItem = new GameObject($"Dropped Item {item.itemName}x{item.itemCount}, {new Random().Next()}", new List<Component> { new DroppedItem(item), new Transform(Game.Game.MainGameInstance.player.transform.position, 0, Vector2.one*2.5f), new Sprite(item.fileSourceDirectory) });
+            GameObject droppedItem = new GameObject($"Dropped Item {item.itemName}x{item.itemCount}, {new Random().Next()}", new List<Component> { new DroppedItem(item), new Transform(Game.Game.MainGameInstance.player.transform.position, 0, Vector2.one * 2.5f), new Sprite(item.fileSourceDirectory) });
             droppedItem.GetComponent<DroppedItem>().enabled = false;
             Task.Delay(3000).ContinueWith(t => (droppedItem.GetComponent<DroppedItem>().enabled = true));
             //await Task.Delay(3000);
@@ -269,20 +269,20 @@ namespace STCEngine.Components
         }
 
     }
-    
+
     public class DroppedItem : Component
     {
         public override string Type { get; } = nameof(DroppedItem);
         public ItemInInventory item { get; set; }
         //[JsonIgnore] public readonly int collectDistance = 100;
         [JsonIgnore] public BoxCollider collectionHitbox;
-        
+
         [JsonConstructor] public DroppedItem() { }
         public DroppedItem(ItemInInventory item)
         {
             this.item = item;
             //collectionHitbox = new BoxCollider(Vector2.one * 100, "droppedItem", Vector2.zero, true);
-            
+
         }
 
         public void CollectItem()
@@ -291,7 +291,7 @@ namespace STCEngine.Components
             Game.Game.MainGameInstance.playerInventory.AddItem(item);
             gameObject.DestroySelf();
             //gameObject.RemoveComponent<DroppedItem>();
-            
+
         }
 
         public override void DestroySelf()
@@ -308,7 +308,7 @@ namespace STCEngine.Components
         }
     }
 
-    public class ItemInInventory 
+    public class ItemInInventory
     {
         public int itemCount { get; set; }
         public string itemName { get; set; }

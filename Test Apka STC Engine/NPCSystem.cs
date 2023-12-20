@@ -8,6 +8,10 @@ using STCEngine.Engine;
 
 namespace STCEngine.Components
 {
+    #region Friendly NPC
+    /// <summary>
+    /// Interactible component responsible for creating a dialogue with the player
+    /// </summary>
     public class NPC : Component, IInteractibleGameObject
     {
         public override string Type => nameof(NPC);
@@ -27,13 +31,17 @@ namespace STCEngine.Components
             this.dialogues = dialogues;
             this.npcName = npcName;
         }
+        /// <summary>
+        /// Starts the dialogue with the given id
+        /// </summary>
+        /// <param name="id"></param>
         private void StartDialogue(string? id = null)
         {
             Debug.LogInfo($"Starting dialogue with id {id ?? "startingDialogue"}");
             EngineClass.NPCDialoguePanel.Visible = true;
             currentlyTalking = true;
             EngineClass.NPCDialogueName.Text = npcName;
-            if(id == null)
+            if (id == null)
             {
                 RunDialogue(startingDialogue);
             }
@@ -42,18 +50,24 @@ namespace STCEngine.Components
                 try
                 {
                     RunDialogue(dialogues.First(p => p.id == id));
-                }catch(Exception e) { Debug.LogError($"Error starting dialogue with id {id}, error message: {e.Message}"); }
+                }
+                catch (Exception e) { Debug.LogError($"Error starting dialogue with id {id}, error message: {e.Message}"); }
             }
-            
+
         }
 
-        //interrupt skipem diky chatGPT :>
+        /// <summary>
+        /// Goes through the dialogue with this NPC and handles the text
+        /// </summary>
+        /// <param name="dialogue"></param>
+        /// <returns></returns>
         private async Task RunDialogue(Dialogue dialogue)
         {
 
             for (int i = 0; i < dialogue.parts.Length; i++)
             {
-                if (exitFlag) { return;  }
+                if (exitFlag) { return; }
+                //interrupt skipem diky chatGPT :>
                 cancellationTokenSource = new CancellationTokenSource();
                 CancellationToken cancellationToken = cancellationTokenSource.Token;
                 try
@@ -75,7 +89,7 @@ namespace STCEngine.Components
                     cancellationTokenSource = null;
                 }
             }
-            if(dialogue.responses.Length == 0)
+            if (dialogue.responses.Length == 0)
             {
                 Debug.LogInfo("Finished Dialogue");
                 EndDialogue();
@@ -84,13 +98,19 @@ namespace STCEngine.Components
             {
                 ShowResponses(dialogue.responses);
             }
-            
+
 
         }
+        /// <summary>
+        /// Skips the wait for the next dialogue part
+        /// </summary>
         private void SkipDialogue()
         {
             cancellationTokenSource?.Cancel();
         }
+        /// <summary>
+        /// Called when the player wants to stop interacting with this NPC
+        /// </summary>
         public void EndDialogue()
         {
             exitFlag = true;
@@ -102,6 +122,10 @@ namespace STCEngine.Components
             currentlyTalking = false;
             EngineClass.NPCResponseCallback -= ResponseChosen;
         }
+        /// <summary>
+        /// Shows the response buttons
+        /// </summary>
+        /// <param name="responses"></param>
         private void ShowResponses(Response[] responses)
         {
 
@@ -115,25 +139,31 @@ namespace STCEngine.Components
                 EngineClass.NPCDialogueResponse2.Text = responses[1].responseText;
                 EngineClass.NPCDialogueResponse2.Visible = true;
             }
-            if(responses.Length > 2)
+            if (responses.Length > 2)
             {
                 EngineClass.NPCDialogueResponse3.Text = responses[2].responseText;
                 EngineClass.NPCDialogueResponse3.Visible = true;
             }
         }
+        /// <summary>
+        /// Hides the response buttons
+        /// </summary>
         private void HideResponses()
         {
             EngineClass.NPCDialogueResponse1.Visible = false;
             EngineClass.NPCDialogueResponse2.Visible = false;
             EngineClass.NPCDialogueResponse3.Visible = false;
         }
+        /// <summary>
+        /// Called upon a response button being clicked, starts the connected dialogue
+        /// </summary>
+        /// <param name="index"></param>
         public void ResponseChosen(int index)
         {
             Debug.LogInfo($"Chose response {currentlyActiveResponses[index].responseText} with linkID {currentlyActiveResponses[index].linkID}");
             StartDialogue(currentlyActiveResponses[index].linkID);
             HideResponses();
         }
-
 
         public override void Initialize()
         {
@@ -144,7 +174,7 @@ namespace STCEngine.Components
         {
             bool exitFlag = false;
             if (gameObject.GetComponent<NPC>() != null) { gameObject.RemoveComponent<NPC>(); exitFlag = true; }
-            if(gameObject.GetComponent<CircleCollider>() != null) { gameObject.RemoveComponent<CircleCollider>(); exitFlag = true; }
+            if (gameObject.GetComponent<CircleCollider>() != null) { gameObject.RemoveComponent<CircleCollider>(); exitFlag = true; }
             if (exitFlag) { return; }
         }
 
@@ -201,7 +231,7 @@ namespace STCEngine.Components
     {
         public string linkID { get; set; }
         public string responseText { get; set; }
-        [JsonConstructor]public Response() { }
+        [JsonConstructor] public Response() { }
         public Response(string linkID, string responseText)
         {
             this.linkID = linkID;
@@ -212,11 +242,45 @@ namespace STCEngine.Components
     {
         public string message { get; set; }
         public int delay { get; set; }
-        [JsonConstructor]public DialoguePart() { }
+        [JsonConstructor] public DialoguePart() { }
         public DialoguePart(string message, int delay)
         {
             this.message = message;
             this.delay = delay;
         }
     }
+    #endregion
+
+    #region Enemy NPC
+
+    /// <summary>
+    /// Compo
+    /// </summary>
+    public class CombatStats : Component
+    {
+        public override string Type => nameof(CombatStats);
+        public int health { get; set; }
+        public int damage { get; set; }
+        public int immuneTimer { get; set; }
+        //public int armor { get; set; } for future extension of the combat system :)
+
+        private int activeImmuneTimer;
+
+        public override void DestroySelf()
+        {
+            if (gameObject.GetComponent<CombatStats>() != null) { gameObject.RemoveComponent<CombatStats>(); }
+        }
+
+        public override void Initialize()
+        {
+            Task.Delay(10).ContinueWith(t => DelayedInit());
+        }
+        private void DelayedInit() //has to be delayed, else the GameObject creation with a list of components given breaks
+        {
+            gameObject.AddComponent(new CircleCollider(30, "Hurtbox", Vector2.zero, true, true));
+            gameObject.AddComponent(new CircleCollider(30, "EnemyHitbox", Vector2.zero, true, true));
+        }
+
+    }
+    #endregion
 }
