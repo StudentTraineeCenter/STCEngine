@@ -8,6 +8,9 @@ using System.Text.Json.Serialization;
 
 namespace STCEngine.Components
 {
+    /// <summary>
+    /// An interactible component responsible for giving a GameObject an inventory to store items in
+    /// </summary>
     public class Inventory : Component, IInteractibleGameObject
     {
         [JsonIgnore] public readonly int slotSpacing = 30; [JsonIgnore] public readonly int slotSize = 64; [JsonIgnore] public readonly Image inventorySlotBackgroundImage = Image.FromFile("Assets/Inventory-Background.png");
@@ -270,6 +273,9 @@ namespace STCEngine.Components
 
     }
 
+    /// <summary>
+    /// A component responsible for handling items dropped on the ground
+    /// </summary>
     public class DroppedItem : Component
     {
         public override string Type { get; } = nameof(DroppedItem);

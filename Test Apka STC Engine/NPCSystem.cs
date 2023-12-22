@@ -213,6 +213,9 @@ namespace STCEngine.Components
         }
     }
 
+    /// <summary>
+    /// A part of the NPC dialogue system, stores all information about how the conversation goes
+    /// </summary>
     public class Dialogue
     {
         public string id { get; set; }
@@ -227,6 +230,9 @@ namespace STCEngine.Components
             this.responses = responses ?? Array.Empty<Response>();
         }
     }
+    /// <summary>
+    /// A part of the NPC dialogue system to be used in a Dialogue to continue with a specific DialoguePart
+    /// </summary>
     public class Response
     {
         public string linkID { get; set; }
@@ -238,6 +244,9 @@ namespace STCEngine.Components
             this.responseText = responseText;
         }
     }
+    /// <summary>
+    /// A part of the NPC dialogue system to be used in a Dialogue with a message and the time it'll be shown
+    /// </summary>
     public class DialoguePart
     {
         public string message { get; set; }
@@ -254,21 +263,36 @@ namespace STCEngine.Components
     #region Enemy NPC
 
     /// <summary>
-    /// Compo
+    /// Component responsible for storing combat stats about a GameObject, adds a Hurtbox and an EnemyHitbox to enemies
     /// </summary>
     public class CombatStats : Component
     {
         public override string Type => nameof(CombatStats);
+        public bool isPlayerStats { get; set; }
         public int health { get; set; }
         public int damage { get; set; }
         public int immuneTimer { get; set; }
         //public int armor { get; set; } for future extension of the combat system :)
-
         private int activeImmuneTimer;
+        [JsonIgnore] public CircleCollider connectedHurtbox { get; private set; }
+        [JsonIgnore] public CircleCollider connectedHitbox { get; private set; }
+        public CombatStats(int health, int damage, int immuneTimer, bool isPlayerStats)
+        {
+            this.health = health;
+            this.damage = damage;
+            this.immuneTimer = immuneTimer;
+            this.isPlayerStats = isPlayerStats;
+        }
+        [JsonConstructor] public CombatStats() { }
 
         public override void DestroySelf()
         {
             if (gameObject.GetComponent<CombatStats>() != null) { gameObject.RemoveComponent<CombatStats>(); }
+            if (!isPlayerStats)
+            {
+                EngineClass.UnregisterEnemyHurtbox(connectedHurtbox);
+                EngineClass.UnregisterEnemyHitbox(connectedHitbox);
+            }
         }
 
         public override void Initialize()
@@ -277,10 +301,17 @@ namespace STCEngine.Components
         }
         private void DelayedInit() //has to be delayed, else the GameObject creation with a list of components given breaks
         {
-            gameObject.AddComponent(new CircleCollider(30, "Hurtbox", Vector2.zero, true, true));
-            gameObject.AddComponent(new CircleCollider(30, "EnemyHitbox", Vector2.zero, true, true));
+            if (!isPlayerStats)
+            {
+                connectedHurtbox = gameObject.AddComponent(new CircleCollider(30, "EnemyHurtbox", Vector2.zero, true, true));
+                connectedHitbox = gameObject.AddComponent(new CircleCollider(30, "EnemyHitbox", Vector2.zero, true, true));
+                EngineClass.RegisterEnemyHurtbox(connectedHurtbox);
+                EngineClass.RegisterEnemyHitbox(connectedHitbox);
+            }
+            //Potentially give the player a hitbox - rn using his collision collider as hitbox
         }
 
     }
+
     #endregion
 }

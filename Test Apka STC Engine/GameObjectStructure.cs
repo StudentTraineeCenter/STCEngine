@@ -187,24 +187,6 @@ namespace STCEngine.Components
         public Vector2 tileSize { get; set; }
         public Vector2 mapSize { get; set; }
 
-        //to edit the origin, move the gameObject the tilemap is attached to
-        //public Tilemap(string jsonSourcePath, int orderInLayer = 0)
-        //{
-        //    //loads the json into a new object
-        //    string text = File.ReadAllText(jsonSourcePath);
-        //    var tilemapValues = JsonSerializer.Deserialize<TilemapValues>(text);
-
-        //    //copies all the values from that object
-        //    tilemapString = tilemapValues.tilemapString;
-
-        //    tileSources = tilemapValues.tileSources;
-        //    tileSize = new Vector2(tilemapValues.tileWidth, tilemapValues.tileHeight);
-        //    mapSize = new Vector2(tilemapValues.mapWidth, tilemapValues.mapHeight);
-        //    this._orderInLayer = orderInLayer;
-
-        //    //creates the tilemap
-        //    CreateTilemap();
-        //}
         /// <summary>
         /// Creating tilemaps with this constructor is not recommended, rather use .json files with tilemap component
         /// </summary>
@@ -451,10 +433,39 @@ namespace STCEngine.Components
         public bool isTrigger { get; set; } //whether it stops movement upon collision
         public Vector2 offset { get; set; }
         public string tag { get; set; }
-        public abstract bool IsColliding(Collider other); //udelat override v tehle classe i pro circle, elipsu,...
-        public abstract bool IsColliding(string tag, bool includeTriggers);
-        public abstract bool IsColliding(string tag, bool includeTriggers, out Collider? collider);
-        public abstract Collider[] OverlapCollider(bool includeTriggers = false);
+
+        /// <summary>
+        /// Checks if this collider is coliding with the given collider for all registered colliders or the given collider list
+        /// </summary>
+        /// <param name="otherCollider"></param>
+        /// <returns>Whether this collider overlaps with the given collider</returns>
+        public abstract bool IsColliding(Collider other);
+        /// <summary>
+        /// Checks if this collider is coliding with a collider with the given tag for all registered colliders or the given collider list
+        /// </summary>
+        /// <param name="tag"></param>
+        /// <param name="includeTriggers"></param>
+        /// <param name="colliderList"></param>
+        /// <returns>Whether this collider overlaps with a collider with the given tag</returns>
+        public abstract bool IsColliding(string tag, bool includeTriggers, List<Collider>? colliderList = null);
+        /// <summary>
+        /// Checks if this collider is coliding with a collider with the given tag for all registered colliders or the given collider list
+        /// </summary>
+        /// <param name="tag"></param>
+        /// <param name="includeTriggers"></param>
+        /// <param name="collider"></param>
+        /// <param name="colliderList"></param>
+        /// <returns>Whether this collider overlaps with a collider with the given tag</returns>
+        public abstract bool IsColliding(string tag, bool includeTriggers, out Collider? collider, List<Collider>? colliderList = null);
+
+        /// <summary>
+        /// Returns all the colliders colliding with this one, option to include triggers, for all registered colliders or the given collider list
+        /// </summary>
+        /// <param name="includeTriggers"></param>
+        /// <param name="colliderList"></param>
+        /// <returns>Array of colliding colliers</returns>
+        public abstract Collider[] OverlapCollider(bool includeTriggers = false, List<Collider>? colliderList = null);
+
         [JsonConstructor] protected Collider() { }
 
     }
@@ -484,11 +495,8 @@ namespace STCEngine.Components
             this.isTrigger = isTrigger;
             this.debugDraw = debugDraw;
         }
-        /// <summary>
-        /// Checks if this collider is coliding with the given collider
-        /// </summary>
-        /// <param name="otherCollider"></param>
-        /// <returns>Whether this collider overlaps with the given collider</returns>
+
+        
         public override bool IsColliding(Collider otherCollider)
         {
             if (!enabled || !otherCollider.enabled) { return false; }
@@ -525,28 +533,19 @@ namespace STCEngine.Components
             throw new Exception("Error with determining collider type");
         }
 
-        /// <summary>
-        /// Checks if this collider is coliding with a collider with the given tag
-        /// </summary>
-        /// <param name="tag"></param>
-        /// <returns>Whether this collider overlaps with a collider with the given tag</returns>
-        public override bool IsColliding(string tag, bool includeTriggers)
+
+        public override bool IsColliding(string tag, bool includeTriggers, List<Collider>? colliderList = null)
         {
-            foreach (Collider col in EngineClass.registeredColliders)
+            foreach (Collider col in colliderList == null ? EngineClass.registeredColliders : colliderList)
             {
                 if (col.tag == tag && IsColliding(col) && (!(!includeTriggers && col.isTrigger))) { return true; }
             }
             return false;
         }
-        /// <summary>
-        /// Checks if this collider is coliding with a collider with the given tag
-        /// </summary>
-        /// <param name="tag"></param>
-        /// <param name="collider"></param>
-        /// <returns>Whether this collider overlaps with a collider with the given tag</returns>
-        public override bool IsColliding(string tag, bool includeTriggers, out Collider? collider)
+
+        public override bool IsColliding(string tag, bool includeTriggers, out Collider? collider, List<Collider>? colliderList = null)
         {
-            foreach (Collider col in EngineClass.registeredColliders)
+            foreach (Collider col in colliderList == null ? EngineClass.registeredColliders : colliderList)
             {
                 if (col.tag == tag && IsColliding(col) && (!(!includeTriggers && col.isTrigger))) { collider = col; return true; }
             }
@@ -554,15 +553,11 @@ namespace STCEngine.Components
             return false;
         }
 
-        /// <summary>
-        /// Returns all the colliders colliding with this one, option to include triggers
-        /// </summary>
-        /// <param name="includeTriggers"></param>
-        /// <returns>Array of colliding colliers</returns>
-        public override Collider[] OverlapCollider(bool includeTriggers = false)
+
+        public override Collider[] OverlapCollider(bool includeTriggers = false, List<Collider>? colliderList = null)
         {
             List<Collider> outList = new List<Collider>();
-            foreach (Collider col in EngineClass.registeredColliders)
+            foreach (Collider col in colliderList == null ? EngineClass.registeredColliders : colliderList)
             {
                 if (col.IsColliding(this) && (!(!includeTriggers && col.isTrigger))) { outList.Add(col); }
             }
@@ -586,6 +581,8 @@ namespace STCEngine.Components
             EngineClass.UnregisterCollider(this);
 
         }
+
+
     }
 
     /// <summary>
@@ -614,11 +611,7 @@ namespace STCEngine.Components
             this.isTrigger = isTrigger;
             this.debugDraw = debugDraw;
         }
-        /// <summary>
-        /// Checks if this collider is coliding with the given collider
-        /// </summary>
-        /// <param name="otherCollider"></param>
-        /// <returns>Whether this collider overlaps with the given collider</returns>
+
         public override bool IsColliding(Collider otherCollider)
         {
             if (otherCollider.GetType() == typeof(CircleCollider))
@@ -652,28 +645,18 @@ namespace STCEngine.Components
             throw new Exception("Error with determining collider type");
         }
 
-        /// <summary>
-        /// Checks if this collider is coliding with a collider with the given tag
-        /// </summary>
-        /// <param name="tag"></param>
-        /// <returns>Whether this collider overlaps with a collider with the given tag</returns>
-        public override bool IsColliding(string tag, bool includeTriggers)
+        public override bool IsColliding(string tag, bool includeTriggers, List<Collider>? colliderList = null)
         {
-            foreach (Collider col in EngineClass.registeredColliders)
+            foreach (Collider col in colliderList == null ? EngineClass.registeredColliders : colliderList)
             {
                 if (col.tag == tag && IsColliding(col) && (!(!includeTriggers && col.isTrigger))) { return true; }
             }
             return false;
         }
-        /// <summary>
-        /// Checks if this collider is coliding with a collider with the given tag
-        /// </summary>
-        /// <param name="tag"></param>
-        /// <param name="collider"></param>
-        /// <returns>Whether this collider overlaps with a collider with the given tag</returns>
-        public override bool IsColliding(string tag, bool includeTriggers, out Collider? collider)
+
+        public override bool IsColliding(string tag, bool includeTriggers, out Collider? collider, List<Collider>? colliderList = null)
         {
-            foreach (Collider col in EngineClass.registeredColliders)
+            foreach (Collider col in colliderList == null ? EngineClass.registeredColliders : colliderList)
             {
                 if (col.tag == tag && IsColliding(col) && (!(!includeTriggers && col.isTrigger))) { collider = col; return true; }
             }
@@ -681,15 +664,11 @@ namespace STCEngine.Components
             return false;
         }
 
-        /// <summary>
-        /// Returns all the colliders colliding with this one, option to include triggers
-        /// </summary>
-        /// <param name="includeTriggers"></param>
-        /// <returns>Array of colliding colliers</returns>
-        public override Collider[] OverlapCollider(bool includeTriggers = false)
+
+        public override Collider[] OverlapCollider(bool includeTriggers = false, List<Collider>? colliderList = null)
         {
             List<Collider> outList = new List<Collider>();
-            foreach (Collider col in EngineClass.registeredColliders)
+            foreach (Collider col in colliderList == null ? EngineClass.registeredColliders : colliderList)
             {
                 if (col.IsColliding(this) && (!(!includeTriggers && col.isTrigger))) { outList.Add(col); }
             }
@@ -717,15 +696,29 @@ namespace STCEngine.Components
     #endregion
 
     /// <summary>
-    /// Interface for all interactible objects with the E button
+    /// Interface for all interactible objects with the interact button (E)
     /// </summary>
     public interface IInteractibleGameObject
     {
-        //public CircleCollider interactCollider;
+        /// <summary>
+        /// Called upon pressing the interact button when nearby
+        /// </summary>
         public void Interact();
+        /// <summary>
+        /// Called upon pressing the interact button when nearby and "interacting" or running too far away 
+        /// </summary>
         public void StopInteract();
+        /// <summary>
+        /// Called upon coming into interact range
+        /// </summary>
         public void Highlight();
+        /// <summary>
+        /// Called upon leaving interact range
+        /// </summary>
         public void StopHighlight();
+        /// <summary>
+        /// Sets up the interact collider, usually called in delayed Init method
+        /// </summary>
         public void SetupInteractCollider(int range);
     }
 
@@ -923,7 +916,7 @@ namespace STCEngine.Components
         {
             components.Add(component);
             component.gameObject = this;
-            Debug.LogInfo($"Component {component} has been added onto GameObject {this.name}");
+            //Debug.LogInfo($"Component {component} has been added onto GameObject {this.name}");
             component.Initialize();
             return component;
         }
@@ -941,7 +934,7 @@ namespace STCEngine.Components
 
             components.Remove(component);
             component.DestroySelf();
-            Debug.LogInfo($"Component {targetType} has been removed from GameObject {this.name}");
+            //Debug.LogInfo($"Component {targetType} has been removed from GameObject {this.name}");
         }
         public void RemoveComponent(Component component)
         {
@@ -950,7 +943,7 @@ namespace STCEngine.Components
 
             components.Remove(component);
             component.DestroySelf();
-            Debug.LogInfo($"Component {component.GetType()} has been removed from GameObject {this.name}");
+            //Debug.LogInfo($"Component {component.GetType()} has been removed from GameObject {this.name}");
         }
         /// <summary>
         /// Returns a reference to the component of given type on the GameObject
@@ -1036,6 +1029,8 @@ namespace STCEngine.Components
                         return jsonDoc.RootElement.Deserialize<ToggleCollider>(options) as ToggleCollider;
                     case nameof(NPC):
                         return jsonDoc.RootElement.Deserialize<NPC>(options) as NPC;
+                    case nameof(CombatStats):
+                        return jsonDoc.RootElement.Deserialize<CombatStats>(options) as CombatStats;
                     default:
                         throw new JsonException("'Type' doesn't match a known derived type");
                 }

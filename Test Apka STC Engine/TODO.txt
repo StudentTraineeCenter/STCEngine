@@ -15,10 +15,9 @@ DONE			Chestky
 DONE			Dvere
 			7. NPC system
 DELAYED		NPC Sprites, animations,...
-				??	NPC Stats
+DONE			??	NPC Stats
 DONE			NPC Dialogues
 			8. Fight system/Farmareni
-		Okomentovat classy
 			9. Savovani/loadeni ingame
 			9. Vic itemu, quests, level, polish
 				Mob drops
@@ -28,5 +27,6 @@ DONE			NPC Dialogues
 
 			10. Prirucka
 			11. Absolventka :)
+			(Okomentovat classy)
 
 

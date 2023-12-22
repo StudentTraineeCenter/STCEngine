@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace STCEngine
 {
+    /// <summary>
+    /// Class to help with debugging and logging messages in the console
+    /// </summary>
     public class Debug
     {
         public static void Log(string message)

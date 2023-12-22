@@ -9,6 +9,9 @@ using STCEngine.Components;
 
 namespace STCEngine.Game
 {
+    /// <summary>
+    /// Class responsible for handling all the game logic
+    /// </summary>
     class Game : EngineClass
     {
         public static Game MainGameInstance;
@@ -26,6 +29,7 @@ namespace STCEngine.Game
         public Inventory? playerInventory;
         public BoxCollider playerCol;
         public BoxCollider playerTopCol, playerBotCol, playerLeftCol, playerRightCol; //hitboxes used for wall collision detection
+        public BoxCollider playerAttackHurtbox;
 
         public GameObject? pauseScreen;
         public GameObject? pressEGameObject;
@@ -60,6 +64,7 @@ namespace STCEngine.Game
             playerAnim = player.GetComponent<Animator>();
             playerInventory = player.GetComponent<Inventory>();
             var playerColliders = player.GetComponents<BoxCollider>();
+            Debug.Log(playerColliders.Length);
             foreach (BoxCollider boxCol in playerColliders)
             {
                 switch (boxCol.tag)
@@ -78,6 +83,9 @@ namespace STCEngine.Game
                         break;
                     case "playerWalkLeft":
                         playerLeftCol = boxCol;
+                        break;
+                    case "playerAttackHurtbox":
+                        playerAttackHurtbox = boxCol;
                         break;
                 }
 
@@ -167,17 +175,11 @@ namespace STCEngine.Game
             Debug.LogInfo("\nOnLoad Complete\n");
         }
 
-        /// <summary>
-        /// Called upon exiting the game
-        /// </summary>
         public override void OnExit()
         {
             Debug.LogInfo("\nApplication Quit");
         }
 
-        /// <summary>
-        /// Called every frame before graphics update
-        /// </summary>
         public override void Update()
         {
             #region Player movement logic
@@ -241,12 +243,22 @@ namespace STCEngine.Game
             #endregion
 
             #region Combat logic
-            if (playerCol.IsColliding("EnemyHurtbox", true, out Collider? enemyCol)) //got hit by an enemy
-            {
-                playerStats.health -= enemyCol.gameObject.GetComponent<CombatStats>().damage;
-                //change health bar
-                if (playerStats.health <= 0) { PlayerDeath(); }
-            }
+            //zatim nefunkcni :)
+            //if (playerCol.IsColliding("EnemyHurtbox", true, out Collider? enemyHurtbox, registeredEnemyHurtboxes)) //player hit by an enemy
+            //{
+            //    playerStats.health -= enemyHurtbox.gameObject.GetComponent<CombatStats>().damage;
+            //    //change health bar
+            //    if (playerStats.health <= 0) { PlayerDeath(); }
+            //}
+            //if (playerAttackHurtbox.enabled) //--------------------------------------------------------------- player hitting an enemy
+            //{
+            //    if (playerAttackHurtbox.IsColliding("EnemyHitbox", true, out Collider? enemyHitbox, registeredEnemyHitboxes))
+            //    {
+            //        CombatStats enemyStats = enemyHitbox.gameObject.GetComponent<CombatStats>();
+            //        enemyStats.health -= playerStats.damage;
+            //        if (enemyStats.health <= 0) { NPCDeath(enemyStats); }
+            //    }
+            //}
 
 
             #endregion
@@ -260,6 +272,7 @@ namespace STCEngine.Game
 
         }
 
+        #region Combat help functions
         public void PlayerDeath()
         {
             Debug.LogInfo("\n----------------------------------------------------------------------");
@@ -268,7 +281,18 @@ namespace STCEngine.Game
             ClearScene();
             Task.Delay(1000).ContinueWith(t => LoadLevel("Assets/Level"));
         }
+        public void NPCDeath(CombatStats enemyStats)
+        {
+            Debug.LogInfo($"Enemy NPC {enemyStats.gameObject.name} has died");
+            enemyStats.gameObject.DestroySelf();
+        }
+        public void PlayerAttack()
+        {
 
+        }
+        #endregion
+
+        #region Interact help functions
         /// <summary>
         /// Called when E is pressed when near an interactible GameObject
         /// </summary>
@@ -305,27 +329,17 @@ namespace STCEngine.Game
             otherInventory = null;
             otherInventoryPanel.Visible = false;
         }
+        #endregion
 
         private bool up = false, down = false, left = false, right = false;
-        /// <summary>
-        /// Called the frame a key is pressed down
-        /// </summary>
-        /// <param name="e"></param>
         public override void GetKeyDown(KeyEventArgs e)
         {
             if (e.KeyCode == Keys.I) //inventory
             {
-                //PlayerDeath();
-                //return;
                 if (playerInventoryPanel.Visible) { ClosePlayerInventory(); if (otherInventoryPanel.Visible) { CloseOtherInventory(); } }
                 else { OpenPlayerInventory(); }
 
             }
-            //if (e.KeyCode == Keys.O) //inventory
-            //{
-            //    if (otherInventoryPanel.Visible) { CloseOtherInventory(); }
-            //    else { OpenOtherInventory(testInventory); }
-            //}
             if (e.KeyCode == Keys.Escape) //pause
             {
                 if (paused) { Unpause(); }
@@ -354,6 +368,10 @@ namespace STCEngine.Game
             else { horizontalInput = left ? -1 : 1; }
             if ((up && down) || (!up && !down)) { verticalInput = 0; }
             else { verticalInput = down ? 1 : -1; }
+        }
+        public override void GetMouseClick(MouseEventArgs eventArgs)
+        {
+            Debug.Log($"{eventArgs.Button}, {eventArgs.Location}, {eventArgs.Clicks}, {eventArgs.X}, {eventArgs.Y}" );
         }
         /// <summary>
         /// Pauses the game

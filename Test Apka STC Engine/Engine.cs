@@ -12,7 +12,7 @@ using STCEngine.Components;
 namespace STCEngine.Engine
 {
     /// <summary>
-    /// The main class of the engine, the Game class derives off this one
+    /// The main class of the engine, handles most of the lower-level logic; Game class is a derivative of this class
     /// </summary>
     public abstract class EngineClass
     {
@@ -41,6 +41,9 @@ namespace STCEngine.Engine
         public static List<Animation> runningAnimations { get; private set; } = new List<Animation>();
         public static List<Collider> registeredColliders { get; private set; } = new List<Collider>();
 
+        public static List<Collider> registeredEnemyHitboxes { get; private set; } = new List<Collider>();
+        public static List<Collider> registeredEnemyHurtboxes { get; private set; } = new List<Collider>();
+
         public Color backgroundColor;
         public static readonly Bitmap emptyImage = new Bitmap(1, 1);
 
@@ -68,6 +71,7 @@ namespace STCEngine.Engine
             //Input
             window.KeyDown += Window_KeyDown;
             window.KeyUp += Window_KeyUp;
+            window.MouseClick += Window_MouseClick;
 
             OnLoad();
             //gameLoopThread = new Thread(GameLoop);
@@ -86,6 +90,7 @@ namespace STCEngine.Engine
         public abstract void Pause();
         public abstract void Unpause();
 
+        #region UI initialization
         /// <summary>
         /// Creates the pause screen Quit and Resume buttons, must be called ONCE upon loading to use the pause screen
         /// </summary>
@@ -286,7 +291,7 @@ namespace STCEngine.Engine
                 "Torolf: Inside the house. Now. " +
                 "Imperial Soldier: Whoa. " +
                 "Lokir: Why are they stopping? " +
-                "Ralof: Why do you think? End of the line.";
+                "Ralof: Why do you think? End of the line."; //:>
 
 
             //NPC name text box
@@ -360,7 +365,7 @@ namespace STCEngine.Engine
         }
         public delegate void NPCResponseCallbacks(int index);
         public static NPCResponseCallbacks NPCResponseCallback;
-
+        #endregion
 
         #region Inner logic classes (GameLoop, Renderer, Animations,...)
 
@@ -531,14 +536,40 @@ namespace STCEngine.Engine
         #endregion
 
         #region Game logic classes
+        /// <summary>
+        /// Called every frame before updating graphics
+        /// </summary>
         public abstract void Update();
+        /// <summary>
+        /// Called every frame after updating graphics
+        /// </summary>
         public abstract void LateUpdate();
+        /// <summary>
+        /// Called upon loading before running the first Update
+        /// </summary>
         public abstract void OnLoad();
+        /// <summary>
+        /// Called upon exiting the application
+        /// </summary>
         public abstract void OnExit();
         private void Window_KeyDown(object? sender, KeyEventArgs e) { GetKeyDown(e); }
-        public abstract void GetKeyDown(KeyEventArgs e);
+        /// <summary>
+        /// Called when the window registers a key press input
+        /// </summary>
+        /// <param name="eventArgs"></param>
+        public abstract void GetKeyDown(KeyEventArgs eventArgs);
+        private void Window_MouseClick(object? sender, MouseEventArgs e) { GetMouseClick(e); }
+        /// <summary>
+        /// Called when the window registers a mouse click
+        /// </summary>
+        /// <param name="eventArgs"></param>
+        public abstract void GetMouseClick(MouseEventArgs eventArgs);
         private void Window_KeyUp(object? sender, KeyEventArgs e) { GetKeyUp(e); }
-        public abstract void GetKeyUp(KeyEventArgs e);
+        /// <summary>
+        /// Called when the window registers a key release input
+        /// </summary>
+        /// <param name="eventArgs"></param>
+        public abstract void GetKeyUp(KeyEventArgs eventArgs);
         #endregion
 
         #region List Registrations ------------------------------------------------------------------------
@@ -600,14 +631,54 @@ namespace STCEngine.Engine
         public static void RemoveSpriteAnimation(Animation Animation) { runningAnimations.Remove(Animation); }
         #endregion
         #region Colliders
+        /// <summary>
+        /// Registers the collider to the list of colliders participating in collisions
+        /// </summary>
+        /// <param name="Collider"></param>
         public static void RegisterCollider(Collider Collider) { registeredColliders.Add(Collider); }
+        /// <summary>
+        /// Unregisters the collider to the list of colliders participating in collisions
+        /// </summary>
+        /// <param name="Collider"></param>
         public static void UnregisterCollider(Collider Collider) { registeredColliders.Remove(Collider); }
+        /// <summary>
+        /// Registers the collider to the list of colliders participating in combat-related player-damaging collisions
+        /// </summary>
+        /// <param name="Collider"></param>
+        public static void RegisterEnemyHurtbox(Collider HurtboxCollider) { registeredEnemyHurtboxes.Add(HurtboxCollider); }
+        /// <summary>
+        /// Unregisters the collider to the list of colliders participating in combat-related player-damaging collisions
+        /// </summary>
+        /// <param name="Collider"></param>
+        public static void UnregisterEnemyHurtbox(Collider HurtboxCollider) { registeredEnemyHurtboxes.Remove(HurtboxCollider); }
+        /// <summary>
+        /// Registers the collider to the list of colliders participating in combat-related damage-recieving collision
+        /// </summary>
+        /// <param name="Collider"></param>
+        public static void RegisterEnemyHitbox(Collider HitboxCollider) { registeredEnemyHitboxes.Add(HitboxCollider); }
+        /// <summary>
+        /// Unregisters the collider to the list of colliders participating in combat-related damage-recieving collision
+        /// </summary>
+        /// <param name="Collider"></param>
+        public static void UnregisterEnemyHitbox(Collider HitboxCollider) { registeredEnemyHitboxes.Remove(HitboxCollider); }
         #endregion
         #endregion
 
+        /// <summary>
+        /// Destroys the given GameObject
+        /// </summary>
+        /// <param name="GameObject"></param>
         public static void Destroy(GameObject GameObject) { GameObject.DestroySelf(); UnregisterGameObject(GameObject); }
+        /// <summary>
+        /// Destroys the given Component
+        /// </summary>
+        /// <param name="GameObject"></param>
         public static void Destroy(Component component) { component.DestroySelf(); }
     }
+
+    /// <summary>
+    /// Just a DoubleBuffered form
+    /// </summary>
     public class Canvas : Form
     {
         public Canvas()
@@ -615,6 +686,9 @@ namespace STCEngine.Engine
             this.DoubleBuffered = true;
         }
     }
+    /// <summary>
+    /// A forms DataGridView used for inventory slots with transparent background and an image to show the icon of the item
+    /// </summary>
     public class InventoryItemSlots : DataGridView
     {
         private bool alreadyTransparent;
@@ -656,6 +730,10 @@ namespace STCEngine.Engine
             }
         }
     }
+
+    /// <summary>
+    /// A forms control with a text attached
+    /// </summary>
     public class UITextBox : Control
     {
         public string Text { get; set; }
