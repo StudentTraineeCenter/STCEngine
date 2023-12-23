@@ -71,17 +71,23 @@ namespace STCEngine.Components
     {
         public override string Type { get; } = nameof(Sprite);
         [JsonIgnore] private Image? _image;
-        [JsonIgnore] public Image image { get { if (_image == null) { _image = Image.FromFile(fileSourceDirectory); } return _image; } set => _image = value; }
+        [JsonIgnore] public Image image { get { if (_image == null) { _image = Image.FromFile(fileSourceDirectory); } return _image; } set { bool a = flipX; bool b = flipY; flipX = false; flipY = false;  _image = value; flipX = a; flipY = b; } /*makes sure its rotated correctly */}
         public int orderInLayer { get => _orderInLayer; set { EngineClass.ChangeSpriteRenderOrder(gameObject, value); _orderInLayer = value; } }//higher numbers render on top of lower numbers
         private int _orderInLayer { get; set; }
         public string fileSourceDirectory { get; set; }
-        public Sprite(string fileSourceDirectory, int orderInLayer = int.MaxValue)
+        public bool flipX { get => _flipX; set { if (_flipX != value) { image.RotateFlip(RotateFlipType.RotateNoneFlipX); } _flipX = value; } }
+        private bool _flipX { get; set; }
+        public bool flipY { get => _flipY; set { if (_flipY != value) { image.RotateFlip(RotateFlipType.RotateNoneFlipY); } _flipY = value; } }
+        private bool _flipY { get; set; }
+        public Sprite(string fileSourceDirectory, bool flipX = false, bool flipY = false, int orderInLayer = int.MaxValue)
         {
             this.fileSourceDirectory = fileSourceDirectory;
             this.image = Image.FromFile(fileSourceDirectory);
             this._orderInLayer = orderInLayer;
+            this.flipX = flipX;
+            this.flipY = flipY;
         }
-        //[JsonConstructor] public Sprite() { } //not needed
+        [JsonConstructor] public Sprite() { } //not needed
         public override void Initialize()
         {
             EngineClass.AddSpriteToRender(gameObject, orderInLayer);
@@ -318,17 +324,18 @@ namespace STCEngine.Components
         public void Play(string animationName)
         {
             if (sprite == null) { sprite = gameObject.GetComponent<Sprite>(); }
+            if (isPlaying) { Stop(); }
             if (animations.TryGetValue(animationName, out Animation? animation)) { EngineClass.AddSpriteAnimation(animation); animation.sprite = sprite; currentlyPlayingAnimation = animation; animation.animator = this; }
-            else { Debug.LogError($"Animation {animationName} not found and couldnt be played."); }
+            else { Debug.LogError($"Animation {animationName} not found and couldn't be played."); }
         }
         public void Stop()
         {
             try
             {
-                EngineClass.RemoveSpriteAnimation(currentlyPlayingAnimation ?? throw new Exception("Trying to stop animator that isnt playing!"));
+                EngineClass.RemoveSpriteAnimation(currentlyPlayingAnimation ?? throw new Exception("Trying to stop animator that isn't playing!"));
                 currentlyPlayingAnimation = null;
             }
-            catch (Exception e) { Debug.LogError(e.Message); }
+            catch (Exception e) { Debug.LogError("Error stopping animation, error message: " + e.Message); }
         }
 
 
@@ -409,6 +416,8 @@ namespace STCEngine.Components
                 else
                 {
                     animator.Stop();
+                    timer = 0;
+                    animationFrame = 0;
                 }
             }
             timer += 10;

@@ -144,7 +144,7 @@
     {
       "Type": "Sprite",
       "orderInLayer": 5,
-      "fileSourceDirectory": "Assets/Basic Wall.png",
+      "fileSourceDirectory": "Assets/NPC-Sailor.png",
       "enabled": true
     },
     {

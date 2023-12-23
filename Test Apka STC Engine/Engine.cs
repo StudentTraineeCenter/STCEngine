@@ -39,6 +39,8 @@ namespace STCEngine.Engine
 
         public static List<Collider> debugRectangles { get; private set; } = new List<Collider>();
         public static List<Animation> runningAnimations { get; private set; } = new List<Animation>();
+        private static List<Animation> animationsToStop = new List<Animation>(); private static List<Animation> animationsToRun = new List<Animation>();
+
         public static List<Collider> registeredColliders { get; private set; } = new List<Collider>();
 
         public static List<Collider> registeredEnemyHitboxes { get; private set; } = new List<Collider>();
@@ -388,6 +390,7 @@ namespace STCEngine.Engine
             try
             {
                 Graphics graphics = args.Graphics;
+                graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
 
                 graphics.Clear(backgroundColor);
 
@@ -487,6 +490,8 @@ namespace STCEngine.Engine
         {
             if (changingScene) { return; }
             if (paused) { return; }
+            if(animationsToRun.Count > 0) { runningAnimations.AddRange(animationsToRun); animationsToRun.Clear(); }
+            if (animationsToStop.Count > 0) { foreach (Animation a in animationsToStop) { runningAnimations.Remove(a); } animationsToStop.Clear(); } //neexistuje equivalent list.AddRange pro odstaneni... :D
             try
             {
                 foreach (Animation anim in runningAnimations)
@@ -624,11 +629,11 @@ namespace STCEngine.Engine
         /// <summary>
         /// Registers the Animation to the animation queue
         /// </summary>
-        public static void AddSpriteAnimation(Animation Animation) { runningAnimations.Add(Animation); }
+        public static void AddSpriteAnimation(Animation Animation) { animationsToRun.Add(Animation); }
         /// <summary>
         /// Unregisters the Animation from the animation queue
         /// </summary>
-        public static void RemoveSpriteAnimation(Animation Animation) { runningAnimations.Remove(Animation); }
+        public static void RemoveSpriteAnimation(Animation Animation) { animationsToStop.Add(Animation); }
         #endregion
         #region Colliders
         /// <summary>

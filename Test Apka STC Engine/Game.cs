@@ -26,10 +26,11 @@ namespace STCEngine.Game
         public GameObject? player;
         public CombatStats playerStats;
         private Animator? playerAnim;
+        public Sprite playerSprite;
         public Inventory? playerInventory;
-        public BoxCollider playerCol;
-        public BoxCollider playerTopCol, playerBotCol, playerLeftCol, playerRightCol; //hitboxes used for wall collision detection
-        public BoxCollider playerAttackHurtbox;
+        public BoxCollider? playerCol;
+        public BoxCollider? playerTopCol, playerBotCol, playerLeftCol, playerRightCol; //hitboxes used for wall collision detection
+        public BoxCollider? playerAttackHurtbox;
 
         public GameObject? pauseScreen;
         public GameObject? pressEGameObject;
@@ -63,8 +64,13 @@ namespace STCEngine.Game
             player = GameObject.Find("Player");
             playerAnim = player.GetComponent<Animator>();
             playerInventory = player.GetComponent<Inventory>();
+            playerSprite = player.GetComponent<Sprite>();
             var playerColliders = player.GetComponents<BoxCollider>();
-            Debug.Log(playerColliders.Length);
+            Debug.Log(playerColliders.Length + ", " + player.components.Count);
+            foreach(Component c in player.components)
+            {
+                Debug.Log(c);
+            }
             foreach (BoxCollider boxCol in playerColliders)
             {
                 switch (boxCol.tag)
@@ -183,23 +189,13 @@ namespace STCEngine.Game
         public override void Update()
         {
             #region Player movement logic
-            if (horizontalInput != 0 || verticalInput != 0)
+            if ((horizontalInput != 0 || verticalInput != 0) && playerAnim.currentlyPlayingAnimation?.name != "AttackAnimation") //moves the player according to user input
             {
-                var modifiedMovementInput = new Vector2(horizontalInput, verticalInput);
-
-                //prevents the player from walking into walls
-                if (horizontalInput > 0) { if (playerRightCol.OverlapCollider().Length > 0) { modifiedMovementInput.x = 0; } }
-                else if (horizontalInput < 0) { if (playerLeftCol.OverlapCollider().Length > 0) { modifiedMovementInput.x = 0; } }
-                if (verticalInput > 0) { if (playerTopCol.OverlapCollider().Length > 0) { modifiedMovementInput.y = 0; } }
-                else if (verticalInput < 0) { if (playerBotCol.OverlapCollider().Length > 0) { modifiedMovementInput.y = 0; } }
-
-                player.transform.position += modifiedMovementInput.normalized * movementSpeed;
-
-                if (!playerAnim.isPlaying) { playerAnim.Play("TestAnimation"); }
+                MovePlayer(); 
             }
-            else if (playerAnim.isPlaying)
+            else if(playerAnim.currentlyPlayingAnimation?.name != "AttackAnimation" && playerAnim.currentlyPlayingAnimation?.name != "IdleAnimation") //if the player isnt moving or attacking, play idle animation
             {
-                playerAnim.Stop();
+                playerAnim.Play("IdleAnimation");
             }
             #endregion
 
@@ -271,6 +267,25 @@ namespace STCEngine.Game
         {
 
         }
+
+        #region Player movement functions
+        public void MovePlayer()
+        {
+            if (horizontalInput != 0 && ((playerSprite.flipX == true ? -1 : 1) != MathF.Sign(horizontalInput))) { playerSprite.flipX = horizontalInput > 0 ? false : true; } //flips the sprite according to where the player is running
+
+            var modifiedMovementInput = new Vector2(horizontalInput, verticalInput);
+
+            //prevents the player from walking into walls
+            if (horizontalInput > 0) { if (playerRightCol.OverlapCollider().Length > 0) { modifiedMovementInput.x = 0; } }
+            else if (horizontalInput < 0) { if (playerLeftCol.OverlapCollider().Length > 0) { modifiedMovementInput.x = 0; } }
+            if (verticalInput > 0) { if (playerTopCol.OverlapCollider().Length > 0) { modifiedMovementInput.y = 0; } }
+            else if (verticalInput < 0) { if (playerBotCol.OverlapCollider().Length > 0) { modifiedMovementInput.y = 0; } }
+
+            player.transform.position += modifiedMovementInput.normalized * movementSpeed; //moves the player
+
+            if (playerAnim.currentlyPlayingAnimation?.name != "RunAnimation") { playerAnim.Play("RunAnimation"); } //plays the run animation
+        }
+        #endregion
 
         #region Combat help functions
         public void PlayerDeath()
@@ -371,7 +386,9 @@ namespace STCEngine.Game
         }
         public override void GetMouseClick(MouseEventArgs eventArgs)
         {
-            Debug.Log($"{eventArgs.Button}, {eventArgs.Location}, {eventArgs.Clicks}, {eventArgs.X}, {eventArgs.Y}" );
+            //Debug.Log($"{eventArgs.Button}, {eventArgs.Location}, {eventArgs.Clicks}, {eventArgs.X}, {eventArgs.Y}" );
+            playerAnim.Play("AttackAnimation");
+            Debug.Log("Playing attack anim request");
         }
         /// <summary>
         /// Pauses the game

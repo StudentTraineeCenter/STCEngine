@@ -8,8 +8,8 @@
       },
       "rotation": 0,
       "size": {
-        "x": 0.6,
-        "y": 0.6
+        "x": 4,
+        "y": 4
       },
       "enabled": true
     },
@@ -33,7 +33,7 @@
     {
       "Type": "Sprite",
       "orderInLayer": 0,
-      "fileSourceDirectory": "Assets/Basic Enemy White 1.png",
+      "fileSourceDirectory": "Assets/Player/Idle/PlayerIdle1.png",
       "enabled": true
     },
     {
@@ -112,25 +112,100 @@
       "enabled": true
     },
     {
+      "Type": "BoxCollider",
+      "size": {
+        "x": 75,
+        "y": 50
+      },
+      "debugDraw": true,
+      "isTrigger": true,
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "tag": "playerAttackHurtbox",
+      "enabled": true
+    },
+    {
       "Type": "Animator",
       "animations": {
-        "TestAnimation": {
-          "name": "TestAnimation",
+        "IdleAnimation": {
+          "name": "IdleAnimation",
           "animationFrames": [
             {
-              "fileSourceDirectory": "Assets/Basic Enemy White 1.png",
+              "fileSourceDirectory": "Assets/Player/Idle/PlayerIdle1.png",
               "time": 100
             },
             {
-              "fileSourceDirectory": "Assets/Basic Enemy White 2.png",
+              "fileSourceDirectory": "Assets/Player/Idle/PlayerIdle2.png",
               "time": 100
             },
             {
-              "fileSourceDirectory": "Assets/Basic Enemy White 3.png",
+              "fileSourceDirectory": "Assets/Player/Idle/PlayerIdle3.png",
+              "time": 100
+            },
+            {
+              "fileSourceDirectory": "Assets/Player/Idle/PlayerIdle4.png",
+              "time": 100
+            },
+            {
+              "fileSourceDirectory": "Assets/Player/Idle/PlayerIdle5.png",
               "time": 100
             }
           ],
           "loop": true
+        },
+        "RunAnimation": {
+          "name": "RunAnimation",
+          "animationFrames": [
+            {
+              "fileSourceDirectory": "Assets/Player/Run/PlayerRun1.png",
+              "time": 100
+            },
+            {
+              "fileSourceDirectory": "Assets/Player/Run/PlayerRun2.png",
+              "time": 100
+            },
+            {
+              "fileSourceDirectory": "Assets/Player/Run/PlayerRun3.png",
+              "time": 100
+            },
+            {
+              "fileSourceDirectory": "Assets/Player/Run/PlayerRun4.png",
+              "time": 100
+            },
+            {
+              "fileSourceDirectory": "Assets/Player/Run/PlayerRun5.png",
+              "time": 100
+            },
+            {
+              "fileSourceDirectory": "Assets/Player/Run/PlayerRun6.png",
+              "time": 100
+            }
+          ],
+          "loop": true
+        },
+        "AttackAnimation": {
+          "name": "AttackAnimation",
+          "animationFrames": [
+            {
+              "fileSourceDirectory": "Assets/Player/Attack/PlayerAttack1.png",
+              "time": 100
+            },
+            {
+              "fileSourceDirectory": "Assets/Player/Attack/PlayerAttack2.png",
+              "time": 100
+            },
+            {
+              "fileSourceDirectory": "Assets/Player/Attack/PlayerAttack3.png",
+              "time": 100
+            },
+            {
+              "fileSourceDirectory": "Assets/Player/Attack/PlayerAttack4.png",
+              "time": 100
+            }
+          ],
+          "loop": false
         }
       },
       "playBackSpeed": 1,
