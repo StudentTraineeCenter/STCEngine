@@ -32,6 +32,16 @@ namespace STCEngine.Components
         /// </summary>
         public abstract void DestroySelf();
         [JsonConstructor] protected Component() { }
+        /// <summary>
+        /// Serializes the component and saves it in the given directory under name format $"{this?.gameObject.name}-{this.GetType().Name}.json"
+        /// </summary>
+        /// <param name="destinationDirectory"></param>
+        public void SerializeToJSON(string destinationDirectory)
+        {
+            string serializedGameObjectString = JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true, Converters = { new ComponentConverter() } });
+            string fileName = $"{this?.gameObject.name}-{this.GetType().Name}.json";
+            File.WriteAllText(destinationDirectory + "/" + fileName, serializedGameObjectString);
+        }
     }
 
 

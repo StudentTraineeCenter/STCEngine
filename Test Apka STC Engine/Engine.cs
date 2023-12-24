@@ -32,6 +32,7 @@ namespace STCEngine.Engine
         public Panel playerInventoryPanel = new Panel(), otherInventoryPanel = new Panel();
         public static Panel NPCDialoguePanel = new Panel(); public static UITextBox NPCDialogueText; public static UITextBox NPCDialogueName;
         public static Button NPCDialogueResponse1; public static Button NPCDialogueResponse2; public static Button NPCDialogueResponse3;
+        public static Panel PausePanel;
 
         public static Dictionary<string, GameObject> registeredGameObjects { get; private set; } = new Dictionary<string, GameObject>();
         public static List<GameObject> spritesToRender { get; private set; } = new List<GameObject>();
@@ -98,6 +99,9 @@ namespace STCEngine.Engine
         /// </summary>
         public void InitializePauseScreenButtonsUI()
         {
+
+
+
             quitButton = new Button();
             quitButton.BackColor = Color.White;
             quitButton.ForeColor = Color.Black;
@@ -536,6 +540,7 @@ namespace STCEngine.Engine
                 GameObject.CreateGameObjectFromJSON(file.FullName);
             }
             changingScene = false;
+            
         }
 
         #endregion
@@ -552,7 +557,8 @@ namespace STCEngine.Engine
         /// <summary>
         /// Called upon loading before running the first Update
         /// </summary>
-        public abstract void OnLoad();
+        /// <param name="initializeUIs">Whether the UIs should be initialized</param>
+        public abstract void OnLoad(bool initializeUIs = true);
         /// <summary>
         /// Called upon exiting the application
         /// </summary>
@@ -672,13 +678,13 @@ namespace STCEngine.Engine
         /// <summary>
         /// Destroys the given GameObject
         /// </summary>
-        /// <param name="GameObject"></param>
+        /// <param name="GameObject">The GameObject to be destroyed</param>
         public static void Destroy(GameObject GameObject) { GameObject.DestroySelf(); UnregisterGameObject(GameObject); }
         /// <summary>
         /// Destroys the given Component
         /// </summary>
-        /// <param name="GameObject"></param>
-        public static void Destroy(Component component) { component.DestroySelf(); }
+        /// <param name="Component">The Component to be destroyed</param>
+        public static void Destroy(Component Component) { Component.DestroySelf(); }
     }
 
     /// <summary>

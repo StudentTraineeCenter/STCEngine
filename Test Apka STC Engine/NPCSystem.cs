@@ -271,19 +271,22 @@ namespace STCEngine.Components
         public int health { get; set; }
         public int damage { get; set; }
         public int movementSpeed { get; set; }
+        public int agroRange { get; set; }
+        public int deagroRange { get; set; }
+        //[JsonIgnore] public bool agroed { get; set; }
         /// <summary>
         /// How long the entity is immune to damage after getting hit
         /// </summary>
         public int immuneTime { get; set; }
         [JsonIgnore] public bool attackable { get; private set; } = true;
         //public int armor { get; set; } for future extension of the combat system :)
-        [JsonIgnore] public CircleCollider connectedHurtbox { get; private set; }
-        [JsonIgnore] public CircleCollider connectedHitbox { get; private set; }
-        public CombatStats(int health, int damage, int immuneTimer, bool isPlayerStats)
+        [JsonIgnore] public Collider connectedHurtbox { get; private set; }
+        [JsonIgnore] public Collider connectedHitbox { get; private set; }
+        public CombatStats(int health, int damage, int movementSpeed, int immuneTime, bool isPlayerStats)
         {
             this.health = health;
             this.damage = damage;
-            this.immuneTime = immuneTimer;
+            this.immuneTime = immuneTime;
             this.isPlayerStats = isPlayerStats;
         }
         [JsonConstructor] public CombatStats() { }
@@ -299,9 +302,9 @@ namespace STCEngine.Components
         }
 
         /// <summary>
-        /// Deals damage to this entity (can be negative to heal)
+        /// Deals damage to this entity
         /// </summary>
-        /// <param name="damage"></param>
+        /// <param name="damage">The amount of damage this entity took (can be negative to heal)</param>
         /// <returns>Whether the entity has died</returns>
         public bool TakeDamage(int damage)
         {

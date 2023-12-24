@@ -33,6 +33,7 @@ namespace STCEngine.Game
 
 
         public List<GameObject> enemiesToMove = new List<GameObject>();
+        public List<GameObject> idleEnemies = new List<GameObject>();
         public GameObject? pauseScreen;
         public GameObject? pressEGameObject;
 
@@ -47,10 +48,7 @@ namespace STCEngine.Game
         public Game() : base(windowSize, "Hraaa :)") { }
 
 
-        /// <summary>
-        /// Called upon starting the game
-        /// </summary>
-        public override void OnLoad()
+        public override void OnLoad(bool initializeUIs = true)
         {
             //:)
             MainGameInstance = this;
@@ -58,9 +56,12 @@ namespace STCEngine.Game
             backgroundColor = Color.Black;
 
             LoadLevel("Assets/Level");
-            InitializePauseScreenButtonsUI();
-            InitializeNPCUI();
-            InitializeInventoriesUI();
+            if (initializeUIs)
+            {
+                InitializePauseScreenButtonsUI();
+                InitializeNPCUI();
+                InitializeInventoriesUI();
+            }
 
             player = GameObject.Find("Player");
             playerAnim = player.GetComponent<Animator>();
@@ -105,6 +106,7 @@ namespace STCEngine.Game
             pauseScreen = GameObject.Find("Pause Screen");
             pressEGameObject = GameObject.Find("Press E GameObject");
 
+            //playerStats.SerializeToJSON("Assets");
 
             #region Old scene setup (inactive)
             //player = new GameObject("Player", new Transform(new Vector2(100, 100), 0, new Vector2(0.6f, 0.6f)));
@@ -243,13 +245,9 @@ namespace STCEngine.Game
             #endregion
 
             #region Combat logic
-            
-            //moving enemies
-            foreach(GameObject enemy in enemiesToMove)
-            {
-                enemy.transform.position += (player.transform.position - enemy.transform.position).normalized * enemy.GetComponent<CombatStats>().movementSpeed;
-            }
 
+            //moving enemies
+            MoveEnemies();
 
             //hit detection
             if (playerCol.IsColliding("EnemyHurtbox", true, out Collider? enemyHurtbox, registeredEnemyHurtboxes)) //player hit by an enemy
@@ -279,7 +277,7 @@ namespace STCEngine.Game
 
         }
 
-        #region Player movement functions
+        #region Movement functions
         public void MovePlayer()
         {
             if (horizontalInput != 0 && ((playerSprite.flipX == true ? -1 : 1) != MathF.Sign(horizontalInput))) { playerSprite.flipX = horizontalInput > 0 ? false : true; } //flips the sprite according to where the player is running
@@ -296,6 +294,26 @@ namespace STCEngine.Game
 
             if (playerAnim.currentlyPlayingAnimation?.name != "RunAnimation") { playerAnim.Play("RunAnimation"); } //plays the run animation
         }
+
+        public void MoveEnemies()
+        {
+            var enemiesToWake = new List<GameObject>();
+            foreach(GameObject idleEnemy in idleEnemies)
+            {
+                if((idleEnemy.transform.position - player.transform.position).magnitude < idleEnemy.GetComponent<CombatStats>().agroRange) { enemiesToWake.Add(idleEnemy); }
+            }
+            enemiesToWake.ForEach(enemy => { enemiesToMove.Add(enemy); idleEnemies.Remove(enemy); });
+
+            var enemiesToSleep = new List<GameObject>();
+            foreach (GameObject enemy in enemiesToMove)
+            {
+                var stats = enemy.GetComponent<CombatStats>();
+                //if ((enemy.transform.position - player.transform.position).magnitude && !stats.agroed) { continue; } //only moves enemies that are agroed
+                if((enemy.transform.position - player.transform.position).magnitude > stats.deagroRange) { enemiesToSleep.Add(enemy); continue; }
+                enemy.transform.position += (player.transform.position - enemy.transform.position).normalized * enemy.GetComponent<CombatStats>().movementSpeed;
+            }
+            enemiesToSleep.ForEach(enemy => { enemiesToMove.Remove(enemy); idleEnemies.Add(enemy); });
+        }
         #endregion
 
         #region Combat help functions
@@ -303,9 +321,9 @@ namespace STCEngine.Game
         {
             Debug.LogInfo("\n----------------------------------------------------------------------");
             Debug.LogInfo("\n THE PLAYER HAS DIED, RELOADING STARTING SCENE IN 1 SECOND");
-            Debug.LogInfo("\n----------------------------------------------------------------------");
+            Debug.LogInfo("\n----------------------------------------------------------------------\n");
             ClearScene();
-            Task.Delay(1000).ContinueWith(t => LoadLevel("Assets/Level"));
+            Task.Delay(1000).ContinueWith(t => OnLoad(false));
         }
         public void NPCDeath(CombatStats enemyStats)
         {

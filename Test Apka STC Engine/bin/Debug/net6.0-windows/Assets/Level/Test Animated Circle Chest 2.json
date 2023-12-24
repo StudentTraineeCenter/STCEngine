@@ -25,6 +25,8 @@
       "health": 100,
       "damage": 25,
       "movementSpeed": 4,
+      "agroRange": 150,
+      "deagroRange": 300,
       "immuneTime": 500,
       "enabled": true
     }
