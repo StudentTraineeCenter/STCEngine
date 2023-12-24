@@ -21,7 +21,6 @@ namespace STCEngine.Game
         public NPC? activeNPC;
 
         private static Vector2 windowSize = new Vector2(1920, 1080);
-        private float movementSpeed = 10;
 
         public GameObject? player;
         public CombatStats playerStats;
@@ -32,6 +31,8 @@ namespace STCEngine.Game
         public BoxCollider? playerTopCol, playerBotCol, playerLeftCol, playerRightCol; //hitboxes used for wall collision detection
         public BoxCollider? playerAttackHurtbox;
 
+
+        public List<GameObject> enemiesToMove = new List<GameObject>();
         public GameObject? pauseScreen;
         public GameObject? pressEGameObject;
 
@@ -65,12 +66,8 @@ namespace STCEngine.Game
             playerAnim = player.GetComponent<Animator>();
             playerInventory = player.GetComponent<Inventory>();
             playerSprite = player.GetComponent<Sprite>();
+            playerStats = player.GetComponent<CombatStats>();
             var playerColliders = player.GetComponents<BoxCollider>();
-            Debug.Log(playerColliders.Length + ", " + player.components.Count);
-            foreach(Component c in player.components)
-            {
-                Debug.Log(c);
-            }
             foreach (BoxCollider boxCol in playerColliders)
             {
                 switch (boxCol.tag)
@@ -97,9 +94,16 @@ namespace STCEngine.Game
 
             }
 
+            //configure wall detection for the player (so that you don't have to do it manually in json...)
+            playerTopCol.size = new Vector2(playerCol.size.x, playerStats.movementSpeed); playerTopCol.offset = Vector2.up * (playerCol.size.y / 2 + playerStats.movementSpeed / 2 + 1);
+            playerBotCol.offset = -playerTopCol.offset;
+            playerRightCol.size = new Vector2(playerStats.movementSpeed, playerCol.size.y); playerRightCol.offset = Vector2.right * (playerCol.size.x / 2 + playerStats.movementSpeed / 2 + 1);
+            playerLeftCol.offset = -playerRightCol.offset;
+
+            enemiesToMove = GameObject.FindAll("Enemy");
+
             pauseScreen = GameObject.Find("Pause Screen");
             pressEGameObject = GameObject.Find("Press E GameObject");
-
 
 
             #region Old scene setup (inactive)
@@ -239,22 +243,29 @@ namespace STCEngine.Game
             #endregion
 
             #region Combat logic
-            //zatim nefunkcni :)
-            //if (playerCol.IsColliding("EnemyHurtbox", true, out Collider? enemyHurtbox, registeredEnemyHurtboxes)) //player hit by an enemy
-            //{
-            //    playerStats.health -= enemyHurtbox.gameObject.GetComponent<CombatStats>().damage;
-            //    //change health bar
-            //    if (playerStats.health <= 0) { PlayerDeath(); }
-            //}
-            //if (playerAttackHurtbox.enabled) //--------------------------------------------------------------- player hitting an enemy
-            //{
-            //    if (playerAttackHurtbox.IsColliding("EnemyHitbox", true, out Collider? enemyHitbox, registeredEnemyHitboxes))
-            //    {
-            //        CombatStats enemyStats = enemyHitbox.gameObject.GetComponent<CombatStats>();
-            //        enemyStats.health -= playerStats.damage;
-            //        if (enemyStats.health <= 0) { NPCDeath(enemyStats); }
-            //    }
-            //}
+            
+            //moving enemies
+            foreach(GameObject enemy in enemiesToMove)
+            {
+                enemy.transform.position += (player.transform.position - enemy.transform.position).normalized * enemy.GetComponent<CombatStats>().movementSpeed;
+            }
+
+
+            //hit detection
+            if (playerCol.IsColliding("EnemyHurtbox", true, out Collider? enemyHurtbox, registeredEnemyHurtboxes)) //player hit by an enemy
+            {
+                if (playerStats.TakeDamage(enemyHurtbox.gameObject.GetComponent<CombatStats>().damage)) { PlayerDeath(); }//deals damage and checks whether the player died
+                //change health bar
+            }
+            if (playerAttackHurtbox.enabled) //--------------------------------------------------------------- player hitting an enemy
+            {
+                if (playerAttackHurtbox.IsColliding("EnemyHitbox", true, out Collider? enemyHitbox, registeredEnemyHitboxes))
+                {
+                    CombatStats enemyStats = enemyHitbox.gameObject.GetComponent<CombatStats>();
+
+                    if (enemyStats.TakeDamage(playerStats.damage)) { NPCDeath(enemyStats); } //deals damage and checks whether the entity died
+                }
+            }
 
 
             #endregion
@@ -281,7 +292,7 @@ namespace STCEngine.Game
             if (verticalInput > 0) { if (playerTopCol.OverlapCollider().Length > 0) { modifiedMovementInput.y = 0; } }
             else if (verticalInput < 0) { if (playerBotCol.OverlapCollider().Length > 0) { modifiedMovementInput.y = 0; } }
 
-            player.transform.position += modifiedMovementInput.normalized * movementSpeed; //moves the player
+            player.transform.position += modifiedMovementInput.normalized * playerStats.movementSpeed; //moves the player
 
             if (playerAnim.currentlyPlayingAnimation?.name != "RunAnimation") { playerAnim.Play("RunAnimation"); } //plays the run animation
         }
@@ -299,11 +310,15 @@ namespace STCEngine.Game
         public void NPCDeath(CombatStats enemyStats)
         {
             Debug.LogInfo($"Enemy NPC {enemyStats.gameObject.name} has died");
+            enemiesToMove.Remove(enemyStats.gameObject);
             enemyStats.gameObject.DestroySelf();
         }
         public void PlayerAttack()
         {
-
+            playerAnim.Play("AttackAnimation");
+            playerAttackHurtbox.offset.x = (playerSprite.flipX ? -1 : 1) * (playerCol.size.x / 2 + playerAttackHurtbox.size.x / 2);
+            playerAttackHurtbox.enabled = true;
+            Task.Delay(playerAnim.animations.TryGetValue("AttackAnimation", out Animation anim) ? anim.duration : throw new Exception("Error getting attack animation duration")).ContinueWith(t => playerAttackHurtbox.enabled = false);
         }
         #endregion
 
@@ -387,8 +402,10 @@ namespace STCEngine.Game
         public override void GetMouseClick(MouseEventArgs eventArgs)
         {
             //Debug.Log($"{eventArgs.Button}, {eventArgs.Location}, {eventArgs.Clicks}, {eventArgs.X}, {eventArgs.Y}" );
-            playerAnim.Play("AttackAnimation");
-            Debug.Log("Playing attack anim request");
+            if(eventArgs.Button == MouseButtons.Left && !playerAttackHurtbox.enabled)
+            {
+                PlayerAttack();
+            }
         }
         /// <summary>
         /// Pauses the game

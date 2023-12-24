@@ -87,7 +87,7 @@ namespace STCEngine.Components
             this.flipX = flipX;
             this.flipY = flipY;
         }
-        [JsonConstructor] public Sprite() { } //not needed
+        [JsonConstructor] public Sprite() { }
         public override void Initialize()
         {
             EngineClass.AddSpriteToRender(gameObject, orderInLayer);
@@ -95,7 +95,7 @@ namespace STCEngine.Components
         }
         public override void DestroySelf()
         {
-            if (gameObject.GetComponent<Sprite>() != null) { gameObject.RemoveComponent<Sprite>(); return; }
+            if (gameObject.components.Contains(this)) { gameObject.RemoveComponent(this); return; }
             EngineClass.RemoveSpriteToRender(gameObject);
         }
     }
@@ -172,7 +172,7 @@ namespace STCEngine.Components
         }
         public override void DestroySelf()
         {
-            if (gameObject.GetComponent<UISprite>() != null) { gameObject.RemoveComponent<UISprite>(); return; }
+            if (gameObject.components.Contains(this)) { gameObject.RemoveComponent(this); return; }
             EngineClass.RemoveUISpriteToRender(gameObject);
         }
         public enum ScreenAnchor { TopLeft, TopCentre, TopRight, MiddleLeft, MiddleCentre, MiddleRight, LeftBottom, MiddleBottom, RightBottom }
@@ -285,7 +285,7 @@ namespace STCEngine.Components
         }
         public override void DestroySelf()
         {
-            if (gameObject.GetComponent<Tilemap>() != null) { gameObject.RemoveComponent<Tilemap>(); return; }
+            if (gameObject.components.Contains(this)) { gameObject.RemoveComponent(this); return; }
             EngineClass.RemoveSpriteToRender(gameObject);
         }
     }
@@ -344,7 +344,7 @@ namespace STCEngine.Components
         public override void DestroySelf()
         {
             if (isPlaying) { Stop(); }
-            if (gameObject.GetComponent<Animator>() != null) { gameObject.RemoveComponent<Animator>(); return; }
+            if (gameObject.components.Contains(this)) { gameObject.RemoveComponent(this); return; }
         }
     }
     /// <summary>
@@ -388,6 +388,7 @@ namespace STCEngine.Components
         [JsonIgnore] private int nextFrameTimer { get; set; }
         [JsonIgnore] private int animationFrame { get; set; }
         [JsonIgnore] public Sprite? sprite { get; set; }
+        [JsonIgnore] public int duration { get { int dur = 0; foreach (AnimationFrame a in animationFrames) { dur += a.time; } return dur; } }
 
         /// <summary>
         /// Internal function, should NEVER be called by the user!
@@ -585,7 +586,7 @@ namespace STCEngine.Components
         }
         public override void DestroySelf()
         {
-            if (gameObject.GetComponent<BoxCollider>() != null) { gameObject.RemoveComponent<BoxCollider>(); return; }
+            if (gameObject.components.Contains(this)) { gameObject.RemoveComponent(this); return; }
             if (debugDraw) { EngineClass.RemoveDebugRectangle(this); }
             EngineClass.UnregisterCollider(this);
 
@@ -696,7 +697,7 @@ namespace STCEngine.Components
         }
         public override void DestroySelf()
         {
-            if (gameObject.GetComponent<BoxCollider>() != null) { gameObject.RemoveComponent<BoxCollider>(); return; }
+            if (gameObject.components.Contains(this)) { gameObject.RemoveComponent(this); return; }
             if (debugDraw) { EngineClass.RemoveDebugRectangle(this); }
             EngineClass.UnregisterCollider(this);
 
@@ -738,6 +739,7 @@ namespace STCEngine.Components
     {
         public override string Type => nameof(ToggleCollider);
         [JsonIgnore] public BoxCollider connectedCollider { get; private set; }
+        [JsonIgnore] private CircleCollider interactCollider;
 
         [JsonConstructor] public ToggleCollider() { }
 
@@ -763,10 +765,8 @@ namespace STCEngine.Components
 
         public override void DestroySelf()
         {
-            bool exitFlag = false;
-            if (gameObject.GetComponent<ToggleCollider>() != null) { gameObject.RemoveComponent<ToggleCollider>(); exitFlag = true; }
-            if (gameObject.GetComponent<CircleCollider>() != null) { gameObject.RemoveComponent<CircleCollider>(); exitFlag = true; }
-            if (exitFlag) { return; }
+            if (gameObject.components.Contains(this)) { gameObject.RemoveComponent(this); }
+            if (gameObject.components.Contains(interactCollider)) { gameObject.RemoveComponent(interactCollider); }
         }
 
         public override void Initialize()
@@ -858,6 +858,21 @@ namespace STCEngine.Components
         public static GameObject? Find(string name)
         {
             return EngineClass.registeredGameObjects.TryGetValue(name, out GameObject value) ? value : null;
+        }
+
+        /// <summary>
+        /// Searches for all GameObjects with a name containing the given string
+        /// </summary>
+        /// <param name="nameContains"></param>
+        /// <returns>A list of GameObjects with name containing the given string</returns>
+        public static List<GameObject> FindAll(string nameContains)
+        {
+            List<GameObject> outList = new List<GameObject>();
+            foreach(GameObject g in EngineClass.registeredGameObjects.Values)
+            {
+                if (g.name.Contains(nameContains)) { outList.Add(g); }
+            }
+            return outList;
         }
 
         /// <summary>

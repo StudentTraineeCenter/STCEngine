@@ -120,11 +120,11 @@
       "debugDraw": true,
       "isTrigger": true,
       "offset": {
-        "x": 0,
+        "x": 50,
         "y": 0
       },
       "tag": "playerAttackHurtbox",
-      "enabled": true
+      "enabled": false
     },
     {
       "Type": "Animator",
@@ -209,6 +209,15 @@
         }
       },
       "playBackSpeed": 1,
+      "enabled": true
+    },
+    {
+      "Type": "CombatStats",
+      "isPlayerStats": true,
+      "health": 100,
+      "damage": 25,
+      "movementSpeed": 10,
+      "immuneTime": 1000,
       "enabled": true
     }
   ],

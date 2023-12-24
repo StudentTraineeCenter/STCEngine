@@ -16,6 +16,7 @@ namespace STCEngine.Components
         [JsonIgnore] public readonly int slotSpacing = 30; [JsonIgnore] public readonly int slotSize = 64; [JsonIgnore] public readonly Image inventorySlotBackgroundImage = Image.FromFile("Assets/Inventory-Background.png");
         public override string Type { get; } = nameof(Inventory);
         [JsonIgnore] public int emptySlots { get => 15 - items.Count; }
+        [JsonIgnore] private Collider interactCollider;
         public List<ItemInInventory> items { get; set; } = new List<ItemInInventory>();
         public bool isPlayerInventory { get; set; }
         //[JsonIgnore] public List<InventorySlot> inventorySlots = new List<InventorySlot>();
@@ -254,7 +255,7 @@ namespace STCEngine.Components
         public void SetupInteractCollider(int range)
         {
             if (isPlayerInventory) { return; }
-            gameObject.AddComponent(new CircleCollider(range, "Interactible", Vector2.zero, true, true));
+            interactCollider = gameObject.AddComponent(new CircleCollider(range, "Interactible", Vector2.zero, true, true));
         }
         public override void Initialize()
         {
@@ -265,10 +266,9 @@ namespace STCEngine.Components
         public override void DestroySelf()
         {
             items.Clear();
-            bool exitFlag = false;
-            if (gameObject.GetComponent<Inventory>() != null) { gameObject.RemoveComponent<Inventory>(); exitFlag = true; }
-            if (gameObject.GetComponent<CircleCollider>() != null) { gameObject.RemoveComponent<CircleCollider>(); exitFlag = true; }
-            if (exitFlag) { return; }
+            if (gameObject.components.Contains(this)) { gameObject.RemoveComponent(this); }
+            if (gameObject.components.Contains(interactCollider)) { gameObject.RemoveComponent(interactCollider); }
+
         }
 
     }
@@ -302,9 +302,8 @@ namespace STCEngine.Components
 
         public override void DestroySelf()
         {
-            if (gameObject.GetComponent<DroppedItem>() != null) { gameObject.RemoveComponent<DroppedItem>(); return; }
-            if (gameObject.GetComponent<BoxCollider>() != null) { gameObject.RemoveComponent<BoxCollider>(); return; }
-
+            if (gameObject.components.Contains(this)) { gameObject.RemoveComponent(this); }
+            if (gameObject.components.Contains(collectionHitbox)) { gameObject.RemoveComponent(collectionHitbox); }
         }
 
         public override void Initialize()

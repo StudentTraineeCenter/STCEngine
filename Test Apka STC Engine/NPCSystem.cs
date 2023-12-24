@@ -24,6 +24,7 @@ namespace STCEngine.Components
         [JsonIgnore] private static CancellationTokenSource cancellationTokenSource;
         [JsonIgnore] private Response[] currentlyActiveResponses;
         [JsonIgnore] private bool exitFlag;
+        [JsonIgnore] private Collider interactCollider;
         [JsonConstructor] public NPC() { }
         public NPC(string npcName, Dialogue startingDialogue, List<Dialogue> dialogues)
         {
@@ -172,10 +173,8 @@ namespace STCEngine.Components
 
         public override void DestroySelf()
         {
-            bool exitFlag = false;
-            if (gameObject.GetComponent<NPC>() != null) { gameObject.RemoveComponent<NPC>(); exitFlag = true; }
-            if (gameObject.GetComponent<CircleCollider>() != null) { gameObject.RemoveComponent<CircleCollider>(); exitFlag = true; }
-            if (exitFlag) { return; }
+            if (gameObject.components.Contains(this)) { gameObject.RemoveComponent(this); }
+            if (gameObject.components.Contains(interactCollider)) { gameObject.RemoveComponent(interactCollider); }
         }
 
         public void Interact()
@@ -209,7 +208,7 @@ namespace STCEngine.Components
         }
         public void SetupInteractCollider(int range)
         {
-            gameObject.AddComponent(new CircleCollider(range, "Interactible", Vector2.zero, true, true));
+            interactCollider = gameObject.AddComponent(new CircleCollider(range, "Interactible", Vector2.zero, true, true));
         }
     }
 
@@ -271,28 +270,47 @@ namespace STCEngine.Components
         public bool isPlayerStats { get; set; }
         public int health { get; set; }
         public int damage { get; set; }
-        public int immuneTimer { get; set; }
+        public int movementSpeed { get; set; }
+        /// <summary>
+        /// How long the entity is immune to damage after getting hit
+        /// </summary>
+        public int immuneTime { get; set; }
+        [JsonIgnore] public bool attackable { get; private set; } = true;
         //public int armor { get; set; } for future extension of the combat system :)
-        private int activeImmuneTimer;
         [JsonIgnore] public CircleCollider connectedHurtbox { get; private set; }
         [JsonIgnore] public CircleCollider connectedHitbox { get; private set; }
         public CombatStats(int health, int damage, int immuneTimer, bool isPlayerStats)
         {
             this.health = health;
             this.damage = damage;
-            this.immuneTimer = immuneTimer;
+            this.immuneTime = immuneTimer;
             this.isPlayerStats = isPlayerStats;
         }
         [JsonConstructor] public CombatStats() { }
 
         public override void DestroySelf()
         {
-            if (gameObject.GetComponent<CombatStats>() != null) { gameObject.RemoveComponent<CombatStats>(); }
+            if (gameObject.components.Contains(this)) { gameObject.RemoveComponent(this); return; }
             if (!isPlayerStats)
             {
                 EngineClass.UnregisterEnemyHurtbox(connectedHurtbox);
                 EngineClass.UnregisterEnemyHitbox(connectedHitbox);
             }
+        }
+
+        /// <summary>
+        /// Deals damage to this entity (can be negative to heal)
+        /// </summary>
+        /// <param name="damage"></param>
+        /// <returns>Whether the entity has died</returns>
+        public bool TakeDamage(int damage)
+        {
+            if (!attackable) { return false; }
+            Debug.LogInfo($"{this.gameObject.name} got hit for {damage}HP");
+            health -= damage;
+            attackable = false;
+            if (health > 0) { Task.Delay(immuneTime).ContinueWith(t => attackable = true); return false; }
+            return true;
         }
 
         public override void Initialize()
