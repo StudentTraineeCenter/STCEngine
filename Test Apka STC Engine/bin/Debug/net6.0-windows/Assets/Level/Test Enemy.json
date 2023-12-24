@@ -24,10 +24,12 @@
       "isPlayerStats": false,
       "health": 100,
       "damage": 25,
-      "movementSpeed": 4,
-      "agroRange": 150,
-      "deagroRange": 300,
+      "movementSpeed": 2,
+      "agroRange": 300,
+      "deagroRange": 1000,
       "immuneTime": 500,
+      "knockbackMultiplier": 2,
+      "staggerTime": 750,
       "enabled": true
     }
   ],

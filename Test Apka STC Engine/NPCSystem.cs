@@ -273,6 +273,8 @@ namespace STCEngine.Components
         public int movementSpeed { get; set; }
         public int agroRange { get; set; }
         public int deagroRange { get; set; }
+        public float knockbackMultiplier { get; set; }
+        public int staggerTime { get; set; }
         //[JsonIgnore] public bool agroed { get; set; }
         /// <summary>
         /// How long the entity is immune to damage after getting hit
@@ -309,10 +311,30 @@ namespace STCEngine.Components
         public bool TakeDamage(int damage)
         {
             if (!attackable) { return false; }
-            Debug.LogInfo($"{this.gameObject.name} got hit for {damage}HP");
+
+            //knockback
+            if(knockbackMultiplier != 0)
+            {
+                gameObject.transform.position += (gameObject.transform.position - Game.Game.MainGameInstance.player.transform.position).normalized * knockbackMultiplier * damage;
+            }
+
+            //the actual damage
             health -= damage;
+            Debug.LogInfo($"{this.gameObject.name} got hit for {damage}HP and has {health}HP left");
             attackable = false;
-            if (health > 0) { Task.Delay(immuneTime).ContinueWith(t => attackable = true); return false; }
+            if (health > 0) { 
+                //stagger
+                if(staggerTime > 0)
+                {
+                    var a = movementSpeed;
+                    movementSpeed = 0;
+                    //gameObject.GetComponent<Sprite>().image //color change -> scrapped, spaghetti code would be present ;)
+                    Task.Delay(staggerTime).ContinueWith(t => movementSpeed = a);
+                }
+                //immunity
+                Task.Delay(immuneTime).ContinueWith(t => attackable = true); 
+                return false; 
+            }
             return true;
         }
 

@@ -108,7 +108,7 @@ namespace STCEngine.Engine
             PausePanel.BackgroundImageLayout = ImageLayout.Zoom;
             System.Reflection.PropertyInfo aProp = typeof(Control).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             aProp.SetValue(PausePanel, true, null);
-            PausePanel.BackgroundImage = Image.FromFile("Assets/PauseScreenOverlayBG.png");
+            PausePanel.BackgroundImage = Image.FromFile("Assets/Engine Resources/PauseScreenOverlayBG.png");
             PausePanel.Dock = DockStyle.Fill;
 
             quitButton = new Button();
@@ -534,6 +534,10 @@ namespace STCEngine.Engine
             {
                 GameObject.CreateGameObjectFromJSON(file.FullName);
             }
+            foreach (FileInfo engineFile in new DirectoryInfo("Assets/Engine Resources").GetFiles("*.json")) 
+            {
+                GameObject.CreateGameObjectFromJSON(engineFile.FullName);
+            }
             changingScene = false;
             
         }
@@ -719,7 +723,7 @@ namespace STCEngine.Engine
         {
             this.DoubleBuffered = true;
             this.SetStyle(ControlStyles.Selectable, false);
-            backgroundImage = Image.FromFile("Assets/Inventory-Background.png");
+            backgroundImage = Image.FromFile("Assets/Engine Resources/Inventory-Background.png");
         }
 
         public void SetCellsTransparent()

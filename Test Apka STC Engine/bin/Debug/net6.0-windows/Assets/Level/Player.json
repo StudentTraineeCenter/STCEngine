@@ -190,19 +190,19 @@
           "animationFrames": [
             {
               "fileSourceDirectory": "Assets/Player/Attack/PlayerAttack1.png",
-              "time": 100
+              "time": 50
             },
             {
               "fileSourceDirectory": "Assets/Player/Attack/PlayerAttack2.png",
-              "time": 100
+              "time": 50
             },
             {
               "fileSourceDirectory": "Assets/Player/Attack/PlayerAttack3.png",
-              "time": 100
+              "time": 50
             },
             {
               "fileSourceDirectory": "Assets/Player/Attack/PlayerAttack4.png",
-              "time": 100
+              "time": 50
             }
           ],
           "loop": false

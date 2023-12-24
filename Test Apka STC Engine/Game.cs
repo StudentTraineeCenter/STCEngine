@@ -336,7 +336,7 @@ namespace STCEngine.Game
             playerAnim.Play("AttackAnimation");
             playerAttackHurtbox.offset.x = (playerSprite.flipX ? -1 : 1) * (playerCol.size.x / 2 + playerAttackHurtbox.size.x / 2);
             playerAttackHurtbox.enabled = true;
-            Task.Delay(playerAnim.animations.TryGetValue("AttackAnimation", out Animation anim) ? anim.duration : throw new Exception("Error getting attack animation duration")).ContinueWith(t => playerAttackHurtbox.enabled = false);
+            Task.Delay(playerAnim.animations.TryGetValue("AttackAnimation", out Animation anim) ? anim.duration+10 : throw new Exception("Error getting attack animation duration")).ContinueWith(t => playerAttackHurtbox.enabled = false);
         }
         #endregion
 

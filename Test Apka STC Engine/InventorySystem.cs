@@ -13,7 +13,7 @@ namespace STCEngine.Components
     /// </summary>
     public class Inventory : Component, IInteractibleGameObject
     {
-        [JsonIgnore] public readonly int slotSpacing = 30; [JsonIgnore] public readonly int slotSize = 64; [JsonIgnore] public readonly Image inventorySlotBackgroundImage = Image.FromFile("Assets/Inventory-Background.png");
+        [JsonIgnore] public readonly int slotSpacing = 30; [JsonIgnore] public readonly int slotSize = 64; [JsonIgnore] public readonly Image inventorySlotBackgroundImage = Image.FromFile("Assets/Engine Resources/Inventory-Background.png");
         public override string Type { get; } = nameof(Inventory);
         [JsonIgnore] public int emptySlots { get => 15 - items.Count; }
         [JsonIgnore] private Collider interactCollider;
