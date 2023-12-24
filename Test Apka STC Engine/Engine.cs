@@ -32,7 +32,7 @@ namespace STCEngine.Engine
         public Panel playerInventoryPanel = new Panel(), otherInventoryPanel = new Panel();
         public static Panel NPCDialoguePanel = new Panel(); public static UITextBox NPCDialogueText; public static UITextBox NPCDialogueName;
         public static Button NPCDialogueResponse1; public static Button NPCDialogueResponse2; public static Button NPCDialogueResponse3;
-        public static Panel PausePanel;
+        public static Panel PausePanel = new Panel();
 
         public static Dictionary<string, GameObject> registeredGameObjects { get; private set; } = new Dictionary<string, GameObject>();
         public static List<GameObject> spritesToRender { get; private set; } = new List<GameObject>();
@@ -65,6 +65,7 @@ namespace STCEngine.Engine
             //window.Size = new Size((int)this.screenSize.x, (int)this.screenSize.y); already done by changing screen size above
             window.Text = this.title;
             window.Paint += Renderer;
+            window.SizeChanged += new EventHandler((object? o, EventArgs e) => RescaleUI(e));
 
             //Animations
             animationTimer.Tick += new EventHandler(RunAnimations);
@@ -93,14 +94,22 @@ namespace STCEngine.Engine
         public abstract void Pause();
         public abstract void Unpause();
 
-        #region UI initialization
+        #region UI initialization, scaling
+        public void RescaleUI(EventArgs e)
+        {
+            //:)
+        }
         /// <summary>
         /// Creates the pause screen Quit and Resume buttons, must be called ONCE upon loading to use the pause screen
         /// </summary>
         public void InitializePauseScreenButtonsUI()
         {
-
-
+            PausePanel.BackColor = Color.FromArgb(100, 255, 255, 255);
+            PausePanel.BackgroundImageLayout = ImageLayout.Zoom;
+            System.Reflection.PropertyInfo aProp = typeof(Control).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            aProp.SetValue(PausePanel, true, null);
+            PausePanel.BackgroundImage = Image.FromFile("Assets/PauseScreenOverlayBG.png");
+            PausePanel.Dock = DockStyle.Fill;
 
             quitButton = new Button();
             quitButton.BackColor = Color.White;
@@ -111,7 +120,8 @@ namespace STCEngine.Engine
             quitButton.Location = new Point((int)screenSize.x / 2 - 200 - quitButton.Size.Width / 2, (int)screenSize.y / 3 * 2);
             quitButton.MouseEnter += new EventHandler((object? o, EventArgs e) => quitButton.BackColor = Color.SteelBlue);
             quitButton.MouseLeave += new EventHandler((object? o, EventArgs e) => quitButton.BackColor = Color.White);
-            window.Controls.Add(quitButton);
+            quitButton.Click += new EventHandler((object? o, EventArgs e) => Application.Exit());
+            PausePanel.Controls.Add(quitButton);
 
             resumeButton = new Button();
             resumeButton.BackColor = Color.White;
@@ -122,12 +132,12 @@ namespace STCEngine.Engine
             resumeButton.Location = new Point((int)screenSize.x / 2 + 200 - resumeButton.Size.Width / 2, (int)screenSize.y / 3 * 2);
             resumeButton.MouseEnter += new EventHandler((object? o, EventArgs e) => resumeButton.BackColor = Color.SteelBlue);
             resumeButton.MouseLeave += new EventHandler((object? o, EventArgs e) => resumeButton.BackColor = Color.White);
-            window.Controls.Add(resumeButton);
+            resumeButton.Click += new EventHandler((object? o, EventArgs e) => { Unpause(); window.Focus(); });
+            PausePanel.Controls.Add(resumeButton);
 
-            quitButton.Enabled = false;
-            resumeButton.Enabled = false;
-            quitButton.Visible = false;
-            resumeButton.Visible = false;
+            window.Controls.Add(PausePanel);
+
+            PausePanel.Visible = false;
 
         }
 
@@ -433,22 +443,7 @@ namespace STCEngine.Engine
                         //{
                         //Debug.Log($"graphics.DrawImage({gameObject.transform.position.x - UISprite.image.Width * gameObject.transform.size.x / 2 + UISprite.offset.x + UISprite.screenAnchorOffset.x}, {gameObject.transform.position.y - UISprite.image.Height * gameObject.transform.size.y / 2 + UISprite.offset.y + UISprite.screenAnchorOffset.y}, {UISprite.image.Width * gameObject.transform.size.x}, {UISprite.image.Height * gameObject.transform.size.y}");
                         graphics.DrawImage(UISprite.image, gameObject.transform.position.x - UISprite.image.Width * gameObject.transform.size.x / 2 + UISprite.offset.x + UISprite.screenAnchorOffset.x, gameObject.transform.position.y - UISprite.image.Height * gameObject.transform.size.y / 2 + UISprite.offset.y + UISprite.screenAnchorOffset.y, UISprite.image.Width * gameObject.transform.size.x, UISprite.image.Height * gameObject.transform.size.y);
-                        if (gameObject.name == "Pause Screen") //eyyy vecere, spaghetti :p
-                        {
-                            quitButton.Enabled = true;
-                            resumeButton.Enabled = true;
-                            quitButton.Visible = true;
-                            resumeButton.Visible = true;
-                        }
                         //}
-                    }
-                    else if (gameObject.name == "Pause Screen")
-                    {
-                        quitButton.Enabled = false;
-                        quitButton.Enabled = false;
-                        quitButton.Visible = false;
-                        resumeButton.Visible = false;
-                        window.Focus();
                     }
                 }
                 //DEBUG ---------

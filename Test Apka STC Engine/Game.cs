@@ -434,7 +434,9 @@ namespace STCEngine.Game
             if (otherInventoryPanel.Visible) { CloseOtherInventory(); }
             //if (npcDialogueOpen) { activeNPC.EndDialogue(); } //rozbije to, ale asi to nejak bude treba implementovat
             paused = true;
-            pauseScreen.isActive = true;
+            //pauseScreen.isActive = true;
+            PausePanel.Visible = true;
+
         }
         /// <summary>
         /// Unpauses the game
@@ -442,7 +444,8 @@ namespace STCEngine.Game
         public override void Unpause()
         {
             paused = false;
-            pauseScreen.isActive = false;
+            //pauseScreen.isActive = false;
+            PausePanel.Visible = false;
         }
         /// <summary>
         /// Called the frame a key is released
@@ -470,24 +473,6 @@ namespace STCEngine.Game
             else { horizontalInput = left ? -1 : 1; }
             if ((up && down) || (!up && !down)) { verticalInput = 0; }
             else { verticalInput = down ? 1 : -1; }
-        }
-        /// <summary>
-        /// Quits the application, called upon clicking the quit button when the game is paused
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void QuitButton(object? sender, EventArgs e)
-        {
-            Application.Exit();
-        }
-        /// <summary>
-        /// Resumes the game, called upon clicking the resume button when the game is paused
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ResumeButton(object? sender, EventArgs e)
-        {
-            Unpause();
         }
 
     }
