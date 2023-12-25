@@ -404,9 +404,11 @@ namespace STCEngine.Engine
             try
             {
                 Graphics graphics = args.Graphics;
+                
                 graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-
                 graphics.Clear(backgroundColor);
+                //graphics.TranslateTransform(cameraPosition.x - screenSize.x / 2, cameraPosition.y - screenSize.y / 2); //(asi) dela to stejne co cameraRenderingOffset, jen jsem do toho dal spatne hodnoty :p
+                Vector2 cameraRenderingOffset = -cameraPosition + screenSize / 2 - Vector2.up * 50;
 
                 foreach (GameObject gameObject in spritesToRender)
                 {
@@ -417,13 +419,21 @@ namespace STCEngine.Engine
                     {
                         //foreach(Sprite sprite in gameObject.GetComponents<Sprite>()) //pro vice spritu na jednom objektu by to teoreticky fungovat mohlo, ale pak by nesel odstranit specificky sprite
                         //{
-                        graphics.DrawImage(sprite.image, gameObject.transform.position.x - sprite.image.Width * gameObject.transform.size.x / 2, gameObject.transform.position.y - sprite.image.Height * gameObject.transform.size.y / 2, sprite.image.Width * gameObject.transform.size.x, sprite.image.Height * gameObject.transform.size.y);
+                        graphics.DrawImage(sprite.image, 
+                            gameObject.transform.position.x - sprite.image.Width * gameObject.transform.size.x / 2 + cameraRenderingOffset.x,
+                            gameObject.transform.position.y - sprite.image.Height * gameObject.transform.size.y / 2 + cameraRenderingOffset.y,
+                            sprite.image.Width * gameObject.transform.size.x,
+                            sprite.image.Height * gameObject.transform.size.y);
                         //}
                     }
                     Tilemap? tilemap = gameObject.GetComponent<Tilemap>();
                     if (tilemap != null && tilemap.enabled && gameObject.isActive)
                     {
-                        graphics.DrawImage(tilemap.tileMapImage, gameObject.transform.position.x - tilemap.tileMapImage.Width / 2, gameObject.transform.position.y - tilemap.tileMapImage.Height / 2, tilemap.tileMapImage.Width, tilemap.tileMapImage.Height);
+                        graphics.DrawImage(tilemap.tileMapImage, 
+                            gameObject.transform.position.x - tilemap.tileMapImage.Width / 2 + cameraRenderingOffset.x, 
+                            gameObject.transform.position.y - tilemap.tileMapImage.Height / 2 + cameraRenderingOffset.y, 
+                            tilemap.tileMapImage.Width, 
+                            tilemap.tileMapImage.Height);
                         //for(int y = 0; y < tilemap.mapSize.y; y++)
                         //{
                         //    for (int x = 0; x < tilemap.mapSize.x; x++)
@@ -433,7 +443,7 @@ namespace STCEngine.Engine
                         //}
                     }
                 }
-                foreach (GameObject gameObject in UISpritesToRender)
+                foreach (GameObject gameObject in UISpritesToRender) //DOESNT USE CAMERA RENDERING OFFSET! (overlay)
                 {
                     if (gameObject == null) { continue; }
                     UISprite? UISprite = gameObject.GetComponent<UISprite>();
@@ -457,14 +467,14 @@ namespace STCEngine.Engine
                         {
                             BoxCollider box = col as BoxCollider;
                             if (box == null) { Debug.LogError("ERROR LOADING COLLIDER DEBUG RECTANGLE"); continue; }
-                            graphics.DrawRectangle(new Pen(box.isTrigger ? Color.Cyan : Color.Orange, 2), box.gameObject.transform.position.x + box.offset.x - box.size.x / 2, box.gameObject.transform.position.y + box.offset.y - box.size.y / 2, box.size.x, box.size.y);
+                            graphics.DrawRectangle(new Pen(box.isTrigger ? Color.Cyan : Color.Orange, 2), box.gameObject.transform.position.x + box.offset.x - box.size.x / 2 + cameraRenderingOffset.x, box.gameObject.transform.position.y + box.offset.y - box.size.y / 2 + cameraRenderingOffset.y, box.size.x, box.size.y);
                         }
                         else if (col.GetType() == typeof(CircleCollider))
                         {
                             CircleCollider circle = col as CircleCollider;
                             if (circle == null) { Debug.LogError("ERROR LOADING COLLIDER DEBUG RECTANGLE"); continue; }
                             //Debug.Log($"Drawing circle at ({circle.gameObject.transform.position.x + circle.offset.x - circle.radius}, {circle.gameObject.transform.position.y + circle.offset.y - circle.radius}) with size {circle.radius * 2}");
-                            graphics.DrawEllipse(new Pen(circle.isTrigger ? Color.Cyan : Color.Orange, 2), circle.gameObject.transform.position.x + circle.offset.x - circle.radius, circle.gameObject.transform.position.y + circle.offset.y - circle.radius, circle.radius * 2, circle.radius * 2);
+                            graphics.DrawEllipse(new Pen(circle.isTrigger ? Color.Cyan : Color.Orange, 2), circle.gameObject.transform.position.x + circle.offset.x - circle.radius + cameraRenderingOffset.x, circle.gameObject.transform.position.y + circle.offset.y - circle.radius + cameraRenderingOffset.y, circle.radius * 2, circle.radius * 2);
                         }
 
 
@@ -472,11 +482,11 @@ namespace STCEngine.Engine
                     foreach (KeyValuePair<string, GameObject> gameObject in registeredGameObjects)
                     {
                         //graphics.DrawRectangle(new Pen(Color.Black), gameObject.Value.transform.position.x, gameObject.Value.transform.position.y, 2, 2);
-                        graphics.DrawString(gameObject.Value.name, new Font("Arial", 11, FontStyle.Regular), new SolidBrush(Color.Black), gameObject.Value.transform.position.x - gameObject.Value.name.Length * 4f, gameObject.Value.transform.position.y - 5.5f);
+                        graphics.DrawString(gameObject.Value.name, new Font("Arial", 11, FontStyle.Regular), new SolidBrush(Color.Black), gameObject.Value.transform.position.x - gameObject.Value.name.Length * 4f + cameraRenderingOffset.x, gameObject.Value.transform.position.y - 5.5f + cameraRenderingOffset.y);
                     }
                 }
-
-                graphics.TranslateTransform(cameraPosition.x, cameraPosition.y);
+                //graphics.TranslateTransform(cameraPosition.x + screenSize.x/2, cameraPosition.y + screenSize.y/2);
+                //Debug.Log(cameraPosition);
             }
             catch (Exception e) { Debug.LogError("Error running renderer, error message: " + e.Message); }
         }

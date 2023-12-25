@@ -64,6 +64,7 @@ namespace STCEngine.Game
             }
 
             player = GameObject.Find("Player");
+            cameraPosition = player.transform.position;
             playerAnim = player.GetComponent<Animator>();
             playerInventory = player.GetComponent<Inventory>();
             playerSprite = player.GetComponent<Sprite>();
@@ -291,6 +292,7 @@ namespace STCEngine.Game
             else if (verticalInput < 0) { if (playerBotCol.OverlapCollider().Length > 0) { modifiedMovementInput.y = 0; } }
 
             player.transform.position += modifiedMovementInput.normalized * playerStats.movementSpeed; //moves the player
+            cameraPosition = player.transform.position; //moves the camera to follow the player
 
             if (playerAnim.currentlyPlayingAnimation?.name != "RunAnimation") { playerAnim.Play("RunAnimation"); } //plays the run animation
         }

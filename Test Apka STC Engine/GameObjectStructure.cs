@@ -53,6 +53,9 @@ namespace STCEngine.Components
     {
         public override string Type { get; } = nameof(Transform);
         public Vector2 position { get; set; } = Vector2.one;
+        /// <summary>
+        /// Currently not yet implemented, does not rotate attached sprites/other
+        /// </summary>
         public float rotation { get; set; }
         public Vector2 size { get; set; }
 
@@ -253,9 +256,10 @@ namespace STCEngine.Components
         /// </summary>
         private void UpdateTiles()
         {
+            // Pomoc od ChatGPT :)
             // Calculate the size of the final combined image
-            int totalWidth = tiles.GetLength(1) * (int)tileSize.x;
-            int totalHeight = tiles.GetLength(0) * (int)tileSize.y;
+            int totalWidth = tiles.GetLength(0) * (int)tileSize.x;
+            int totalHeight = tiles.GetLength(1) * (int)tileSize.y;
 
             // Create a new bitmap to hold the combined image
             Bitmap combinedImage = new Bitmap(totalWidth, totalHeight);
@@ -268,7 +272,7 @@ namespace STCEngine.Components
                 {
                     for (int j = 0; j < tiles.GetLength(1); j++)
                     {
-                        g.DrawImage(tiles[i, j], j * tileSize.x, i * tileSize.y);
+                        g.DrawImage(tiles[i, j], i * tileSize.x, j * tileSize.y);
                     }
                 }
             }
