@@ -22,6 +22,7 @@ namespace STCEngine.Game
 
         private static Vector2 windowSize = new Vector2(1920, 1080);
 
+        //watch out when creating references to objects, make sure they get cleared/overwritten in OnLoad method!
         public GameObject? player;
         public CombatStats playerStats;
         private Animator? playerAnim;
@@ -30,7 +31,6 @@ namespace STCEngine.Game
         public BoxCollider? playerCol;
         public BoxCollider? playerTopCol, playerBotCol, playerLeftCol, playerRightCol; //hitboxes used for wall collision detection
         public BoxCollider? playerAttackHurtbox;
-
 
         public List<GameObject> enemiesToMove = new List<GameObject>();
         public List<GameObject> idleEnemies = new List<GameObject>();
@@ -48,14 +48,17 @@ namespace STCEngine.Game
         public Game() : base(windowSize, "Hraaa :)") { }
 
 
-        public override void OnLoad(bool initializeUIs = true)
+        public override async void OnLoad(bool initializeUIs = true)
         {
             //:)
-            MainGameInstance = this;
-            Debug.LogInfo("Game started");
-            backgroundColor = Color.Black;
+            Debug.LogInfo("OnLoad started");
+            if (MainGameInstance == null) //first time loading
+            {
+                backgroundColor = Color.Black;
+                MainGameInstance = this;
+                await LoadLevel("Assets/Level");
+            }
 
-            LoadLevel("Assets/Level");
             if (initializeUIs)
             {
                 InitializePauseScreenButtonsUI();
@@ -66,7 +69,8 @@ namespace STCEngine.Game
             player = GameObject.Find("Player");
             cameraPosition = player.transform.position;
             playerAnim = player.GetComponent<Animator>();
-            playerInventory = player.GetComponent<Inventory>();
+            if(playerInventory != null) { playerInventoryUI.CellClick -= playerInventory.ItemClicked; } 
+            playerInventory = player.GetComponent<Inventory>(); playerInventoryUI.CellClick += playerInventory.ItemClicked; //MUST BE HERE!
             playerSprite = player.GetComponent<Sprite>();
             playerStats = player.GetComponent<CombatStats>();
             var playerColliders = player.GetComponents<BoxCollider>();
@@ -102,7 +106,8 @@ namespace STCEngine.Game
             playerRightCol.size = new Vector2(playerStats.movementSpeed, playerCol.size.y); playerRightCol.offset = Vector2.right * (playerCol.size.x / 2 + playerStats.movementSpeed / 2 + 1);
             playerLeftCol.offset = -playerRightCol.offset;
 
-            enemiesToMove = GameObject.FindAll("Enemy");
+            idleEnemies.Clear(); enemiesToMove.Clear();
+            enemiesToMove.AddRange(GameObject.FindAll("Enemy"));
 
             pauseScreen = GameObject.Find("Pause Screen");
             pressEGameObject = GameObject.Find("Press E GameObject");

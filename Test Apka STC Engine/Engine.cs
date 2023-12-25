@@ -24,7 +24,6 @@ namespace STCEngine.Engine
         //public Thread gameLoopThread;
         private static System.Windows.Forms.Timer animationTimer = new System.Windows.Forms.Timer();
         private static System.Windows.Forms.Timer gameLoopTimer = new System.Windows.Forms.Timer();
-        public Button resumeButton, quitButton;
         public static bool paused;
         private bool changingScene;
 
@@ -33,6 +32,7 @@ namespace STCEngine.Engine
         public static Panel NPCDialoguePanel = new Panel(); public static UITextBox NPCDialogueText; public static UITextBox NPCDialogueName;
         public static Button NPCDialogueResponse1; public static Button NPCDialogueResponse2; public static Button NPCDialogueResponse3;
         public static Panel PausePanel = new Panel();
+        private Button resumeButton, quitButton, saveButton, loadButton;
 
         public static Dictionary<string, GameObject> registeredGameObjects { get; private set; } = new Dictionary<string, GameObject>();
         public static List<GameObject> spritesToRender { get; private set; } = new List<GameObject>();
@@ -46,6 +46,7 @@ namespace STCEngine.Engine
 
         public static List<Collider> registeredEnemyHitboxes { get; private set; } = new List<Collider>();
         public static List<Collider> registeredEnemyHurtboxes { get; private set; } = new List<Collider>();
+        //make sure to clear list in ClearScene when adding a new static list 
 
         public Color backgroundColor;
         public static readonly Bitmap emptyImage = new Bitmap(1, 1);
@@ -135,6 +136,46 @@ namespace STCEngine.Engine
             resumeButton.Click += new EventHandler((object? o, EventArgs e) => { Unpause(); window.Focus(); });
             PausePanel.Controls.Add(resumeButton);
 
+            loadButton = new Button()
+            {
+                BackColor = Color.White,
+                ForeColor = Color.Black,
+                Text = "Load Save",
+                Font = new Font(resumeButton.Font.FontFamily, 30),
+                Size = new Size(300, 150),
+                Location = new Point((int)screenSize.x / 2 + 200 - resumeButton.Size.Width / 2, (int)screenSize.y / 3 * 2 + 200)
+            };
+            loadButton.MouseEnter += new EventHandler((object? o, EventArgs e) => loadButton.BackColor = Color.SteelBlue);
+            loadButton.MouseLeave += new EventHandler((object? o, EventArgs e) => loadButton.BackColor = Color.White);
+            loadButton.Click += new EventHandler((object? o, EventArgs e) =>
+            { //source: https://stackoverflow.com/questions/17762037/current-thread-must-be-set-to-single-thread-apartment-sta-error-in-copy-stri
+                Thread thread = new Thread(() => LoadSaveFile());
+                thread.SetApartmentState(ApartmentState.STA); //Set the thread to STA
+                thread.Start();
+                thread.Join(); //Wait for the thread to end
+            }); 
+            PausePanel.Controls.Add(loadButton);
+
+            saveButton = new Button()
+            {
+                BackColor = Color.White,
+                ForeColor = Color.Black,
+                Text = "Save Game",
+                Font = new Font(resumeButton.Font.FontFamily, 30),
+                Size = new Size(300, 150),
+                Location = new Point((int)screenSize.x / 2 - 200 - resumeButton.Size.Width / 2, (int)screenSize.y / 3 * 2 + 200)
+            };
+            saveButton.MouseEnter += new EventHandler((object? o, EventArgs e) => saveButton.BackColor = Color.SteelBlue);
+            saveButton.MouseLeave += new EventHandler((object? o, EventArgs e) => saveButton.BackColor = Color.White);
+            saveButton.Click += new EventHandler((object? o, EventArgs e) => 
+            {
+                Thread thread = new Thread(() => CreateSaveFile());
+                thread.SetApartmentState(ApartmentState.STA); //Set the thread to STA
+                thread.Start();
+                thread.Join(); //Wait for the thread to end
+            });
+            PausePanel.Controls.Add(saveButton);
+
             window.Controls.Add(PausePanel);
 
             PausePanel.Visible = false;
@@ -211,7 +252,7 @@ namespace STCEngine.Engine
                     playerInventoryUI.Rows[i].Cells[j].ToolTipText = "";
                 }
             }
-            playerInventoryUI.CellClick += new DataGridViewCellEventHandler(Game.Game.MainGameInstance.playerInventory.ItemClicked);
+            
             #endregion
 
             #region otherInventoryUI setup
@@ -514,20 +555,131 @@ namespace STCEngine.Engine
 
         #region JSON help functions
         /// <summary>
-        /// Clears the scene from all GameObjects
+        /// Creates a save file to be loaded later using the Load Game button
         /// </summary>
-        public void ClearScene()
+        public void CreateSaveFile()
         {
-            changingScene = true;
-            Task.Delay(10).ContinueWith(t =>
+
+            using(SaveFileDialog saveFileDialog = new SaveFileDialog())
             {
+                Stream myStream;
+
+                saveFileDialog.Filter = "jsonSave files|*.jsonSave";
+                saveFileDialog.InitialDirectory = "Assets/Saves";
+                saveFileDialog.Title = "Select the save to overwrite / create new one";
+                saveFileDialog.DefaultExt = ".jsonFile";
+                saveFileDialog.FileName = "Main Save";
+
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    if ((myStream = saveFileDialog.OpenFile()) != null)
+                    {
+                        Debug.LogInfo($"Creating save file \"{saveFileDialog.FileName}\"");
+                        string jsonSaveString = "";
+                        foreach(GameObject gameObject in registeredGameObjects.Values)
+                        {
+                            jsonSaveString += gameObject.SerializeGameObject() + "\n|||||\n";
+                        }
+                        // Code to write the stream goes here.
+                        using (StreamWriter writer = new StreamWriter(myStream))
+                        {
+                            writer.Write(jsonSaveString);
+                        }
+
+                        myStream.Close();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Shows the dialogue box to select a file to load, upon selection loads it
+        /// </summary>
+        public async void LoadSaveFile()
+        {
+            
+            //source: Dotnet documentation - https://learn.microsoft.com/cs-cz/dotnet/api/system.windows.forms.openfiledialog?view=windowsdesktop-8.0
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.Filter = "jsonSave files|*.jsonSave";
+                openFileDialog.InitialDirectory = "Assets/Saves";
+                openFileDialog.Title = "Select the save load";
+                openFileDialog.DefaultExt = ".jsonFile";
+                openFileDialog.FileName = "Main Save";
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    Debug.LogInfo($"Loading save file \"{openFileDialog.FileName}\"");
+                    //Get the path of specified file
+                    var filePath = openFileDialog.FileName;
+
+                    //Read the contents of the file into a stream
+                    var fileStream = openFileDialog.OpenFile();
+
+                    string saveString;
+                    using (StreamReader reader = new StreamReader(fileStream))
+                    {
+                        saveString = reader.ReadToEnd();
+                    }
+                    
+                    string[] splitSaveString = saveString.Split("|||||");
+                    
+                    
+                    try
+                    {
+                        await ClearScene();
+                        
+                        changingScene = true;
+                        for (int i = 0; i < splitSaveString.Length - 1; i++) //the last entry is empty
+                        {
+                            GameObject.CreateGameObjectFromJSONString(splitSaveString[i]);
+                        }
+                        
+                        while (registeredGameObjects.Count < splitSaveString.Length - 1) //wait until loaded
+                        {
+                            await Task.Delay(25);
+                        }
+
+                    }catch(Exception e)
+                    {
+                        Debug.LogError("Error loading save file! Error message: " + e.Message);
+                        Debug.LogError("Loading base level instead...");
+                        await ClearScene();
+                        await LoadLevel("Assets/Level");
+                    }
+                    changingScene = false; 
+                    OnLoad(false);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Clears the scene from all GameObjects -> Make sure you clear your local variables in Game.OnLoad!
+        /// </summary>
+        public async Task ClearScene()
+        {
+
+            changingScene = true;
+            while (registeredGameObjects.Count + spritesToRender.Count + UISpritesToRender.Count + debugRectangles.Count + runningAnimations.Count + registeredColliders.Count + registeredEnemyHitboxes.Count 
+                + registeredEnemyHurtboxes.Count + animationsToStop.Count + animationsToRun.Count > 0) //wait until loaded
+            {
+                await Task.Delay(5);
+                foreach(GameObject g in registeredGameObjects.Values) { g.DestroySelf(); }
+                //Debug.Log(registeredGameObjects.Count +", "+ spritesToRender.Count + ", " + UISpritesToRender.Count + ", " + debugRectangles.Count + ", " + runningAnimations.Count + ", " + registeredColliders.Count + ", " + registeredEnemyHitboxes.Count
+                //+ ", " + registeredEnemyHurtboxes.Count + ", " + animationsToStop.Count + ", " + animationsToRun.Count);
                 registeredGameObjects.Clear();
                 spritesToRender.Clear();
                 UISpritesToRender.Clear();
                 debugRectangles.Clear();
-                runningAnimations.Clear();
                 registeredColliders.Clear();
-            });
+                registeredEnemyHitboxes.Clear();
+                registeredEnemyHurtboxes.Clear();
+                runningAnimations.Clear();
+                animationsToRun.Clear();
+                animationsToStop.Clear();
+                Debug.Log("Attempting to clear scene...");
+            }
+            Debug.LogInfo("Scene Cleared");
             changingScene = false;
 
 
@@ -535,19 +687,25 @@ namespace STCEngine.Engine
         /// <summary>
         /// Loads all the json GameObject files in the given directory
         /// </summary>
-        /// <param name="directory"></param>
-        public void LoadLevel(string directory)
+        /// <param name="directory">Path to the directory with all the GameObjects to load</param>
+        public async Task LoadLevel(string directory)
         {
             changingScene = true;
             DirectoryInfo dir = new DirectoryInfo(directory);
-            foreach (FileInfo file in dir.GetFiles("*.json"))
+            var userFiles = dir.GetFiles("*.json"); var engineFiles = new DirectoryInfo("Assets/Engine Resources").GetFiles("*.json");
+            foreach (FileInfo file in userFiles)
             {
-                GameObject.CreateGameObjectFromJSON(file.FullName);
+                GameObject.CreateGameObjectFromJSONFile(file.FullName);
             }
-            foreach (FileInfo engineFile in new DirectoryInfo("Assets/Engine Resources").GetFiles("*.json")) 
+            foreach (FileInfo engineFile in engineFiles) 
             {
-                GameObject.CreateGameObjectFromJSON(engineFile.FullName);
+                GameObject.CreateGameObjectFromJSONFile(engineFile.FullName);
             }
+            while (registeredGameObjects.Count < userFiles.Length + engineFiles.Length) //wait until loaded
+            {
+                await Task.Delay(25);
+            }
+            Debug.Log($"Level {directory} Succesfully loaded");
             changingScene = false;
             
         }

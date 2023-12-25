@@ -268,6 +268,7 @@ namespace STCEngine.Components
             items.Clear();
             if (gameObject.components.Contains(this)) { gameObject.RemoveComponent(this); }
             if (gameObject.components.Contains(interactCollider)) { gameObject.RemoveComponent(interactCollider); }
+            
 
         }
 
@@ -308,8 +309,13 @@ namespace STCEngine.Components
 
         public override void Initialize()
         {
+            Task.Delay(10).ContinueWith(t => DelayedInit());
+        }
+        private void DelayedInit()
+        {
             gameObject.AddComponent(new BoxCollider(Vector2.one * 100, "droppedItem", Vector2.zero, true));
-            Task.Delay(5).ContinueWith(t => (gameObject.transform.size = Vector2.one * 2.5f));
+            gameObject.transform.size = Vector2.one * 2.5f;
+            
         }
     }
 

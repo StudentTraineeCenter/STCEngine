@@ -18,7 +18,7 @@ DELAYED		NPC Sprites, animations,...
 DONE			??	NPC Stats
 DONE			NPC Dialogues
 DONE		8. Fight system/Farmareni
-			9. Savovani/loadeni ingame
+DONE		9. Savovani/loadeni ingame
 			9. Vic itemu, quests, level, polish
 				Mob drops
 				Quest rewards
@@ -32,3 +32,4 @@ DONE		8. Fight system/Farmareni
 future limitations to fix:
 	each GameObject can have only 1 sprite
 	gameobject rotation
+	improved saving/loading -> ClearScene should clear everything (now breaks if Game contains references that aren't cleared in OnLoad) -> create new instance of Game?

@@ -892,13 +892,13 @@ namespace STCEngine.Components
         /// <summary>
         /// Creates a new GameObject from a JSON file with the given source path
         /// </summary>
-        /// <param name="jsonSourcePath"></param>
+        /// <param name="jsonSourceFilePath">Path to the json file to load it from</param>
         /// <returns>Reference to the new GameObject</returns>
-        public static GameObject CreateGameObjectFromJSON(string jsonSourcePath)
+        public static GameObject CreateGameObjectFromJSONFile(string jsonSourceFilePath)
         {
             try
             {
-                string jsonString = File.ReadAllText(jsonSourcePath);
+                string jsonString = File.ReadAllText(jsonSourceFilePath);
                 var newGameObject = JsonSerializer.Deserialize<GameObject>(jsonString, new JsonSerializerOptions { WriteIndented = true, Converters = { new ComponentConverter() } });
                 foreach (Component c in newGameObject.components)
                 {
@@ -908,19 +908,51 @@ namespace STCEngine.Components
                 newGameObject.GameObjectCreated();
                 return newGameObject;
             }
-            catch (Exception e) { Debug.LogError("GameObject couldnt be created from json, error message: " + e.Message); }
+            catch (Exception e) { Debug.LogError("GameObject couldn't be created from json file, error message: " + e.Message); }
+            return null;
+        }
+        /// <summary>
+        /// Creates a new GameObject from a JSON file with the given json string
+        /// </summary>
+        /// <param name="jsonString">The json string to create the GameObject from</param>
+        /// <returns>Reference to the new GameObject</returns>
+        public static GameObject CreateGameObjectFromJSONString(string jsonString)
+        {
+            try
+            {
+                var newGameObject = JsonSerializer.Deserialize<GameObject>(jsonString, new JsonSerializerOptions { Converters = { new ComponentConverter() } });
+                foreach (Component c in newGameObject.components)
+                {
+                    c.gameObject = newGameObject;
+                    c.Initialize();
+                }
+                newGameObject.GameObjectCreated();
+                return newGameObject;
+            }
+            catch (Exception e) { Debug.LogError("GameObject couldn't be created from json string, error message: " + e.Message); }
             return null;
         }
         /// <summary>
         /// Serializes the GameObject and saves it to the given directory
         /// </summary>
-        /// <param name="gameObject"></param>
-        /// <param name="destinationDirectory"></param>
+        /// <param name="destinationDirectory">Where the json file will be saved</param>
         public void SerializeGameObject(string destinationDirectory)
         {
             string serializedGameObjectString = JsonSerializer.Serialize<GameObject>(this, new JsonSerializerOptions { WriteIndented = true, Converters = { new ComponentConverter() } });
             string fileName = this.name + ".json";
             File.WriteAllText(destinationDirectory + "/" + fileName, serializedGameObjectString);
+
+        }
+        /// <summary>
+        /// Serializes the given GameObject unindented and returns it as a string
+        /// </summary>
+        /// <returns>The GameObject in the form of a unindented json string</returns>
+        public string SerializeGameObject()
+        {
+            string serializedGameObjectString = JsonSerializer.Serialize<GameObject>(this, new JsonSerializerOptions { WriteIndented = false, Converters = { new ComponentConverter() } });
+            //string fileName = this.name + ".json";
+            return serializedGameObjectString;
+            //File.WriteAllText(destinationDirectory + "/" + fileName, serializedGameObjectString);
 
         }
         /// <summary>
