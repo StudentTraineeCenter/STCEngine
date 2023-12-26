@@ -18,7 +18,8 @@ namespace STCEngine.Engine
     {
         public readonly bool testDebug = true;
 
-        public Vector2 screenSize { get => new Vector2(window.Width, window.Height); set { RescaleUI(screenSize, new Vector2(value.x, value.y)); window.Size = new Size((int)value.x, (int)value.y); } }
+        public Vector2 screenSize { get => new Vector2(window.ClientSize.Width, window.ClientSize.Height); set { RescaleUI(window, oldWindowSize, value); window.ClientSize = value; oldWindowSize = window.ClientSize; } }
+        private Size oldWindowSize;
         private string title;
         private Canvas window;
         //public Thread gameLoopThread;
@@ -61,6 +62,7 @@ namespace STCEngine.Engine
         public EngineClass(Vector2 screenSize, string title)
         {
             window = new Canvas();
+            this.oldWindowSize = screenSize;
             this.screenSize = screenSize;
             this.title = title;
 
@@ -68,6 +70,8 @@ namespace STCEngine.Engine
             //window.Size = new Size((int)this.screenSize.x, (int)this.screenSize.y); already done by changing screen size above
             window.Text = this.title;
             window.Paint += Renderer;
+            window.SizeChanged += new EventHandler((object? o, EventArgs e) => { this.screenSize = new Vector2(window.ClientSize.Width, window.ClientSize.Height); });
+            
 
             //Animations
             animationTimer.Tick += new EventHandler(RunAnimations);
@@ -98,14 +102,42 @@ namespace STCEngine.Engine
 
         #region UI initialization, scaling
         /// <summary>
-        /// Rescales the UI upon changing the window size
+        /// Recursively rescales all the UI upon changing the window size
         /// </summary>
         /// <param name="oldSize"></param>
         /// <param name="newSize"></param>
-        private void RescaleUI(int oldSize, int newSize)
+        private void RescaleUI(Control control, Size oldSize, Size newSize)
         {
-            //playerInventoryPanel.
-            //:)
+            if(((float)newSize.Width / (float)oldSize.Width == 1) && ((float)newSize.Height / (float)oldSize.Height == 1)) { return; }
+            foreach(Control childControl in control.Controls)
+            {
+                int width = newSize.Width - oldSize.Width;
+                childControl.Left += (childControl.Left * width) / oldSize.Width;
+                childControl.Width += (childControl.Width * width) / oldSize.Width;
+
+                int height = newSize.Height - oldSize.Height;
+                childControl.Top += (childControl.Top * height) / oldSize.Height;
+                childControl.Height += (childControl.Height * height) / oldSize.Height;
+
+                //special resizing for the inventory table...
+                if (childControl.GetType() == typeof(InventoryItemSlots))
+                {
+                    var invSlots = childControl as InventoryItemSlots;
+                    for (int i = 0; i < invSlots.RowCount; i++)
+                    {
+                        (invSlots.Rows[i] as DataGridViewRow).Height += (invSlots.Rows[i].Height * height) / oldSize.Height;
+                    }
+                    for (int j = 0; j < invSlots.ColumnCount; j++)
+                    {
+                        (invSlots.Columns[j] as DataGridViewColumn).Width += (invSlots.Columns[j].Width * width) / oldSize.Width;
+                    }
+                }
+                
+                if(childControl.Controls.Count > 0) //recursively rescale all UI
+                {
+                    RescaleUI(childControl, oldSize, newSize);
+                }
+            }
         }
         /// <summary>
         /// Creates the pause screen Quit and Resume buttons, must be called ONCE upon loading to use the pause screen
@@ -124,8 +156,8 @@ namespace STCEngine.Engine
             quitButton.ForeColor = Color.Black;
             quitButton.Text = "Quit";
             quitButton.Font = new Font(quitButton.Font.FontFamily, 30);
-            quitButton.Size = new Size(300, 150);
-            quitButton.Location = new Point((int)screenSize.x / 2 - 200 - quitButton.Size.Width / 2, (int)screenSize.y / 3 * 2-200);
+            quitButton.Size = new Size((int)screenSize.x / 7, (int)screenSize.y / 10);
+            quitButton.Location = new Point((int)screenSize.x / 2 - (int)screenSize.x / 10 - quitButton.Size.Width / 2, (int)screenSize.y / 3 * 2 - (int)screenSize.y / 8);
             quitButton.MouseEnter += new EventHandler((object? o, EventArgs e) => quitButton.BackColor = Color.SteelBlue);
             quitButton.MouseLeave += new EventHandler((object? o, EventArgs e) => quitButton.BackColor = Color.White);
             quitButton.Click += new EventHandler((object? o, EventArgs e) => Application.Exit());
@@ -136,8 +168,8 @@ namespace STCEngine.Engine
             resumeButton.ForeColor = Color.Black;
             resumeButton.Text = "Resume";
             resumeButton.Font = new Font(resumeButton.Font.FontFamily, 30);
-            resumeButton.Size = new Size(300, 150);
-            resumeButton.Location = new Point((int)screenSize.x / 2 + 200 - resumeButton.Size.Width / 2, (int)screenSize.y / 3 * 2-200);
+            resumeButton.Size = new Size((int)screenSize.x / 7, (int)screenSize.y / 10);
+            resumeButton.Location = new Point((int)screenSize.x / 2 + (int)screenSize.x / 10 - resumeButton.Size.Width / 2, (int)screenSize.y / 3 * 2- (int)screenSize.y / 8);
             resumeButton.MouseEnter += new EventHandler((object? o, EventArgs e) => resumeButton.BackColor = Color.SteelBlue);
             resumeButton.MouseLeave += new EventHandler((object? o, EventArgs e) => resumeButton.BackColor = Color.White);
             resumeButton.Click += new EventHandler((object? o, EventArgs e) => { Unpause(); window.Focus(); });
@@ -149,8 +181,8 @@ namespace STCEngine.Engine
                 ForeColor = Color.Black,
                 Text = "Load Save",
                 Font = new Font(resumeButton.Font.FontFamily, 30),
-                Size = new Size(300, 150),
-                Location = new Point((int)screenSize.x / 2 + 200 - resumeButton.Size.Width / 2, (int)screenSize.y / 3 * 2)
+                Size = new Size((int)screenSize.x / 7, (int)screenSize.y / 10),
+                Location = new Point((int)screenSize.x / 2 + (int)screenSize.x / 10 - resumeButton.Size.Width / 2, (int)screenSize.y / 3 * 2)
             };
             loadButton.MouseEnter += new EventHandler((object? o, EventArgs e) => loadButton.BackColor = Color.SteelBlue);
             loadButton.MouseLeave += new EventHandler((object? o, EventArgs e) => loadButton.BackColor = Color.White);
@@ -169,8 +201,8 @@ namespace STCEngine.Engine
                 ForeColor = Color.Black,
                 Text = "Save Game",
                 Font = new Font(resumeButton.Font.FontFamily, 30),
-                Size = new Size(300, 150),
-                Location = new Point((int)screenSize.x / 2 - 200 - resumeButton.Size.Width / 2, (int)screenSize.y / 3 * 2)
+                Size = new Size((int)screenSize.x / 7, (int)screenSize.y / 10),
+                Location = new Point((int)screenSize.x / 2 - (int)screenSize.x / 10 - resumeButton.Size.Width / 2, (int)screenSize.y / 3 * 2)
             };
             saveButton.MouseEnter += new EventHandler((object? o, EventArgs e) => saveButton.BackColor = Color.SteelBlue);
             saveButton.MouseLeave += new EventHandler((object? o, EventArgs e) => saveButton.BackColor = Color.White);
@@ -490,11 +522,21 @@ namespace STCEngine.Engine
                     Tilemap? tilemap = gameObject.GetComponent<Tilemap>();
                     if (tilemap != null && tilemap.enabled && gameObject.isActive)
                     {
-                        graphics.DrawImage(tilemap.tileMapImage, 
-                            gameObject.transform.position.x - tilemap.tileMapImage.Width / 2 + cameraRenderingOffset.x, 
-                            gameObject.transform.position.y - tilemap.tileMapImage.Height / 2 + cameraRenderingOffset.y, 
-                            tilemap.tileMapImage.Width, 
+                        //Bitmap newImage = tilemap.tileMapImage as Bitmap;
+                        //Bitmap bitmap = new Bitmap((int)screenSize.x, (int)screenSize.y);
+                        //using (Graphics g = Graphics.FromImage(bitmap))
+                        //{
+                        //    Rectangle section = new Rectangle((int)(cameraPosition.x - screenSize.x / 2), (int)(cameraPosition.y - screenSize.y / 2), (int)screenSize.x, (int)screenSize.y);
+                        //    g.DrawImage(tilemap.tileMapImage, 0, 0, section, GraphicsUnit.Pixel);
+                        //}
+                        //graphics.DrawImage(bitmap, cameraPosition);
+
+                        graphics.DrawImage(tilemap.tileMapImage,
+                            gameObject.transform.position.x - tilemap.tileMapImage.Width / 2 + cameraRenderingOffset.x,
+                            gameObject.transform.position.y - tilemap.tileMapImage.Height / 2 + cameraRenderingOffset.y,
+                            tilemap.tileMapImage.Width,
                             tilemap.tileMapImage.Height);
+
                         //for(int y = 0; y < tilemap.mapSize.y; y++)
                         //{
                         //    for (int x = 0; x < tilemap.mapSize.x; x++)
@@ -897,11 +939,11 @@ namespace STCEngine.Engine
             base.PaintBackground(graphics, clipBounds, gridBounds);
 
             //painting background image
-            for (int i = 0; i < (int)(Parent.Width / backgroundImage.Width); i++)
+            for (int i = 0; i < ColumnCount; i++) //(int)(Parent.Width / backgroundImage.Width)
             {
-                for (int j = 0; j < (int)(Parent.Height / backgroundImage.Height); j++)
+                for (int j = 0; j < RowCount; j++) //(int)(Parent.Height / backgroundImage.Height)
                 {
-                    graphics.DrawImage(backgroundImage, i * backgroundImage.Width, j * backgroundImage.Height, backgroundImage.Width, backgroundImage.Height);
+                    graphics.DrawImage(backgroundImage, i * Parent.Width / ColumnCount, j * Parent.Height / RowCount, Parent.Width / ColumnCount, Parent.Height / RowCount);
                 }
             }
 
@@ -1038,6 +1080,8 @@ namespace STCEngine
         {
             return "(" + x + ", " + y + ")";
         }
+        public static implicit operator Size(Vector2 v) => new Size((int)v.x, (int)v.y);
+        public static implicit operator Point(Vector2 v) => new Point((int)v.x, (int)v.y);
     }
 
 }

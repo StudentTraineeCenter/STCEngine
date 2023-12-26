@@ -95,10 +95,10 @@ namespace STCEngine.Components
                 for (int i = 0; i < items.Count; i++)
                 {
                     //combines the image of the item with the amount
-                    Bitmap combinedImage = new Bitmap(96, 96);
+                    Bitmap combinedImage = new Bitmap((int)(Engine.EngineClass.playerInventoryUI.Columns[0].Width * 0.8f), (int)(Engine.EngineClass.playerInventoryUI.Rows[0].Height * 0.8f));
                     using (Graphics g = Graphics.FromImage(combinedImage))
                     {
-                        g.DrawImage(items[i].icon, 0, 0, 96, 96);
+                        g.DrawImage(items[i].icon, 0, 0, combinedImage.Width, combinedImage.Height);
                         if (items[i].itemCount != 1) { g.DrawString(items[i].itemCount.ToString(), new Font("Arial", 15, FontStyle.Regular), new SolidBrush(Color.Black), 0, 0); }
                     }
 
@@ -130,10 +130,10 @@ namespace STCEngine.Components
             for (int i = 0; i < items.Count; i++)
             {
                 //combines the image of the item with the amount
-                Bitmap combinedImage = new Bitmap(96, 96);
+                Bitmap combinedImage = new Bitmap((int)(Engine.EngineClass.playerInventoryUI.Columns[0].Width*0.8f), (int)(Engine.EngineClass.playerInventoryUI.Rows[0].Height*0.8f));
                 using (Graphics g = Graphics.FromImage(combinedImage))
                 {
-                    g.DrawImage(items[i].icon, 0, 0, 96, 96);
+                    g.DrawImage(items[i].icon, 0, 0, combinedImage.Width, combinedImage.Height);
                     if (items[i].itemCount != 1) { g.DrawString(items[i].itemCount.ToString(), new Font("Arial", 15, FontStyle.Regular), new SolidBrush(Color.Black), 0, 0); }
                 }
 

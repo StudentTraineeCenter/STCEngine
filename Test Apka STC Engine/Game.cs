@@ -20,7 +20,7 @@ namespace STCEngine.Game
         public bool npcDialogueOpen { get => activeNPC != null; }
         public NPC? activeNPC;
 
-        private static Vector2 windowSize = new Vector2(1920, 1080);
+        private static readonly Vector2 windowSize = new Vector2(2560, 1440);
 
         //watch out when creating references to objects, make sure they get cleared/overwritten in OnLoad method!
         public GameObject? player;
