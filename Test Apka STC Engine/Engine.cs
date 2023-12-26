@@ -18,20 +18,22 @@ namespace STCEngine.Engine
     {
         public readonly bool testDebug = true;
 
-        public Vector2 screenSize { get => new Vector2(window.Width, window.Height); set { window.Size = new Size((int)value.x, (int)value.y); } }
+        public Vector2 screenSize { get => new Vector2(window.Width, window.Height); set { RescaleUI(screenSize, new Vector2(value.x, value.y)); window.Size = new Size((int)value.x, (int)value.y); } }
         private string title;
         private Canvas window;
         //public Thread gameLoopThread;
         private static System.Windows.Forms.Timer animationTimer = new System.Windows.Forms.Timer();
         private static System.Windows.Forms.Timer gameLoopTimer = new System.Windows.Forms.Timer();
         public static bool paused;
-        private bool changingScene;
+        private bool changingScene { get => _changingScene; set { if (loadingSceneText.InvokeRequired) { loadingSceneText.Invoke(new Action(() => loadingSceneText.Visible = value)); Debug.Log("Showing text"); } else { loadingSceneText.Visible = value; } _changingScene = value; } }//has to be like this because of threading
+        private bool _changingScene;
 
         public static InventoryItemSlots playerInventoryUI = new InventoryItemSlots(), otherInventoryUI = new InventoryItemSlots();
         public Panel playerInventoryPanel = new Panel(), otherInventoryPanel = new Panel();
         public static Panel NPCDialoguePanel = new Panel(); public static UITextBox NPCDialogueText; public static UITextBox NPCDialogueName;
         public static Button NPCDialogueResponse1; public static Button NPCDialogueResponse2; public static Button NPCDialogueResponse3;
         public static Panel PausePanel = new Panel();
+        public static UITextBox loadingSceneText = new UITextBox();
         private Button resumeButton, quitButton, saveButton, loadButton;
 
         public static Dictionary<string, GameObject> registeredGameObjects { get; private set; } = new Dictionary<string, GameObject>();
@@ -66,7 +68,6 @@ namespace STCEngine.Engine
             //window.Size = new Size((int)this.screenSize.x, (int)this.screenSize.y); already done by changing screen size above
             window.Text = this.title;
             window.Paint += Renderer;
-            window.SizeChanged += new EventHandler((object? o, EventArgs e) => RescaleUI(e));
 
             //Animations
             animationTimer.Tick += new EventHandler(RunAnimations);
@@ -96,8 +97,14 @@ namespace STCEngine.Engine
         public abstract void Unpause();
 
         #region UI initialization, scaling
-        public void RescaleUI(EventArgs e)
+        /// <summary>
+        /// Rescales the UI upon changing the window size
+        /// </summary>
+        /// <param name="oldSize"></param>
+        /// <param name="newSize"></param>
+        private void RescaleUI(int oldSize, int newSize)
         {
+            //playerInventoryPanel.
             //:)
         }
         /// <summary>
@@ -118,7 +125,7 @@ namespace STCEngine.Engine
             quitButton.Text = "Quit";
             quitButton.Font = new Font(quitButton.Font.FontFamily, 30);
             quitButton.Size = new Size(300, 150);
-            quitButton.Location = new Point((int)screenSize.x / 2 - 200 - quitButton.Size.Width / 2, (int)screenSize.y / 3 * 2);
+            quitButton.Location = new Point((int)screenSize.x / 2 - 200 - quitButton.Size.Width / 2, (int)screenSize.y / 3 * 2-200);
             quitButton.MouseEnter += new EventHandler((object? o, EventArgs e) => quitButton.BackColor = Color.SteelBlue);
             quitButton.MouseLeave += new EventHandler((object? o, EventArgs e) => quitButton.BackColor = Color.White);
             quitButton.Click += new EventHandler((object? o, EventArgs e) => Application.Exit());
@@ -130,7 +137,7 @@ namespace STCEngine.Engine
             resumeButton.Text = "Resume";
             resumeButton.Font = new Font(resumeButton.Font.FontFamily, 30);
             resumeButton.Size = new Size(300, 150);
-            resumeButton.Location = new Point((int)screenSize.x / 2 + 200 - resumeButton.Size.Width / 2, (int)screenSize.y / 3 * 2);
+            resumeButton.Location = new Point((int)screenSize.x / 2 + 200 - resumeButton.Size.Width / 2, (int)screenSize.y / 3 * 2-200);
             resumeButton.MouseEnter += new EventHandler((object? o, EventArgs e) => resumeButton.BackColor = Color.SteelBlue);
             resumeButton.MouseLeave += new EventHandler((object? o, EventArgs e) => resumeButton.BackColor = Color.White);
             resumeButton.Click += new EventHandler((object? o, EventArgs e) => { Unpause(); window.Focus(); });
@@ -143,7 +150,7 @@ namespace STCEngine.Engine
                 Text = "Load Save",
                 Font = new Font(resumeButton.Font.FontFamily, 30),
                 Size = new Size(300, 150),
-                Location = new Point((int)screenSize.x / 2 + 200 - resumeButton.Size.Width / 2, (int)screenSize.y / 3 * 2 + 200)
+                Location = new Point((int)screenSize.x / 2 + 200 - resumeButton.Size.Width / 2, (int)screenSize.y / 3 * 2)
             };
             loadButton.MouseEnter += new EventHandler((object? o, EventArgs e) => loadButton.BackColor = Color.SteelBlue);
             loadButton.MouseLeave += new EventHandler((object? o, EventArgs e) => loadButton.BackColor = Color.White);
@@ -163,7 +170,7 @@ namespace STCEngine.Engine
                 Text = "Save Game",
                 Font = new Font(resumeButton.Font.FontFamily, 30),
                 Size = new Size(300, 150),
-                Location = new Point((int)screenSize.x / 2 - 200 - resumeButton.Size.Width / 2, (int)screenSize.y / 3 * 2 + 200)
+                Location = new Point((int)screenSize.x / 2 - 200 - resumeButton.Size.Width / 2, (int)screenSize.y / 3 * 2)
             };
             saveButton.MouseEnter += new EventHandler((object? o, EventArgs e) => saveButton.BackColor = Color.SteelBlue);
             saveButton.MouseLeave += new EventHandler((object? o, EventArgs e) => saveButton.BackColor = Color.White);
@@ -176,8 +183,21 @@ namespace STCEngine.Engine
             });
             PausePanel.Controls.Add(saveButton);
 
+            loadingSceneText = new UITextBox()
+            {
+                Font = new Font(resumeButton.Font.FontFamily, 100),
+
+                Text = "Loading scene, please wait...",
+                TextColor = Color.Black,
+                Anchor = AnchorStyles.Top | AnchorStyles.Left,
+                Location = new Point((int)screenSize.x / 4, (int)screenSize.y / 4),
+                Size = new Size((int)screenSize.x/2, (int)screenSize.y/2)
+            };
+
+            window.Controls.Add(loadingSceneText);
             window.Controls.Add(PausePanel);
 
+            loadingSceneText.Visible = false;
             PausePanel.Visible = false;
 
         }
@@ -627,7 +647,8 @@ namespace STCEngine.Engine
                     
                     try
                     {
-                        await ClearScene();
+                        await Task.Run(() => ClearScene());
+                        //await ClearScene();
                         
                         changingScene = true;
                         for (int i = 0; i < splitSaveString.Length - 1; i++) //the last entry is empty
@@ -644,8 +665,8 @@ namespace STCEngine.Engine
                     {
                         Debug.LogError("Error loading save file! Error message: " + e.Message);
                         Debug.LogError("Loading base level instead...");
-                        await ClearScene();
-                        await LoadLevel("Assets/Level");
+                        await Task.Run(() => ClearScene());
+                        await Task.Run(() => LoadLevel("Assets/Level"));
                     }
                     changingScene = false; 
                     OnLoad(false);

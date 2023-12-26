@@ -209,6 +209,7 @@
         }
       },
       "playBackSpeed": 1,
+      "playOnLoad": "IdleAnimation",
       "enabled": true
     },
     {

@@ -107,7 +107,7 @@ namespace STCEngine.Game
             playerLeftCol.offset = -playerRightCol.offset;
 
             idleEnemies.Clear(); enemiesToMove.Clear();
-            enemiesToMove.AddRange(GameObject.FindAll("Enemy"));
+            idleEnemies.AddRange(GameObject.FindAll("Enemy"));
 
             pauseScreen = GameObject.Find("Pause Screen");
             pressEGameObject = GameObject.Find("Press E GameObject");
@@ -309,7 +309,7 @@ namespace STCEngine.Game
             {
                 if((idleEnemy.transform.position - player.transform.position).magnitude < idleEnemy.GetComponent<CombatStats>().agroRange) { enemiesToWake.Add(idleEnemy); }
             }
-            enemiesToWake.ForEach(enemy => { enemiesToMove.Add(enemy); idleEnemies.Remove(enemy); });
+            enemiesToWake.ForEach(enemy => { enemiesToMove.Add(enemy); idleEnemies.Remove(enemy); enemy.GetComponent<Animator>().Play("MoveAnimation"); });
 
             var enemiesToSleep = new List<GameObject>();
             foreach (GameObject enemy in enemiesToMove)
@@ -319,18 +319,18 @@ namespace STCEngine.Game
                 if((enemy.transform.position - player.transform.position).magnitude > stats.deagroRange) { enemiesToSleep.Add(enemy); continue; }
                 enemy.transform.position += (player.transform.position - enemy.transform.position).normalized * enemy.GetComponent<CombatStats>().movementSpeed;
             }
-            enemiesToSleep.ForEach(enemy => { enemiesToMove.Remove(enemy); idleEnemies.Add(enemy); });
+            enemiesToSleep.ForEach(enemy => { enemiesToMove.Remove(enemy); idleEnemies.Add(enemy); enemy.GetComponent<Animator>().Play("IdleAnimation"); });
         }
         #endregion
 
         #region Combat help functions
-        public void PlayerDeath()
+        public async void PlayerDeath()
         {
             Debug.LogInfo("\n----------------------------------------------------------------------");
             Debug.LogInfo("\n THE PLAYER HAS DIED, RELOADING STARTING SCENE IN 1 SECOND");
             Debug.LogInfo("\n----------------------------------------------------------------------\n");
-            ClearScene();
-            Task.Delay(1000).ContinueWith(t => OnLoad(false));
+            await ClearScene();
+            OnLoad(false);
         }
         public void NPCDeath(CombatStats enemyStats)
         {

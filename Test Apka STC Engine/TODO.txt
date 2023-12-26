@@ -19,17 +19,19 @@ DONE			??	NPC Stats
 DONE			NPC Dialogues
 DONE		8. Fight system/Farmareni
 DONE		9. Savovani/loadeni ingame
-			9. Vic itemu, quests, level, polish
+			10. health UI
+			11. Vic itemu, quests, level, polish
 				Mob drops
 				Quest rewards
 				Level setup
-			10. Destructible objekty
+			12. Destructible objekty
 
-			10. Prirucka
-			11. Absolventka :)
-			(Okomentovat classy)
+			+ Prirucka
+			+ Absolventka :)
+			+ (Okomentovat classy)
 
 future limitations to fix:
 	each GameObject can have only 1 sprite
 	gameobject rotation
 	improved saving/loading -> ClearScene should clear everything (now breaks if Game contains references that aren't cleared in OnLoad) -> create new instance of Game?
+	better Animation system allowing for changing more things within animations (interact with the rest of the GameObject)

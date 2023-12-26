@@ -314,6 +314,10 @@ namespace STCEngine.Components
         public override string Type { get; } = nameof(Animator);
         [JsonIgnore] public Sprite? sprite { get; set; }
         public Dictionary<string, Animation> animations { get; set; }
+        /// <summary>
+        /// Name of the animation to be played on load, if none leave empty
+        /// </summary>
+        public string? playOnLoad { get; set; }
         //[JsonIgnore] public Dictionary<string, Animation> _animations { get; private set; }
         public float playBackSpeed { get; set; }
         [JsonIgnore] public Animation? currentlyPlayingAnimation { get; private set; }
@@ -354,7 +358,7 @@ namespace STCEngine.Components
 
 
         [JsonConstructor] public Animator() { }
-        public override void Initialize() { }
+        public override void Initialize() { if (playOnLoad?.Length > 0) { Play(playOnLoad); } }
         public override void DestroySelf()
         {
             if (isPlaying) { Stop(); }
@@ -938,6 +942,7 @@ namespace STCEngine.Components
         /// <param name="destinationDirectory">Where the json file will be saved</param>
         public void SerializeGameObject(string destinationDirectory)
         {
+            foreach(CircleCollider c in GetComponents<CircleCollider>()) { if (c.tag == "Interactible") { RemoveComponent(c); } }
             string serializedGameObjectString = JsonSerializer.Serialize<GameObject>(this, new JsonSerializerOptions { WriteIndented = true, Converters = { new ComponentConverter() } });
             string fileName = this.name + ".json";
             File.WriteAllText(destinationDirectory + "/" + fileName, serializedGameObjectString);
