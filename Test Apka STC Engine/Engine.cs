@@ -418,7 +418,7 @@ namespace STCEngine.Engine
             NPCDialogueResponse1 = new Button
             {
                 Text = "Option 1",
-                Anchor = AnchorStyles.Right | AnchorStyles.Top,
+                Anchor = AnchorStyles.Left | AnchorStyles.Top,
                 Size = new Size((int)(screenSize.x / 5), (int)(NPCDialoguePanel.Height / 3)),
                 Location = new Point((int)(screenSize.x / 10), 0),
                 Left = (int)(NPCDialoguePanel.Width * 4 / 5),
@@ -428,7 +428,7 @@ namespace STCEngine.Engine
             NPCDialogueResponse2 = new Button
             {
                 Text = "Option 1",
-                Anchor = AnchorStyles.Right | AnchorStyles.Top,
+                Anchor = AnchorStyles.Left | AnchorStyles.Top,
                 Size = new Size((int)(screenSize.x / 5), (int)(NPCDialoguePanel.Height / 3)),
                 Location = new Point((int)(screenSize.x / 10), (int)(NPCDialoguePanel.Height / 3)),
                 Left = (int)(NPCDialoguePanel.Width * 4 / 5),
@@ -438,9 +438,9 @@ namespace STCEngine.Engine
             NPCDialogueResponse3 = new Button
             {
                 Text = "Option 1",
-                Anchor = AnchorStyles.Right | AnchorStyles.Top,
+                Anchor = AnchorStyles.Left | AnchorStyles.Top,
                 Size = new Size((int)(screenSize.x / 5), (int)(NPCDialoguePanel.Height / 3)),
-                Location = new Point((int)(screenSize.x / 10), (int)(NPCDialoguePanel.Height * 2 / 3)),
+                Location = new Point((int)(screenSize.x / 10), (int)(NPCDialoguePanel.Height / 1.5f)),
                 Left = (int)(NPCDialoguePanel.Width * 4 / 5),
                 BackColor = Color.Aqua,
                 ForeColor = Color.Black
@@ -507,9 +507,10 @@ namespace STCEngine.Engine
                 {
                     if (gameObject == null) { continue; } //kdo vi proc se to stava, ale tohle zabrani crashi ;)
                     Sprite? sprite = gameObject.GetComponent<Sprite>();
-                    //if(gameObject.name == "Kamena stena") { Debug.Log(sprite.image.Height.ToString()); }
                     if (sprite != null && sprite.enabled && gameObject.isActive)
                     {
+                        var relativeDistance = gameObject.transform.position - cameraPosition;
+                        if (!((Math.Abs(relativeDistance.x) < (sprite.image.Width * gameObject.transform.size.x + screenSize.x) / 2) && (Math.Abs(relativeDistance.y) < (sprite.image.Height * gameObject.transform.size.y + screenSize.y) / 2))) { continue; } //skips images out of the players screen
                         //foreach(Sprite sprite in gameObject.GetComponents<Sprite>()) //pro vice spritu na jednom objektu by to teoreticky fungovat mohlo, ale pak by nesel odstranit specificky sprite
                         //{
                         graphics.DrawImage(sprite.image, 
@@ -526,22 +527,51 @@ namespace STCEngine.Engine
                         //Bitmap bitmap = new Bitmap((int)screenSize.x, (int)screenSize.y);
                         //using (Graphics g = Graphics.FromImage(bitmap))
                         //{
-                        //    Rectangle section = new Rectangle((int)(cameraPosition.x - screenSize.x / 2), (int)(cameraPosition.y - screenSize.y / 2), (int)screenSize.x, (int)screenSize.y);
-                        //    g.DrawImage(tilemap.tileMapImage, 0, 0, section, GraphicsUnit.Pixel);
+                        //    Debug.Log($"{(int)(gameObject.transform.position.x)} - {(screenSize.x / 2)}, {(int)(gameObject.transform.position.y)} - {(screenSize.y / 2)}, {(int)screenSize.x}, {(int)screenSize.y}");
+                        //    Rectangle section = new Rectangle((int)(gameObject.transform.position.x - screenSize.x / 2), (int)(gameObject.transform.position.y - screenSize.y / 2), (int)screenSize.x, (int)screenSize.y);
+                        //    //g.DrawImage(tilemap.tileMapImage, 0, 0, section, GraphicsUnit.Pixel);
+                        //    //graphics.DrawImage(tilemap.tileMapImage, -screenSize.x / 2, -screenSize.y / 2, section, GraphicsUnit.Pixel);
                         //}
-                        //graphics.DrawImage(bitmap, cameraPosition);
+
+                        //Rectangle screenRectangle = new Rectangle(cameraPosition - screenSize / 2 + cameraRenderingOffset, screenSize);
+                        //Debug.Log(cameraRenderingOffset +  cameraPosition);
+                        //Rectangle worldSpaceScreenRectangle = new Rectangle(cameraPosition - screenSize/2, screenSize);
+                        //x...world pozice stredu obrazovky, y...velikost obrazovky 
+                        //graphics.DrawRectangle(new Pen(Color.Orange, 10), new Rectangle(tilemap.GetActiveTileMapImage(cameraPosition, screenSize) + cameraRenderingOffset, Vector2.one * 10));
+                        //graphics.DrawRectangle(new Pen(Color.Blue, 10), worldSpaceScreenRectangle);
+                        //tilemap.GetActiveTileMapImage(cameraPosition, screenSize);
+                        //graphics.DrawImage(bitmap, 0, 0);
 
                         graphics.DrawImage(tilemap.tileMapImage,
-                            gameObject.transform.position.x - tilemap.tileMapImage.Width / 2 + cameraRenderingOffset.x,
-                            gameObject.transform.position.y - tilemap.tileMapImage.Height / 2 + cameraRenderingOffset.y,
-                            tilemap.tileMapImage.Width,
-                            tilemap.tileMapImage.Height);
+                            gameObject.transform.position.x - tilemap.tileMapImage.Width * gameObject.transform.size.x / 2 + cameraRenderingOffset.x,
+                            gameObject.transform.position.y - tilemap.tileMapImage.Height * gameObject.transform.size.y / 2 + cameraRenderingOffset.y,
+                            tilemap.tileMapImage.Width * gameObject.transform.size.x,
+                            tilemap.tileMapImage.Height * gameObject.transform.size.y);
 
-                        //for(int y = 0; y < tilemap.mapSize.y; y++)
+                        //graphics.DrawImageUnscaled(tilemap.tileMapImage,
+                        //    (int)(gameObject.transform.position.x - tilemap.tileMapImage.Width * gameObject.transform.size.x / 2 + cameraRenderingOffset.x),
+                        //    (int)(gameObject.transform.position.y - tilemap.tileMapImage.Height * gameObject.transform.size.y / 2 + cameraRenderingOffset.y),
+                        //    (int)(tilemap.tileMapImage.Width * gameObject.transform.size.x),
+                        //    (int)(tilemap.tileMapImage.Height * gameObject.transform.size.y));
+
+
+
+                        //for (int y = 0; y < tilemap.mapSize.y; y++)
                         //{
                         //    for (int x = 0; x < tilemap.mapSize.x; x++)
                         //    {
-                        //        //graphics.DrawImage(tilemap.tileMapImage, gameObject.transform.position.x - tilemap.tileMapImage.Width/2, gameObject.transform.position.y - tilemap.tileMapImage.Height / 2, tilemap.tileMapImage.Width, tilemap.tileMapImage.Height);//(tilemap.tiles[x, y], gameObject.transform.position.x + x * tilemap.tileSize.x, gameObject.transform.position.y + y * tilemap.tileSize.y, tilemap.tileSize.x, tilemap.tileSize.x);
+                        //        graphics.DrawImage(tilemap.tiles[x, y], gameObject.transform.position.x - tilemap.tileSize.x/2 + x*, gameObject.transform.position.y - tilemap.tileSize.y / 2, tilemap.tileMapImage.Width, tilemap.tileMapImage.Height);//(tilemap.tiles[x, y], gameObject.transform.position.x + x * tilemap.tileSize.x, gameObject.transform.position.y + y * tilemap.tileSize.y, tilemap.tileSize.x, tilemap.tileSize.x);
+                        //    }
+                        //}
+                        //Vector2 generalOffset = gameObject.transform.position - new Vector2(tilemap.tileSize.x / 2 * gameObject.transform.size.x, tilemap.tileSize.y / 2 * gameObject.transform.size.y) + cameraRenderingOffset - new Vector2(tilemap.tileSize.x * tilemap.mapSize.x, tilemap.tileSize.y * tilemap.mapSize.y)/2;
+                        //for (int i = 0; i < tilemap.mapSize.x; i++)
+                        //{
+                        //    for (int j = 0; j < tilemap.mapSize.y; j++)
+                        //    {
+                        //        Vector2 tilePosition = new Vector2(generalOffset.x + i * tilemap.tileSize.x, generalOffset.y + j * tilemap.tileSize.y);
+                        //        var relativeDistance = tilePosition - cameraPosition;
+                        //        if (!((Math.Abs(relativeDistance.x) < (tilemap.tileSize.x + screenSize.x) / 2) && (Math.Abs(relativeDistance.y) < (tilemap.tileSize.y + screenSize.y) / 2))) { continue; } //skips images out of the players screen
+                        //        graphics.DrawImage(tilemap.tiles[i, j], generalOffset.x + i * tilemap.tileSize.x, generalOffset.y + j * tilemap.tileSize.y);
                         //    }
                         //}
                     }

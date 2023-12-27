@@ -202,7 +202,7 @@ namespace STCEngine.Components
         public string[] tilemapString { get; set; }
         [JsonIgnore] private Image[,]? _tiles;
         [JsonIgnore] public Image[,]? tiles { get => _tiles; set { _tiles = value; UpdateTiles(); } }
-        [JsonIgnore] public Image tileMapImage;
+        [JsonIgnore] public Image tileMapImage; //{ get => GetCurrent};
         public Vector2 tileSize { get; set; }
         public Vector2 mapSize { get; set; }
 
@@ -221,6 +221,21 @@ namespace STCEngine.Components
             this.tileSize = tileSize;
             this.mapSize = mapSize;
             this.orderInLayer = orderInLayer;
+        }
+
+        public Point? GetActiveTileMapImage(Vector2 worldSpaceCameraLocation, Vector2 screenSize)
+        {
+            var leftTopCornerWorldCoords = worldSpaceCameraLocation - screenSize / 2;
+            var leftTopCornerImageCoords = leftTopCornerWorldCoords - gameObject.transform.position;
+
+            Debug.Log(leftTopCornerImageCoords);
+
+            //var leftCornerCoords = MathF.Abs(gameObject.transform.position.x - rectangle.Location.X) + tileSize.x * mapSize.x / 2;
+            //var topCornerCoords = MathF.Abs(gameObject.transform.position.y - rectangle.Location.Y) + tileSize.y * mapSize.y / 2;
+            //var leftCornerIndex = leftCornerCoords / tileSize.x;
+            //var topCornerIndex = topCornerCoords / tileSize.y;
+            return null;
+            //return new Point((int)leftCornerCoords, (int)topCornerCoords);
         }
 
 

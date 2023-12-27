@@ -9,8 +9,8 @@
         },
         "rotation": 0,
         "size": {
-          "x": 1,
-          "y": 1
+          "x": 4,
+          "y": 4
         },
         "enabled": true
       },
@@ -18,8 +18,8 @@
         "Type": "Tilemap",
         "orderInLayer": 0,
         "mapSize": { "x":60, "y":36 },
-        "tileSize": { "x":64, "y":64 },
-        "tileSources": {"1":"Assets/GrassTile.png","2":"Assets/Basic Enemy White 2.png", "3":"Assets/Basic Enemy White 3.png", "4":"Assets/Basic Wall.png"},
+        "tileSize": { "x":16, "y":16 },
+        "tileSources": {"1":"Assets/GrassTileLowQuality.png","2":"Assets/Basic Enemy White 2.png", "3":"Assets/Basic Enemy White 3.png", "4":"Assets/GrassTileLowQuality.png"},
         "tilemapString": 
         [
             "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", 

@@ -54,7 +54,7 @@ namespace STCEngine.Game
             Debug.LogInfo("OnLoad started");
             if (MainGameInstance == null) //first time loading
             {
-                backgroundColor = Color.Black;
+                backgroundColor = Color.FromArgb(139, 195, 74);
                 MainGameInstance = this;
                 await LoadLevel("Assets/Level");
             }
@@ -330,6 +330,7 @@ namespace STCEngine.Game
             Debug.LogInfo("\n THE PLAYER HAS DIED, RELOADING STARTING SCENE IN 1 SECOND");
             Debug.LogInfo("\n----------------------------------------------------------------------\n");
             await ClearScene();
+            await LoadLevel("Assets/Level");
             OnLoad(false);
         }
         public void NPCDeath(CombatStats enemyStats)
