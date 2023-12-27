@@ -54,7 +54,7 @@ namespace STCEngine.Game
             Debug.LogInfo("OnLoad started");
             if (MainGameInstance == null) //first time loading
             {
-                backgroundColor = Color.FromArgb(139, 195, 74);
+                backgroundColor = Color.Black;//Color.FromArgb(139, 195, 74);
                 MainGameInstance = this;
                 await LoadLevel("Assets/Level");
             }

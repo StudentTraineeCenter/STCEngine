@@ -223,20 +223,6 @@ namespace STCEngine.Components
             this.orderInLayer = orderInLayer;
         }
 
-        public Point? GetActiveTileMapImage(Vector2 worldSpaceCameraLocation, Vector2 screenSize)
-        {
-            var leftTopCornerWorldCoords = worldSpaceCameraLocation - screenSize / 2;
-            var leftTopCornerImageCoords = leftTopCornerWorldCoords - gameObject.transform.position;
-
-            Debug.Log(leftTopCornerImageCoords);
-
-            //var leftCornerCoords = MathF.Abs(gameObject.transform.position.x - rectangle.Location.X) + tileSize.x * mapSize.x / 2;
-            //var topCornerCoords = MathF.Abs(gameObject.transform.position.y - rectangle.Location.Y) + tileSize.y * mapSize.y / 2;
-            //var leftCornerIndex = leftCornerCoords / tileSize.x;
-            //var topCornerIndex = topCornerCoords / tileSize.y;
-            return null;
-            //return new Point((int)leftCornerCoords, (int)topCornerCoords);
-        }
 
 
         /// <summary>
@@ -254,7 +240,7 @@ namespace STCEngine.Components
                 {
                     for (int x = 0; x < mapSize.x; x++)
                     {
-                        _tiles[x, y] = tileSources.TryGetValue(tilemapString[x + y * (int)mapSize.x], out string? value) ? Image.FromFile(value) : throw new Exception("Wrong tilemap configuration");
+                        _tiles[x, y] = tileSources.TryGetValue(tilemapString[x + y * (int)mapSize.x], out string? value) ? (value == "" ? EngineClass.emptyImage : Image.FromFile(value)) : throw new Exception("Wrong tilemap configuration");
                     }
                 }
                 tiles = _tiles;

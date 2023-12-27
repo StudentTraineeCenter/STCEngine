@@ -49,13 +49,13 @@ namespace STCEngine.Engine
 
         public static List<Collider> registeredEnemyHitboxes { get; private set; } = new List<Collider>();
         public static List<Collider> registeredEnemyHurtboxes { get; private set; } = new List<Collider>();
+        
         //make sure to clear list in ClearScene when adding a new static list 
 
         public Color backgroundColor;
         public static readonly Bitmap emptyImage = new Bitmap(1, 1);
 
         public Vector2 cameraPosition = Vector2.zero;
-
         /// <summary>
         /// Starts the game loop and the game window
         /// </summary>
@@ -493,11 +493,14 @@ namespace STCEngine.Engine
         /// </summary>
         private void Renderer(object? sender, PaintEventArgs args)
         {
+            //vecna slava za optimalizaci tomuto StackOverflow threadu, myslel jsem ze zemru nez jsem to nasel... :D
+            // https://stackoverflow.com/questions/11020710/is-graphics-drawimage-too-slow-for-bigger-images
             if (changingScene) { return; }
             try
             {
+                //Graphics graphics = window.graphicsBuffer.Graphics;
                 Graphics graphics = args.Graphics;
-                
+
                 graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
                 graphics.Clear(backgroundColor);
                 //graphics.TranslateTransform(cameraPosition.x - screenSize.x / 2, cameraPosition.y - screenSize.y / 2); //(asi) dela to stejne co cameraRenderingOffset, jen jsem do toho dal spatne hodnoty :p
@@ -513,7 +516,7 @@ namespace STCEngine.Engine
                         if (!((Math.Abs(relativeDistance.x) < (sprite.image.Width * gameObject.transform.size.x + screenSize.x) / 2) && (Math.Abs(relativeDistance.y) < (sprite.image.Height * gameObject.transform.size.y + screenSize.y) / 2))) { continue; } //skips images out of the players screen
                         //foreach(Sprite sprite in gameObject.GetComponents<Sprite>()) //pro vice spritu na jednom objektu by to teoreticky fungovat mohlo, ale pak by nesel odstranit specificky sprite
                         //{
-                        graphics.DrawImage(sprite.image, 
+                        graphics.DrawImage(sprite.image,
                             gameObject.transform.position.x - sprite.image.Width * gameObject.transform.size.x / 2 + cameraRenderingOffset.x,
                             gameObject.transform.position.y - sprite.image.Height * gameObject.transform.size.y / 2 + cameraRenderingOffset.y,
                             sprite.image.Width * gameObject.transform.size.x,
@@ -541,37 +544,30 @@ namespace STCEngine.Engine
                         //graphics.DrawRectangle(new Pen(Color.Blue, 10), worldSpaceScreenRectangle);
                         //tilemap.GetActiveTileMapImage(cameraPosition, screenSize);
                         //graphics.DrawImage(bitmap, 0, 0);
+                        //graphics.DrawImage(tilemap.GetActiveTileMapImage(cameraPosition, screenSize), -screenSize/2);
 
+                        var ulozenaHodnota = graphics.CompositingMode;
+                        graphics.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
                         graphics.DrawImage(tilemap.tileMapImage,
                             gameObject.transform.position.x - tilemap.tileMapImage.Width * gameObject.transform.size.x / 2 + cameraRenderingOffset.x,
                             gameObject.transform.position.y - tilemap.tileMapImage.Height * gameObject.transform.size.y / 2 + cameraRenderingOffset.y,
                             tilemap.tileMapImage.Width * gameObject.transform.size.x,
                             tilemap.tileMapImage.Height * gameObject.transform.size.y);
-
-                        //graphics.DrawImageUnscaled(tilemap.tileMapImage,
-                        //    (int)(gameObject.transform.position.x - tilemap.tileMapImage.Width * gameObject.transform.size.x / 2 + cameraRenderingOffset.x),
-                        //    (int)(gameObject.transform.position.y - tilemap.tileMapImage.Height * gameObject.transform.size.y / 2 + cameraRenderingOffset.y),
-                        //    (int)(tilemap.tileMapImage.Width * gameObject.transform.size.x),
-                        //    (int)(tilemap.tileMapImage.Height * gameObject.transform.size.y));
+                        graphics.CompositingMode = ulozenaHodnota;
 
 
-
-                        //for (int y = 0; y < tilemap.mapSize.y; y++)
-                        //{
-                        //    for (int x = 0; x < tilemap.mapSize.x; x++)
-                        //    {
-                        //        graphics.DrawImage(tilemap.tiles[x, y], gameObject.transform.position.x - tilemap.tileSize.x/2 + x*, gameObject.transform.position.y - tilemap.tileSize.y / 2, tilemap.tileMapImage.Width, tilemap.tileMapImage.Height);//(tilemap.tiles[x, y], gameObject.transform.position.x + x * tilemap.tileSize.x, gameObject.transform.position.y + y * tilemap.tileSize.y, tilemap.tileSize.x, tilemap.tileSize.x);
-                        //    }
-                        //}
-                        //Vector2 generalOffset = gameObject.transform.position - new Vector2(tilemap.tileSize.x / 2 * gameObject.transform.size.x, tilemap.tileSize.y / 2 * gameObject.transform.size.y) + cameraRenderingOffset - new Vector2(tilemap.tileSize.x * tilemap.mapSize.x, tilemap.tileSize.y * tilemap.mapSize.y)/2;
+                        //Funguje, ale performance je snad jeste horsi...
+                        //                          position                                                    half of 1 tile                                                                                                                                                  half of the whole tilemap
+                        //Vector2 generalOffset = gameObject.transform.position - new Vector2(tilemap.tileSize.x * gameObject.transform.size.x / 2, tilemap.tileSize.y * gameObject.transform.size.y / 2) /*+ cameraRenderingOffset */- new Vector2(tilemap.tileSize.x * gameObject.transform.size.x * tilemap.mapSize.x / 2, tilemap.tileSize.y * gameObject.transform.size.y * tilemap.mapSize.y / 2);
                         //for (int i = 0; i < tilemap.mapSize.x; i++)
                         //{
                         //    for (int j = 0; j < tilemap.mapSize.y; j++)
                         //    {
-                        //        Vector2 tilePosition = new Vector2(generalOffset.x + i * tilemap.tileSize.x, generalOffset.y + j * tilemap.tileSize.y);
+                        //        Vector2 tilePosition = new Vector2(generalOffset.x + i * tilemap.tileSize.x * gameObject.transform.size.x, generalOffset.y + j * tilemap.tileSize.y * gameObject.transform.size.y);
                         //        var relativeDistance = tilePosition - cameraPosition;
-                        //        if (!((Math.Abs(relativeDistance.x) < (tilemap.tileSize.x + screenSize.x) / 2) && (Math.Abs(relativeDistance.y) < (tilemap.tileSize.y + screenSize.y) / 2))) { continue; } //skips images out of the players screen
-                        //        graphics.DrawImage(tilemap.tiles[i, j], generalOffset.x + i * tilemap.tileSize.x, generalOffset.y + j * tilemap.tileSize.y);
+                        //        if (!((Math.Abs(relativeDistance.x) < (tilemap.tileSize.x * gameObject.transform.size.x + screenSize.x) / 2) && (Math.Abs(relativeDistance.y) < (tilemap.tileSize.y * gameObject.transform.size.y + screenSize.y) / 2))) { continue; } //skips images out of the players screen
+                        //        if (i == 0 && j == 0) { Debug.Log($"{tilePosition} == {generalOffset}, {tilePosition == generalOffset}");/*Debug.Log($"{relativeDistance}, {(tilemap.tileSize.x * gameObject.transform.size.x + screenSize.x) / 2} , {(Math.Abs(relativeDistance.x) < (tilemap.tileSize.x * gameObject.transform.size.x + screenSize.x) / 2)}");*/ }
+                        //        graphics.DrawImage(tilemap.tiles[i, j], (int)tilePosition.x + cameraRenderingOffset.x, (int)tilePosition.y + cameraRenderingOffset.y, (int)tilemap.tileSize.x * (int)gameObject.transform.size.x, (int)tilemap.tileSize.y * (int)gameObject.transform.size.y);
                         //    }
                         //}
                     }
@@ -618,8 +614,10 @@ namespace STCEngine.Engine
                         graphics.DrawString(gameObject.Value.name, new Font("Arial", 11, FontStyle.Regular), new SolidBrush(Color.Black), gameObject.Value.transform.position.x - gameObject.Value.name.Length * 4f + cameraRenderingOffset.x, gameObject.Value.transform.position.y - 5.5f + cameraRenderingOffset.y);
                     }
                 }
+                //Debug.Log(pocitadlo);
                 //graphics.TranslateTransform(cameraPosition.x + screenSize.x/2, cameraPosition.y + screenSize.y/2);
                 //Debug.Log(cameraPosition);
+                //window.Render(args);
             }
             catch (Exception e) { Debug.LogError("Error running renderer, error message: " + e.Message); }
         }
@@ -952,10 +950,150 @@ namespace STCEngine.Engine
     /// </summary>
     public class Canvas : Form
     {
+        //public bool changingScene; public Color backgroundColor; public Vector2 cameraPosition; public Vector2 screenSize;
+        public BufferedGraphics graphicsBuffer;
         public Canvas()
         {
             this.DoubleBuffered = true;
+            using (Graphics graphics = CreateGraphics())
+            {
+                graphicsBuffer = BufferedGraphicsManager.Current.Allocate(graphics, new Rectangle(0, 0, Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height));
+            }
         }
+        public void Render(PaintEventArgs e)
+        {
+            graphicsBuffer.Render(e.Graphics);
+        }
+        //problem pro budouciho adama :)
+        ///// <summary>
+        ///// Takes care of rendering things inside the game window
+        ///// </summary>
+        //protected override void OnPaint(PaintEventArgs args)
+        //{
+        //    base.OnPaint(args);
+        //    if (changingScene) { return; }
+        //    try
+        //    {
+        //        Graphics graphics = args.Graphics;
+
+        //        graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+        //        graphics.Clear(backgroundColor);
+        //        //graphics.TranslateTransform(cameraPosition.x - screenSize.x / 2, cameraPosition.y - screenSize.y / 2); //(asi) dela to stejne co cameraRenderingOffset, jen jsem do toho dal spatne hodnoty :p
+        //        Vector2 cameraRenderingOffset = -cameraPosition + screenSize / 2 - Vector2.up * 50;
+
+        //        foreach (GameObject gameObject in spritesToRender)
+        //        {
+        //            if (gameObject == null) { continue; } //kdo vi proc se to stava, ale tohle zabrani crashi ;)
+        //            Sprite? sprite = gameObject.GetComponent<Sprite>();
+        //            if (sprite != null && sprite.enabled && gameObject.isActive)
+        //            {
+        //                var relativeDistance = gameObject.transform.position - cameraPosition;
+        //                if (!((Math.Abs(relativeDistance.x) < (sprite.image.Width * gameObject.transform.size.x + screenSize.x) / 2) && (Math.Abs(relativeDistance.y) < (sprite.image.Height * gameObject.transform.size.y + screenSize.y) / 2))) { continue; } //skips images out of the players screen
+        //                //foreach(Sprite sprite in gameObject.GetComponents<Sprite>()) //pro vice spritu na jednom objektu by to teoreticky fungovat mohlo, ale pak by nesel odstranit specificky sprite
+        //                //{
+        //                graphics.DrawImage(sprite.image,
+        //                    gameObject.transform.position.x - sprite.image.Width * gameObject.transform.size.x / 2 + cameraRenderingOffset.x,
+        //                    gameObject.transform.position.y - sprite.image.Height * gameObject.transform.size.y / 2 + cameraRenderingOffset.y,
+        //                    sprite.image.Width * gameObject.transform.size.x,
+        //                    sprite.image.Height * gameObject.transform.size.y);
+        //                //}
+        //            }
+        //            Tilemap? tilemap = gameObject.GetComponent<Tilemap>();
+        //            if (tilemap != null && tilemap.enabled && gameObject.isActive)
+        //            {
+        //                //Bitmap newImage = tilemap.tileMapImage as Bitmap;
+        //                //Bitmap bitmap = new Bitmap((int)screenSize.x, (int)screenSize.y);
+        //                //using (Graphics g = Graphics.FromImage(bitmap))
+        //                //{
+        //                //    Debug.Log($"{(int)(gameObject.transform.position.x)} - {(screenSize.x / 2)}, {(int)(gameObject.transform.position.y)} - {(screenSize.y / 2)}, {(int)screenSize.x}, {(int)screenSize.y}");
+        //                //    Rectangle section = new Rectangle((int)(gameObject.transform.position.x - screenSize.x / 2), (int)(gameObject.transform.position.y - screenSize.y / 2), (int)screenSize.x, (int)screenSize.y);
+        //                //    //g.DrawImage(tilemap.tileMapImage, 0, 0, section, GraphicsUnit.Pixel);
+        //                //    //graphics.DrawImage(tilemap.tileMapImage, -screenSize.x / 2, -screenSize.y / 2, section, GraphicsUnit.Pixel);
+        //                //}
+
+        //                //Rectangle screenRectangle = new Rectangle(cameraPosition - screenSize / 2 + cameraRenderingOffset, screenSize);
+        //                //Debug.Log(cameraRenderingOffset +  cameraPosition);
+        //                //Rectangle worldSpaceScreenRectangle = new Rectangle(cameraPosition - screenSize/2, screenSize);
+        //                //x...world pozice stredu obrazovky, y...velikost obrazovky 
+        //                //graphics.DrawRectangle(new Pen(Color.Orange, 10), new Rectangle(tilemap.GetActiveTileMapImage(cameraPosition, screenSize) + cameraRenderingOffset, Vector2.one * 10));
+        //                //graphics.DrawRectangle(new Pen(Color.Blue, 10), worldSpaceScreenRectangle);
+        //                //tilemap.GetActiveTileMapImage(cameraPosition, screenSize);
+        //                //graphics.DrawImage(bitmap, 0, 0);
+        //                //graphics.DrawImage(tilemap.GetActiveTileMapImage(cameraPosition, screenSize), -screenSize/2);
+
+        //                var ulozenaHodnota = graphics.CompositingMode;
+        //                graphics.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
+        //                graphics.DrawImage(tilemap.tileMapImage,
+        //                    gameObject.transform.position.x - tilemap.tileMapImage.Width * gameObject.transform.size.x / 2 + cameraRenderingOffset.x,
+        //                    gameObject.transform.position.y - tilemap.tileMapImage.Height * gameObject.transform.size.y / 2 + cameraRenderingOffset.y,
+        //                    tilemap.tileMapImage.Width * gameObject.transform.size.x,
+        //                    tilemap.tileMapImage.Height * gameObject.transform.size.y);
+        //                graphics.CompositingMode = ulozenaHodnota;
+
+
+        //                //Funguje, ale performance je snad jeste horsi...
+        //                //                          position                                                    half of 1 tile                                                                                                                                                  half of the whole tilemap
+        //                //Vector2 generalOffset = gameObject.transform.position - new Vector2(tilemap.tileSize.x * gameObject.transform.size.x / 2, tilemap.tileSize.y * gameObject.transform.size.y / 2) /*+ cameraRenderingOffset */- new Vector2(tilemap.tileSize.x * gameObject.transform.size.x * tilemap.mapSize.x / 2, tilemap.tileSize.y * gameObject.transform.size.y * tilemap.mapSize.y / 2);
+        //                //for (int i = 0; i < tilemap.mapSize.x; i++)
+        //                //{
+        //                //    for (int j = 0; j < tilemap.mapSize.y; j++)
+        //                //    {
+        //                //        Vector2 tilePosition = new Vector2(generalOffset.x + i * tilemap.tileSize.x * gameObject.transform.size.x, generalOffset.y + j * tilemap.tileSize.y * gameObject.transform.size.y);
+        //                //        var relativeDistance = tilePosition - cameraPosition;
+        //                //        if (!((Math.Abs(relativeDistance.x) < (tilemap.tileSize.x * gameObject.transform.size.x + screenSize.x) / 2) && (Math.Abs(relativeDistance.y) < (tilemap.tileSize.y * gameObject.transform.size.y + screenSize.y) / 2))) { continue; } //skips images out of the players screen
+        //                //        if (i == 0 && j == 0) { Debug.Log($"{tilePosition} == {generalOffset}, {tilePosition == generalOffset}");/*Debug.Log($"{relativeDistance}, {(tilemap.tileSize.x * gameObject.transform.size.x + screenSize.x) / 2} , {(Math.Abs(relativeDistance.x) < (tilemap.tileSize.x * gameObject.transform.size.x + screenSize.x) / 2)}");*/ }
+        //                //        graphics.DrawImage(tilemap.tiles[i, j], (int)tilePosition.x + cameraRenderingOffset.x, (int)tilePosition.y + cameraRenderingOffset.y, (int)tilemap.tileSize.x * (int)gameObject.transform.size.x, (int)tilemap.tileSize.y * (int)gameObject.transform.size.y);
+        //                //    }
+        //                //}
+        //            }
+        //        }
+        //        foreach (GameObject gameObject in UISpritesToRender) //DOESNT USE CAMERA RENDERING OFFSET! (overlay)
+        //        {
+        //            if (gameObject == null) { continue; }
+        //            UISprite? UISprite = gameObject.GetComponent<UISprite>();
+        //            if (UISprite != null && UISprite.enabled && gameObject.isActive)
+        //            {
+        //                //foreach(Sprite sprite in gameObject.GetComponents<Sprite>()) //pro vice spritu na jednom objektu by to teoreticky fungovat mohlo, ale pak by nesel odstranit specificky sprite
+        //                //{
+        //                //Debug.Log($"graphics.DrawImage({gameObject.transform.position.x - UISprite.image.Width * gameObject.transform.size.x / 2 + UISprite.offset.x + UISprite.screenAnchorOffset.x}, {gameObject.transform.position.y - UISprite.image.Height * gameObject.transform.size.y / 2 + UISprite.offset.y + UISprite.screenAnchorOffset.y}, {UISprite.image.Width * gameObject.transform.size.x}, {UISprite.image.Height * gameObject.transform.size.y}");
+        //                graphics.DrawImage(UISprite.image, gameObject.transform.position.x - UISprite.image.Width * gameObject.transform.size.x / 2 + UISprite.offset.x + UISprite.screenAnchorOffset.x, gameObject.transform.position.y - UISprite.image.Height * gameObject.transform.size.y / 2 + UISprite.offset.y + UISprite.screenAnchorOffset.y, UISprite.image.Width * gameObject.transform.size.x, UISprite.image.Height * gameObject.transform.size.y);
+        //                //}
+        //            }
+        //        }
+        //        //DEBUG ---------
+        //        if (testDebug)
+        //        {
+        //            foreach (Collider col in debugRectangles)
+        //            {
+        //                if (col == null) { continue; }
+        //                if (!col.enabled) { continue; }
+        //                if (col.GetType() == typeof(BoxCollider))
+        //                {
+        //                    BoxCollider box = col as BoxCollider;
+        //                    if (box == null) { Debug.LogError("ERROR LOADING COLLIDER DEBUG RECTANGLE"); continue; }
+        //                    graphics.DrawRectangle(new Pen(box.isTrigger ? Color.Cyan : Color.Orange, 2), box.gameObject.transform.position.x + box.offset.x - box.size.x / 2 + cameraRenderingOffset.x, box.gameObject.transform.position.y + box.offset.y - box.size.y / 2 + cameraRenderingOffset.y, box.size.x, box.size.y);
+        //                }
+        //                else if (col.GetType() == typeof(CircleCollider))
+        //                {
+        //                    CircleCollider circle = col as CircleCollider;
+        //                    if (circle == null) { Debug.LogError("ERROR LOADING COLLIDER DEBUG RECTANGLE"); continue; }
+        //                    //Debug.Log($"Drawing circle at ({circle.gameObject.transform.position.x + circle.offset.x - circle.radius}, {circle.gameObject.transform.position.y + circle.offset.y - circle.radius}) with size {circle.radius * 2}");
+        //                    graphics.DrawEllipse(new Pen(circle.isTrigger ? Color.Cyan : Color.Orange, 2), circle.gameObject.transform.position.x + circle.offset.x - circle.radius + cameraRenderingOffset.x, circle.gameObject.transform.position.y + circle.offset.y - circle.radius + cameraRenderingOffset.y, circle.radius * 2, circle.radius * 2);
+        //                }
+
+
+        //            }
+        //            foreach (KeyValuePair<string, GameObject> gameObject in registeredGameObjects)
+        //            {
+        //                //graphics.DrawRectangle(new Pen(Color.Black), gameObject.Value.transform.position.x, gameObject.Value.transform.position.y, 2, 2);
+        //                graphics.DrawString(gameObject.Value.name, new Font("Arial", 11, FontStyle.Regular), new SolidBrush(Color.Black), gameObject.Value.transform.position.x - gameObject.Value.name.Length * 4f + cameraRenderingOffset.x, gameObject.Value.transform.position.y - 5.5f + cameraRenderingOffset.y);
+        //            }
+        //        }
+        //        //graphics.TranslateTransform(cameraPosition.x + screenSize.x/2, cameraPosition.y + screenSize.y/2);
+        //        //Debug.Log(cameraPosition);
+        //    }
+        //    catch (Exception e) { Debug.LogError("Error running renderer, error message: " + e.Message); }
+        //}
     }
     /// <summary>
     /// A forms DataGridView used for inventory slots with transparent background and an image to show the icon of the item
@@ -1105,6 +1243,27 @@ namespace STCEngine
         public static Vector2 operator ^(Vector2 a, float b)
         {
             return new Vector2((float)Math.Pow(a.x, b), (float)Math.Pow(a.y, b));
+        }
+        public static bool operator ==(Vector2 a, Vector2 b)
+        {
+            // Check for null before accessing properties
+            if (ReferenceEquals(a, null) && ReferenceEquals(b, null))
+                return true;
+            if (ReferenceEquals(a, null) || ReferenceEquals(b, null))
+                return false;
+
+            return a.x == b.x && a.y == b.y;
+        }
+
+        public static bool operator !=(Vector2 a, Vector2 b)
+        {
+            // Check for null before accessing properties
+            if (ReferenceEquals(a, null) && ReferenceEquals(b, null))
+                return false;
+            if (ReferenceEquals(a, null) || ReferenceEquals(b, null))
+                return true;
+
+            return a.x != b.x || a.y != b.y;
         }
         public override string ToString()
         {
