@@ -581,7 +581,11 @@ namespace STCEngine.Engine
                         //foreach(Sprite sprite in gameObject.GetComponents<Sprite>()) //pro vice spritu na jednom objektu by to teoreticky fungovat mohlo, ale pak by nesel odstranit specificky sprite
                         //{
                         //Debug.Log($"graphics.DrawImage({gameObject.transform.position.x - UISprite.image.Width * gameObject.transform.size.x / 2 + UISprite.offset.x + UISprite.screenAnchorOffset.x}, {gameObject.transform.position.y - UISprite.image.Height * gameObject.transform.size.y / 2 + UISprite.offset.y + UISprite.screenAnchorOffset.y}, {UISprite.image.Width * gameObject.transform.size.x}, {UISprite.image.Height * gameObject.transform.size.y}");
-                        graphics.DrawImage(UISprite.image, gameObject.transform.position.x - UISprite.image.Width * gameObject.transform.size.x / 2 + UISprite.offset.x + UISprite.screenAnchorOffset.x, gameObject.transform.position.y - UISprite.image.Height * gameObject.transform.size.y / 2 + UISprite.offset.y + UISprite.screenAnchorOffset.y, UISprite.image.Width * gameObject.transform.size.x, UISprite.image.Height * gameObject.transform.size.y);
+                        //if (gameObject.name == "Health UI BG") { Debug.Log($"{gameObject.transform.position.x - UISprite.image.Width * gameObject.transform.size.x / 2} + {UISprite.offset.x} + {UISprite.screenAnchorOffset.x} - {UISprite.pivotPointOffset.x},  {gameObject.transform.position.y - UISprite.image.Height * gameObject.transform.size.y / 2} + {UISprite.offset.y} + {UISprite.screenAnchorOffset.y} - {UISprite.pivotPointOffset.y}"); }
+                        graphics.DrawImage(UISprite.image, gameObject.transform.position.x - UISprite.image.Width * gameObject.transform.size.x / 2 + UISprite.offset.x + UISprite.screenAnchorOffset.x - UISprite.pivotPointOffset.x,
+                            gameObject.transform.position.y - UISprite.image.Height * gameObject.transform.size.y / 2 + UISprite.offset.y + UISprite.screenAnchorOffset.y - UISprite.pivotPointOffset.y, 
+                            UISprite.image.Width * gameObject.transform.size.x, 
+                            UISprite.image.Height * gameObject.transform.size.y);
                         //}
                     }
                 }

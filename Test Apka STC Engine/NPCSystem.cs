@@ -114,12 +114,20 @@ namespace STCEngine.Components
         /// </summary>
         public void EndDialogue()
         {
+            try
+            {
+                HideResponses();
+                EngineClass.NPCDialoguePanel.Visible = false;
+            }
+            catch
+            {
+                EngineClass.NPCDialoguePanel.Invoke(new Action(() => EndDialogue())); //may be called from a different thread
+                return;
+            }
             exitFlag = true;
             cancellationTokenSource?.Cancel();
             Game.Game.MainGameInstance.activeNPC = null;
             currentlyActiveResponses = Array.Empty<Response>();
-            HideResponses();
-            EngineClass.NPCDialoguePanel.Visible = false;
             currentlyTalking = false;
             EngineClass.NPCResponseCallback -= ResponseChosen;
         }
@@ -173,6 +181,7 @@ namespace STCEngine.Components
 
         public override void DestroySelf()
         {
+            EndDialogue();
             if (gameObject.components.Contains(this)) { gameObject.RemoveComponent(this); }
             if (gameObject.components.Contains(interactCollider)) { gameObject.RemoveComponent(interactCollider); }
         }
@@ -323,6 +332,7 @@ namespace STCEngine.Components
             Debug.LogInfo($"{this.gameObject.name} got hit for {damage}HP and has {health}HP left");
             attackable = false;
             if (health > 0) { 
+                if (isPlayerStats) { Game.Game.MainGameInstance.healthBarUITransform.size.x = health / 6; Debug.Log("healthBarUITransform's size is now " + health); }
                 //stagger
                 if(staggerTime > 0)
                 {

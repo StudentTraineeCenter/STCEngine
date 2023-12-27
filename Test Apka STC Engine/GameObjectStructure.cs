@@ -121,6 +121,7 @@ namespace STCEngine.Components
         [JsonIgnore] private Image? _image;
         [JsonIgnore] public Image image { get { if (_image == null) { _image = Image.FromFile(fileSourceDirectory); } return _image; } set => _image = value; }
         public ScreenAnchor screenAnchor { get; set; } = ScreenAnchor.TopLeft;
+        public PivotPointAnchor pivotPointAnchor { get; set; } = PivotPointAnchor.TopLeft;
         public Vector2 screenAnchorOffset
         {
             get
@@ -151,12 +152,42 @@ namespace STCEngine.Components
                 }
             }
         }
+        public Vector2 pivotPointOffset
+        {
+            get
+            {
+                switch ((int)pivotPointAnchor)
+                {
+                    case 0:
+                        return new Vector2(image.Width * gameObject.transform.size.x, image.Height * gameObject.transform.size.y) / (-2);
+                    case 1:
+                        return new Vector2(0, image.Height * gameObject.transform.size.y) /(-2);
+                    case 2:
+                        return new Vector2(image.Width * gameObject.transform.size.x, -image.Height * gameObject.transform.size.y) / 2;
+                    case 3:
+                        return new Vector2(-image.Width * gameObject.transform.size.x, 0) / 2;
+                    case 4:
+                        return new Vector2(0, 0);
+                    case 5:
+                        return new Vector2(image.Width * gameObject.transform.size.x, 0) / 2;
+                    case 6:
+                        return new Vector2(-image.Width * gameObject.transform.size.x, image.Height * gameObject.transform.size.y) / 2;
+                    case 7:
+                        return new Vector2(0, image.Height * gameObject.transform.size.y) / 2;
+                    case 8:
+                        return new Vector2(image.Width * gameObject.transform.size.x, image.Height * gameObject.transform.size.y) / 2;
+                    default:
+                        Debug.LogError("Invalid screen anchor, returning Vector2.zero");
+                        return Vector2.zero;
+                }
+            }
+        }
         public Vector2 offset { get; set; } = Vector2.zero;
 
         public int orderInUILayer { get => _orderInUILayer; set { EngineClass.ChangeUISpriteRenderOrder(gameObject, value); _orderInUILayer = value; } }//higher numbers render on top of lower numbers
         private int _orderInUILayer { get; set; }
         public string fileSourceDirectory { get; set; }
-        public UISprite(string fileSourceDirectory, ScreenAnchor screenAnchor, Vector2 offset, int orderInLayer = int.MaxValue)
+        public UISprite(string fileSourceDirectory, ScreenAnchor screenAnchor, PivotPointAnchor pivotPointAnchor, Vector2 offset, int orderInLayer = int.MaxValue)
         {
             this.offset = offset;
             this.screenAnchor = screenAnchor;
@@ -164,7 +195,7 @@ namespace STCEngine.Components
             this.image = Image.FromFile(fileSourceDirectory);
             this._orderInUILayer = orderInLayer;
         }
-        public UISprite(string fileSourceDirectory, ScreenAnchor screenAnchor, int orderInLayer = int.MaxValue)
+        public UISprite(string fileSourceDirectory, ScreenAnchor screenAnchor, PivotPointAnchor pivotPointAnchor, int orderInLayer = int.MaxValue)
         {
             this.screenAnchor = screenAnchor;
             this.fileSourceDirectory = fileSourceDirectory;
@@ -188,7 +219,14 @@ namespace STCEngine.Components
             if (gameObject.components.Contains(this)) { gameObject.RemoveComponent(this); return; }
             EngineClass.RemoveUISpriteToRender(gameObject);
         }
+        /// <summary>
+        /// Determines to what part of the screen this UI element sticks to
+        /// </summary>
         public enum ScreenAnchor { TopLeft, TopCentre, TopRight, MiddleLeft, MiddleCentre, MiddleRight, LeftBottom, MiddleBottom, RightBottom }
+        /// <summary>
+        /// Determines from where inside this UI element the position is taken from
+        /// </summary>
+        public enum PivotPointAnchor { TopLeft, TopCentre, TopRight, MiddleLeft, MiddleCentre, MiddleRight, LeftBottom, MiddleBottom, RightBottom }
     }
     /// <summary>
     /// A component responsible for rendering a grid of images
@@ -213,7 +251,7 @@ namespace STCEngine.Components
         /// <param name="tilemapString"></param>
         /// <param name="tileSize"></param>
         /// <param name="mapSize"></param>
-        /// <param name="orderInLayer"></param>
+        /// <param name="orderInLayer">Higher numbers render over lower numbers</param>
         public Tilemap(Dictionary<string, string> tileSources, string[] tilemapString, Vector2 tileSize, Vector2 mapSize, int orderInLayer)
         {
             this.tileSources = tileSources;
@@ -943,7 +981,10 @@ namespace STCEngine.Components
         /// <param name="destinationDirectory">Where the json file will be saved</param>
         public void SerializeGameObject(string destinationDirectory)
         {
-            foreach(CircleCollider c in GetComponents<CircleCollider>()) { if (c.tag == "Interactible") { RemoveComponent(c); } }
+            if(GetComponents<CircleCollider>()?.Length == 0)
+            {
+                foreach(CircleCollider c in GetComponents<CircleCollider>()) { if (c.tag == "Interactible") { RemoveComponent(c); } }
+            }
             string serializedGameObjectString = JsonSerializer.Serialize<GameObject>(this, new JsonSerializerOptions { WriteIndented = true, Converters = { new ComponentConverter() } });
             string fileName = this.name + ".json";
             File.WriteAllText(destinationDirectory + "/" + fileName, serializedGameObjectString);

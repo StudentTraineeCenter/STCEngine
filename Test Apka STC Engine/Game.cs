@@ -31,10 +31,11 @@ namespace STCEngine.Game
         public BoxCollider? playerCol;
         public BoxCollider? playerTopCol, playerBotCol, playerLeftCol, playerRightCol; //hitboxes used for wall collision detection
         public BoxCollider? playerAttackHurtbox;
+        public Transform healthBarUITransform;
 
         public List<GameObject> enemiesToMove = new List<GameObject>();
         public List<GameObject> idleEnemies = new List<GameObject>();
-        public GameObject? pauseScreen;
+        //public GameObject? pauseScreen;
         public GameObject? pressEGameObject;
 
         private float horizontalInput, verticalInput;
@@ -109,9 +110,16 @@ namespace STCEngine.Game
             idleEnemies.Clear(); enemiesToMove.Clear();
             idleEnemies.AddRange(GameObject.FindAll("Enemy"));
 
-            pauseScreen = GameObject.Find("Pause Screen");
+            //pauseScreen = GameObject.Find("Pause Screen");
             pressEGameObject = GameObject.Find("Press E GameObject");
+            healthBarUITransform = GameObject.Find("Health UI").transform;
+            interactingGameObject = null; highlightedGameObject = null; otherInventory = null; activeNPC = null;
 
+            //var q = new GameObject("Health UI BG", new List<Component>() { new Transform(Vector2.zero, 0, Vector2.one + Vector2.right * playerStats.health / 6 - Vector2.right*1.7f), new UISprite("Assets/Engine Resources/HealthBarUIBG.png", UISprite.ScreenAnchor.TopLeft, UISprite.PivotPointAnchor.TopLeft, Vector2.one * 25, 0) });
+            //var healthBarUI = new GameObject("Health UI", new List<Component>() { new Transform(Vector2.zero, 0, Vector2.one + Vector2.right * playerStats.health / 6 - Vector2.up * 0.5f), new UISprite("Assets/Engine Resources/HealthBarUIFill.png", UISprite.ScreenAnchor.TopLeft, UISprite.PivotPointAnchor.TopLeft, Vector2.one * 25 + Vector2.right * 5 + Vector2.up * 10) });
+            //healthBarUI.AddComponent();
+            //healthBarUITransform = healthBarUI.transform;
+            //healthBarUITransform.size.x = playerStats.health;
             //playerStats.SerializeToJSON("Assets");
 
             #region Old scene setup (inactive)
@@ -383,7 +391,7 @@ namespace STCEngine.Game
                 otherInventoryUI.CellClick -= new DataGridViewCellEventHandler(otherInventory.ItemClicked);
             }
             catch { }
-            otherInventory.gameObject.GetComponent<Sprite>().image = Image.FromFile("Assets/ChestClosed.png");
+            if (otherInventory != null) { otherInventory.gameObject.GetComponent<Sprite>().image = Image.FromFile("Assets/ChestClosed.png"); }
             otherInventory = null;
             otherInventoryPanel.Visible = false;
         }
