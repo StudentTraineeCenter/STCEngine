@@ -54,7 +54,7 @@ namespace STCEngine.Game
             Debug.LogInfo("OnLoad started");
             if (MainGameInstance == null) //first time loading
             {
-                backgroundColor = Color.Black;//Color.FromArgb(139, 195, 74);
+                backgroundColor = Color.FromArgb(120, 120, 120);//Color.Black;//Color.FromArgb(139, 195, 74);
                 MainGameInstance = this;
                 await LoadLevel("Assets/Level");
             }
@@ -102,9 +102,9 @@ namespace STCEngine.Game
 
             //configure wall detection for the player (so that you don't have to do it manually in json...)
             playerTopCol.size = new Vector2(playerCol.size.x, playerStats.movementSpeed); playerTopCol.offset = Vector2.up * (playerCol.size.y / 2 + playerStats.movementSpeed / 2 + 1);
-            playerBotCol.offset = -playerTopCol.offset;
+            playerBotCol.offset = -playerTopCol.offset; playerBotCol.size = playerTopCol.size;
             playerRightCol.size = new Vector2(playerStats.movementSpeed, playerCol.size.y); playerRightCol.offset = Vector2.right * (playerCol.size.x / 2 + playerStats.movementSpeed / 2 + 1);
-            playerLeftCol.offset = -playerRightCol.offset;
+            playerLeftCol.offset = -playerRightCol.offset; playerLeftCol.size = playerRightCol.size;
 
             idleEnemies.Clear(); enemiesToMove.Clear();
             idleEnemies.AddRange(GameObject.FindAll("Enemy"));
@@ -372,6 +372,7 @@ namespace STCEngine.Game
         {
             otherInventory = inventory;
             otherInventoryUI.CellClick += new DataGridViewCellEventHandler(otherInventory.ItemClicked);
+            inventory.gameObject.GetComponent<Sprite>().image = Image.FromFile("Assets/ChestOpened.png");
             otherInventory.ShowInventory();
             otherInventoryPanel.Visible = true;
         }
@@ -382,6 +383,7 @@ namespace STCEngine.Game
                 otherInventoryUI.CellClick -= new DataGridViewCellEventHandler(otherInventory.ItemClicked);
             }
             catch { }
+            otherInventory.gameObject.GetComponent<Sprite>().image = Image.FromFile("Assets/ChestClosed.png");
             otherInventory = null;
             otherInventoryPanel.Visible = false;
         }

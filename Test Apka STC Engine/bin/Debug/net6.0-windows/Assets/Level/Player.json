@@ -39,8 +39,8 @@
     {
       "Type": "BoxCollider",
       "size": {
-        "x": 100,
-        "y": 100
+        "x": 75,
+        "y": 75
       },
       "debugDraw": true,
       "isTrigger": false,

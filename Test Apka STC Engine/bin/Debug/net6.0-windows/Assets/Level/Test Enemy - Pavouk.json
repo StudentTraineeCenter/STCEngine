@@ -1,0 +1,83 @@
+{
+  "components": [
+    {
+      "Type": "Transform",
+      "position": {
+        "x": -200,
+        "y": -300
+      },
+      "rotation": 0,
+      "size": {
+        "x": 5,
+        "y": 5
+      },
+      "enabled": true
+    },
+    {
+      "Type": "Sprite",
+      "orderInLayer": 2,
+      "fileSourceDirectory": "Assets/Enemies/Spider/Spider1.png",
+      "enabled": true
+    },
+    {
+      "Type": "CombatStats",
+      "isPlayerStats": false,
+      "health": 150,
+      "damage": 10,
+      "movementSpeed": 8,
+      "agroRange": 300,
+      "deagroRange": 1000,
+      "immuneTime": 500,
+      "knockbackMultiplier": 8,
+      "staggerTime": 1000,
+      "enabled": true
+    },
+    {
+      "Type": "Animator",
+      "animations": {
+        "IdleAnimation": {
+          "name": "IdleAnimation",
+          "animationFrames": [
+            {
+              "fileSourceDirectory": "Assets/Enemies/Spider/Spider1.png",
+              "time": 200
+            },
+            {
+              "fileSourceDirectory": "Assets/Enemies/Spider/Spider2.png",
+              "time": 200
+            }
+          ],
+          "loop": true
+        },
+        "MoveAnimation": {
+          "name": "MoveAnimation",
+          "animationFrames": [
+            {
+              "fileSourceDirectory": "Assets/Enemies/Spider/Spider1.png",
+              "time": 50
+            },
+            {
+              "fileSourceDirectory": "Assets/Enemies/Spider/Spider2.png",
+              "time": 50
+            },
+            {
+              "fileSourceDirectory": "Assets/Enemies/Spider/Spider3.png",
+              "time": 50
+            },
+            {
+              "fileSourceDirectory": "Assets/Enemies/Spider/Spider4.png",
+              "time": 50
+            }
+          ],
+          "loop": true
+        }
+      },
+      "playBackSpeed": 1,
+      "playOnLoad": "IdleAnimation",
+      "enabled": true
+    }
+  ],
+  
+  "name": "Spider Enemy",
+  "isActive": true
+}
