@@ -3,23 +3,23 @@
     {
       "Type": "Transform",
       "position": {
-        "x": 750,
-        "y": 200
+        "x": 0,
+        "y": 0
       },
       "rotation": 0,
       "size": {
-        "x": 4,
-        "y": 4
+        "x": 1.15,
+        "y": 1.15
       },
       "enabled": true
     },
     {
       "Type": "Sprite",
-      "orderInLayer": 2,
-      "fileSourceDirectory": "Assets/SlimeBlob.png",
+      "orderInLayer": 0,
+      "fileSourceDirectory": "Assets/Free-Mountain-Backgrounds-Pixel-Art7.png",
       "enabled": true
     }
   ],
-  "name": "Slime Blob 2",
+  "name": "Background",
   "isActive": true
 }

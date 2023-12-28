@@ -234,8 +234,8 @@ namespace STCEngine.Components
     public class Tilemap : Component
     {
         public override string Type { get; } = nameof(Tilemap);
-        public int OrderInLayer { get => orderInLayer; set { EngineClass.ChangeSpriteRenderOrder(gameObject, value); orderInLayer = value; } }//higher numbers render on top of lower numbers
-        private int orderInLayer { get; set; }
+        public int orderInLayer { get => _orderInLayer ??= -999; set { if (_orderInLayer != null) { EngineClass.ChangeSpriteRenderOrder(gameObject, value); } _orderInLayer = value; } }
+        private int? _orderInLayer { get; set; }
         public Dictionary<string, string> tileSources { get; set; }
         public string[] tilemapString { get; set; }
         [JsonIgnore] private Image[,]? _tiles;
@@ -258,7 +258,7 @@ namespace STCEngine.Components
             this.tilemapString = tilemapString;
             this.tileSize = tileSize;
             this.mapSize = mapSize;
-            this.orderInLayer = orderInLayer;
+            this._orderInLayer = orderInLayer;
         }
 
 
@@ -301,17 +301,23 @@ namespace STCEngine.Components
             int totalHeight = tiles.GetLength(1) * (int)tileSize.y;
 
             // Create a new bitmap to hold the combined image
-            Bitmap combinedImage = new Bitmap(totalWidth, totalHeight);
+            Bitmap combinedImage = new Bitmap(totalWidth, totalHeight, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
             // Create a graphics object to draw on the combined image
             using (Graphics g = Graphics.FromImage(combinedImage))
             {
+                g.Clear(Color.Transparent);
                 // Iterate through the multidimensional array and draw each image onto the combined image
                 for (int i = 0; i < tiles.GetLength(0); i++)
                 {
                     for (int j = 0; j < tiles.GetLength(1); j++)
                     {
-                        g.DrawImage(tiles[i, j], i * tileSize.x, j * tileSize.y);
+                        // Skip empty images
+                        if (tiles[i, j] != EngineClass.emptyImage)
+                        {
+                            // Draw the image onto the combined image
+                            g.DrawImage(tiles[i, j], i * tileSize.x, j * tileSize.y);
+                        }
                     }
                 }
             }
@@ -319,7 +325,21 @@ namespace STCEngine.Components
             //saves it to render it
             tileMapImage = combinedImage;
         }
+        //private static Image CreateEmptyImage(Size size)
+        //{
+        //    Bitmap emptyBitmap = new Bitmap(size.Width, size.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
+        //    // Set each pixel's alpha channel to 0 (fully transparent)
+        //    for (int x = 0; x < size.Width; x++)
+        //    {
+        //        for (int y = 0; y < size.Height; y++)
+        //        {
+        //            emptyBitmap.SetPixel(x, y, Color.FromArgb(0, 0, 0, 0));
+        //        }
+        //    }
+
+        //    return emptyBitmap;
+        //}
         //private class TilemapValues
         //{
         //    public string[] tilemapString { get; set; }
@@ -333,8 +353,8 @@ namespace STCEngine.Components
         public override void Initialize()
         {
             CreateTilemap();
-            EngineClass.AddSpriteToRender(gameObject, OrderInLayer);
-            this.orderInLayer = EngineClass.spritesToRender.IndexOf(gameObject);
+            EngineClass.AddSpriteToRender(gameObject, orderInLayer);
+            this._orderInLayer = EngineClass.spritesToRender.IndexOf(gameObject);
         }
         public override void DestroySelf()
         {

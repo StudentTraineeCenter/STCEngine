@@ -20,7 +20,7 @@ namespace STCEngine.Game
         public bool npcDialogueOpen { get => activeNPC != null; }
         public NPC? activeNPC;
 
-        private static readonly Vector2 windowSize = new Vector2(2560, 1440);
+        private static readonly Vector2 windowSize = new Vector2(1920, 1080);
 
         //watch out when creating references to objects, make sure they get cleared/overwritten in OnLoad method!
         public GameObject? player;
@@ -39,7 +39,8 @@ namespace STCEngine.Game
         public GameObject? pressEGameObject;
 
         private float horizontalInput, verticalInput;
-        private GameObject? interactingGameObject, highlightedGameObject;
+        private bool jumpReady = true;
+        private GameObject? interactingGameObject, highlightedGameObject, background;
 
         //private Inventory testInventory;
 
@@ -64,14 +65,14 @@ namespace STCEngine.Game
             {
                 InitializePauseScreenButtonsUI();
                 InitializeNPCUI();
-                InitializeInventoriesUI();
+                //InitializeInventoriesUI();
             }
 
             player = GameObject.Find("Player");
             cameraPosition = player.transform.position;
             playerAnim = player.GetComponent<Animator>();
             if(playerInventory != null) { playerInventoryUI.CellClick -= playerInventory.ItemClicked; } 
-            playerInventory = player.GetComponent<Inventory>(); playerInventoryUI.CellClick += playerInventory.ItemClicked; //MUST BE HERE!
+            //playerInventory = player.GetComponent<Inventory>(); playerInventoryUI.CellClick += playerInventory.ItemClicked; //MUST BE HERE!
             playerSprite = player.GetComponent<Sprite>();
             playerStats = player.GetComponent<CombatStats>();
             var playerColliders = player.GetComponents<BoxCollider>();
@@ -102,101 +103,19 @@ namespace STCEngine.Game
             }
 
             //configure wall detection for the player (so that you don't have to do it manually in json...)
-            playerTopCol.size = new Vector2(playerCol.size.x, playerStats.movementSpeed); playerTopCol.offset = Vector2.up * (playerCol.size.y / 2 + playerStats.movementSpeed / 2 + 1);
-            playerBotCol.offset = -playerTopCol.offset; playerBotCol.size = playerTopCol.size;
+            playerTopCol.size = new Vector2(playerCol.size.x, playerStats.movementSpeed * 2); playerTopCol.offset = Vector2.up * (playerCol.size.y / 2 + playerStats.movementSpeed + 1);
+            playerBotCol.offset = -playerTopCol.offset; playerBotCol.size = playerTopCol.size/2;
             playerRightCol.size = new Vector2(playerStats.movementSpeed, playerCol.size.y); playerRightCol.offset = Vector2.right * (playerCol.size.x / 2 + playerStats.movementSpeed / 2 + 1);
             playerLeftCol.offset = -playerRightCol.offset; playerLeftCol.size = playerRightCol.size;
 
-            idleEnemies.Clear(); enemiesToMove.Clear();
-            idleEnemies.AddRange(GameObject.FindAll("Enemy"));
+            background = GameObject.Find("Background");
+            //idleEnemies.Clear(); enemiesToMove.Clear();
+            //idleEnemies.AddRange(GameObject.FindAll("Enemy"));
 
             //pauseScreen = GameObject.Find("Pause Screen");
             pressEGameObject = GameObject.Find("Press E GameObject");
-            healthBarUITransform = GameObject.Find("Health UI").transform;
+            //healthBarUITransform = GameObject.Find("Health UI")?.transform;
             interactingGameObject = null; highlightedGameObject = null; otherInventory = null; activeNPC = null;
-
-            //var q = new GameObject("Health UI BG", new List<Component>() { new Transform(Vector2.zero, 0, Vector2.one + Vector2.right * playerStats.health / 6 - Vector2.right*1.7f), new UISprite("Assets/Engine Resources/HealthBarUIBG.png", UISprite.ScreenAnchor.TopLeft, UISprite.PivotPointAnchor.TopLeft, Vector2.one * 25, 0) });
-            //var healthBarUI = new GameObject("Health UI", new List<Component>() { new Transform(Vector2.zero, 0, Vector2.one + Vector2.right * playerStats.health / 6 - Vector2.up * 0.5f), new UISprite("Assets/Engine Resources/HealthBarUIFill.png", UISprite.ScreenAnchor.TopLeft, UISprite.PivotPointAnchor.TopLeft, Vector2.one * 25 + Vector2.right * 5 + Vector2.up * 10) });
-            //healthBarUI.AddComponent();
-            //healthBarUITransform = healthBarUI.transform;
-            //healthBarUITransform.size.x = playerStats.health;
-            //playerStats.SerializeToJSON("Assets");
-
-            #region Old scene setup (inactive)
-            //player = new GameObject("Player", new Transform(new Vector2(100, 100), 0, new Vector2(0.6f, 0.6f)));
-            //playerInventory = player.AddComponent(new Inventory(true));
-
-            //quitButton.Click += new EventHandler(QuitButton);
-            //resumeButton.Click += new EventHandler(ResumeButton);
-
-
-            //#region Player component setup
-            ////spawn player
-            //player.AddComponent(new Sprite("Assets/Basic Enemy White 1.png"));
-            //playerCol = player.AddComponent(new BoxCollider(Vector2.one * 100, "player", Vector2.zero, false, true)) as BoxCollider;
-
-            //var hitboxWidth = 1f; //values lower than 1 might cause walking into walls
-            //playerTopCol = player.AddComponent(new BoxCollider(Vector2.up * movementSpeed * hitboxWidth + Vector2.right * 100, "playerWalk", Vector2.up * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
-            //playerBotCol = player.AddComponent(new BoxCollider(Vector2.up * movementSpeed * hitboxWidth + Vector2.right * 100, "playerWalk", -Vector2.up * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
-            //playerRightCol = player.AddComponent(new BoxCollider(Vector2.right * movementSpeed * hitboxWidth + Vector2.up * 100, "playerWalk", Vector2.right * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
-            //playerLeftCol = player.AddComponent(new BoxCollider(Vector2.right * movementSpeed * hitboxWidth + Vector2.up * 100, "playerWalk", -Vector2.right * (51 + movementSpeed / 2 * hitboxWidth), true, true)) as BoxCollider;
-
-            //AnimationFrame[] animFrames = {
-            //    new AnimationFrame("Assets/Basic Enemy White 1.png", 100),
-            //    new AnimationFrame("Assets/Basic Enemy White 2.png", 100),
-            //    new AnimationFrame("Assets/Basic Enemy White 3.png", 100)
-            //};
-
-            //Animation anim = new Animation("TestAnimation", animFrames, true);
-            //playerAnim = player.AddComponent(new Animator(anim)) as Animator;
-
-            //#endregion
-
-            ////tilemap = new GameObject("Tilemap", new Vector2(0, 0));
-            ////tilemap.AddComponent(new Tilemap("Assets/Level/Tilemap.json"));
-            ////tilemap.transform.position = new Vector2(tilemap.GetComponent<Tilemap>().tileMapImage.Width / 2, tilemap.GetComponent<Tilemap>().tileMapImage.Height / 2);
-
-            //pressEGameObject = new GameObject("Press E GameObject", new Transform(Vector2.zero, 0, Vector2.one * 1.5f), false);
-            //pressEGameObject.AddComponent(new Sprite("Assets/PressEImage.png"));
-
-            //string fileName = "Assets/Level/playerZed.json";
-            //testGameObject2 = GameObject.CreateGameObjectFromJSON(fileName);
-            //testGameObject2.RemoveComponent<BoxCollider>();
-            //testGameObject2.AddComponent(new CircleCollider(50, "a", Vector2.zero, false, true));
-            //testGameObject2.GetComponent<Animator>().Play("TestAnimation2");
-            //testGameObject2.AddComponent(new Inventory());
-
-            //testGameObject3 = GameObject.CreateGameObjectFromJSON("Assets/Level/Chest1.json");
-
-            //#region test npc setup
-            //testGameObject4 = new GameObject("Test Dvere", new List<Component> { new Transform(new Vector2(300, 200), 0, Vector2.one), new BoxCollider(Vector2.one * 50, "wall", Vector2.zero, false, true), new ToggleCollider(), new Sprite("Assets/Basic Wall.png") });
-            //Dialogue startingTestDialogue = new Dialogue("start", new DialoguePart[] { new DialoguePart("Ahoj!", 3000), new DialoguePart("Jak se dneska máš?", 5000) }, new Response[] { new Response("dobre", "Dobře :)"), new Response("blbe", "Blbě :(") });
-            //List<Dialogue> testDialogues = new List<Dialogue>
-            //{
-            //    new Dialogue("dobre", new DialoguePart[] { new DialoguePart("Ah, to rád slyším!", 3000), new DialoguePart("Jen tak dál :)", 3000)}),
-            //    new Dialogue("blbe", new DialoguePart[] { new DialoguePart("Ah, to nerad slyším...", 3000), new DialoguePart("Co se stalo?", 3000)}, new Response[]{new Response("nic", "Nic..."), new Response("kocka", "Umřela mi kočka..."), new Response("spageti", "Moc špagety kódu...")}),
-            //    new Dialogue("kocka", new DialoguePart[] { new DialoguePart("To je velmi smutné", 3000), new DialoguePart("Tak přežívej", 3000)}),
-            //    new Dialogue("spageti", new DialoguePart[] { new DialoguePart("Sám si ho napsal...", 3000), new DialoguePart("Je to jen tvoje chyba ;)", 3000)}),
-            //    new Dialogue("nic", new DialoguePart[] { new DialoguePart("Ok, nebudu se vyptávat", 3000), new DialoguePart("Snad se to brzy vyřeší", 3000)})
-            //};
-            //NPC testNPC = new NPC("Test npc", startingTestDialogue, testDialogues);
-
-            //testGameObject5 = new GameObject("Test NPC", new List<Component> { new Transform(new Vector2(400, 250), 0, Vector2.one), new BoxCollider(Vector2.one * 50, "wall", Vector2.zero, false, true), testNPC, new Sprite("Assets/Basic Wall.png") });
-            //#endregion
-
-            //pauseScreen = new GameObject("Pause Screen", new Transform(Vector2.zero, 0, Vector2.one));
-            //pauseScreen.AddComponent(new UISprite("Assets/PauseScreenOverlayBG.png", UISprite.ScreenAnchor.MiddleCentre));
-            //pauseScreen.transform.size = new Vector2(windowSize.x / pauseScreen.GetComponent<UISprite>().image.Width, windowSize.y / pauseScreen.GetComponent<UISprite>().image.Height);
-            //pauseScreen.isActive = false;
-
-            //playerInventory.AddItem(new ItemInInventory[] { new ItemInInventory("mec", 1, "Assets/Items/Item-Test_Sword.png"), new ItemInInventory("Slimeball", 5, "Assets/Items/Slimeball.png") });
-
-            //var randomDroppedItem = new GameObject("dropped item", new Transform(Vector2.one * 200, 0, Vector2.one));
-            //randomDroppedItem.AddComponent(new Sprite("Assets/Items/Slimeball.png"));
-            //randomDroppedItem.AddComponent(new DroppedItem(new ItemInInventory("Slimeball", 3, "Assets/Items/Slimeball.png")));
-
-            //pressEGameObject.GetComponent<Sprite>().orderInLayer = int.MaxValue;
-            #endregion
 
             Debug.LogInfo("\nOnLoad Complete\n");
         }
@@ -209,9 +128,10 @@ namespace STCEngine.Game
         public override void Update()
         {
             #region Player movement logic
+            MovePlayer();
+            background.transform.position = cameraPosition + Vector2.up * 50;
             if ((horizontalInput != 0 || verticalInput != 0) && playerAnim?.currentlyPlayingAnimation?.name != "AttackAnimation") //moves the player according to user input
             {
-                MovePlayer(); 
             }
             else if(playerAnim?.currentlyPlayingAnimation?.name != "AttackAnimation" && playerAnim?.currentlyPlayingAnimation?.name != "IdleAnimation") //if the player isnt moving or attacking, play idle animation
             {
@@ -221,7 +141,8 @@ namespace STCEngine.Game
 
             #region Interaction logic
             //collecting dropped items
-            Collider droppedCol; if (playerCol.IsColliding("droppedItem", true, out droppedCol)) { droppedCol.gameObject.GetComponent<DroppedItem>().CollectItem(); }
+            //Collider droppedCol; if (playerCol.IsColliding("droppedItem", true, out droppedCol)) { droppedCol.gameObject.GetComponent<DroppedItem>().CollectItem(); }
+
             Collider? interactCol = null; float closestDistance = float.MaxValue;
             foreach (Collider col in playerCol.OverlapCollider(true))
             {
@@ -258,29 +179,29 @@ namespace STCEngine.Game
             }
             #endregion
 
-            #region Combat logic
+            //#region Combat logic
 
-            //moving enemies
-            MoveEnemies();
+            ////moving enemies
+            //MoveEnemies();
 
-            //hit detection
-            if (playerCol.IsColliding("EnemyHurtbox", true, out Collider? enemyHurtbox, registeredEnemyHurtboxes)) //player hit by an enemy
-            {
-                if (playerStats.TakeDamage(enemyHurtbox.gameObject.GetComponent<CombatStats>().damage)) { PlayerDeath(); }//deals damage and checks whether the player died
-                //change health bar
-            }
-            if (playerAttackHurtbox.enabled) //--------------------------------------------------------------- player hitting an enemy
-            {
-                if (playerAttackHurtbox.IsColliding("EnemyHitbox", true, out Collider? enemyHitbox, registeredEnemyHitboxes))
-                {
-                    CombatStats enemyStats = enemyHitbox.gameObject.GetComponent<CombatStats>();
+            ////hit detection
+            //if (playerCol.IsColliding("EnemyHurtbox", true, out Collider? enemyHurtbox, registeredEnemyHurtboxes)) //player hit by an enemy
+            //{
+            //    if (playerStats.TakeDamage(enemyHurtbox.gameObject.GetComponent<CombatStats>().damage)) { PlayerDeath(); }//deals damage and checks whether the player died
+            //    //change health bar
+            //}
+            //if (playerAttackHurtbox.enabled) //--------------------------------------------------------------- player hitting an enemy
+            //{
+            //    if (playerAttackHurtbox.IsColliding("EnemyHitbox", true, out Collider? enemyHitbox, registeredEnemyHitboxes))
+            //    {
+            //        CombatStats enemyStats = enemyHitbox.gameObject.GetComponent<CombatStats>();
 
-                    if (enemyStats.TakeDamage(playerStats.damage)) { NPCDeath(enemyStats); } //deals damage and checks whether the entity died
-                }
-            }
+            //        if (enemyStats.TakeDamage(playerStats.damage)) { NPCDeath(enemyStats); } //deals damage and checks whether the entity died
+            //    }
+            //}
 
 
-            #endregion
+            //#endregion
         }
 
         /// <summary>
@@ -292,22 +213,32 @@ namespace STCEngine.Game
         }
 
         #region Movement functions
+        private Vector2 velocity = Vector2.zero;
+        private float gravityStrength = 1f;
+        private float jumpStrength = 20;
         public void MovePlayer()
         {
+            velocity.y += gravityStrength;
             if (horizontalInput != 0 && ((playerSprite.flipX == true ? -1 : 1) != MathF.Sign(horizontalInput))) { playerSprite.flipX = horizontalInput > 0 ? false : true; } //flips the sprite according to where the player is running
 
-            var modifiedMovementInput = new Vector2(horizontalInput, verticalInput);
+            var modifiedMovementInput = horizontalInput;
 
             //prevents the player from walking into walls
-            if (horizontalInput > 0) { if (playerRightCol.OverlapCollider().Length > 0) { modifiedMovementInput.x = 0; } }
-            else if (horizontalInput < 0) { if (playerLeftCol.OverlapCollider().Length > 0) { modifiedMovementInput.x = 0; } }
-            if (verticalInput > 0) { if (playerTopCol.OverlapCollider().Length > 0) { modifiedMovementInput.y = 0; } }
-            else if (verticalInput < 0) { if (playerBotCol.OverlapCollider().Length > 0) { modifiedMovementInput.y = 0; } }
+            if (horizontalInput > 0) { if (playerRightCol.OverlapCollider().Length > 0) { modifiedMovementInput = 0; } }
+            else if (horizontalInput < 0) { if (playerLeftCol.OverlapCollider().Length > 0) { modifiedMovementInput = 0; } }
+            if (playerTopCol.OverlapCollider().Length > 0) { velocity.y = Math.Clamp(velocity.y, float.NegativeInfinity, 0); if (verticalInput == -1) { PlayerJump(); } } 
+            if (playerBotCol.OverlapCollider().Length > 0) { velocity.y = Math.Clamp(velocity.y, 0, float.PositiveInfinity);  }
 
-            player.transform.position += modifiedMovementInput.normalized * playerStats.movementSpeed; //moves the player
+            
+
+            velocity = new Vector2(modifiedMovementInput * playerStats.movementSpeed, velocity.y); //moves the player
             cameraPosition = player.transform.position; //moves the camera to follow the player
-
-            if (playerAnim.currentlyPlayingAnimation?.name != "RunAnimation") { playerAnim.Play("RunAnimation"); } //plays the run animation
+            player.transform.position += velocity;
+            //if (playerAnim.currentlyPlayingAnimation?.name != "RunAnimation") { playerAnim.Play("RunAnimation"); } //plays the run animation
+        }
+        private void PlayerJump()
+        {
+            if(jumpReady) { velocity -= Vector2.up * jumpStrength; jumpReady = false; Task.Delay(500).ContinueWith(t => jumpReady = true); }
         }
 
         public void MoveEnemies()
@@ -400,12 +331,12 @@ namespace STCEngine.Game
         private bool up = false, down = false, left = false, right = false;
         public override void GetKeyDown(KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.I) //inventory
-            {
-                if (playerInventoryPanel.Visible) { ClosePlayerInventory(); if (otherInventoryPanel.Visible) { CloseOtherInventory(); } }
-                else { OpenPlayerInventory(); }
+            //if (e.KeyCode == Keys.I) //inventory
+            //{
+            //    if (playerInventoryPanel.Visible) { ClosePlayerInventory(); if (otherInventoryPanel.Visible) { CloseOtherInventory(); } }
+            //    else { OpenPlayerInventory(); }
 
-            }
+            //}
             if (e.KeyCode == Keys.Escape) //pause
             {
                 if (paused) { Unpause(); }

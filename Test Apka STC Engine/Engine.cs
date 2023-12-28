@@ -546,14 +546,14 @@ namespace STCEngine.Engine
                         //graphics.DrawImage(bitmap, 0, 0);
                         //graphics.DrawImage(tilemap.GetActiveTileMapImage(cameraPosition, screenSize), -screenSize/2);
 
-                        var ulozenaHodnota = graphics.CompositingMode;
-                        graphics.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
+                        //var ulozenaHodnota = graphics.CompositingMode;
+                        //graphics.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
                         graphics.DrawImage(tilemap.tileMapImage,
                             gameObject.transform.position.x - tilemap.tileMapImage.Width * gameObject.transform.size.x / 2 + cameraRenderingOffset.x,
                             gameObject.transform.position.y - tilemap.tileMapImage.Height * gameObject.transform.size.y / 2 + cameraRenderingOffset.y,
                             tilemap.tileMapImage.Width * gameObject.transform.size.x,
                             tilemap.tileMapImage.Height * gameObject.transform.size.y);
-                        graphics.CompositingMode = ulozenaHodnota;
+                        //graphics.CompositingMode = ulozenaHodnota;
 
 
                         //Funguje, ale performance je snad jeste horsi...
