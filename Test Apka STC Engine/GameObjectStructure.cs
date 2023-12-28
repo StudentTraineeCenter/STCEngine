@@ -85,8 +85,8 @@ namespace STCEngine.Components
         public override string Type { get; } = nameof(Sprite);
         [JsonIgnore] private Image? _image;
         [JsonIgnore] public Image image { get { if (_image == null) { _image = Image.FromFile(fileSourceDirectory); } return _image; } set { bool a = flipX; bool b = flipY; flipX = false; flipY = false;  _image = value; flipX = a; flipY = b; } /*makes sure its rotated correctly */}
-        public int orderInLayer { get => _orderInLayer; set { EngineClass.ChangeSpriteRenderOrder(gameObject, value); _orderInLayer = value; } }//higher numbers render on top of lower numbers
-        private int _orderInLayer { get; set; }
+        public int orderInLayer { get => _orderInLayer ??= -999; set { if (_orderInLayer != null) { EngineClass.ChangeSpriteRenderOrder(gameObject, value); } _orderInLayer = value; } }//higher numbers render on top of lower numbers
+        [JsonIgnore] private int? _orderInLayer { get; set; }
         public string fileSourceDirectory { get; set; }
         public bool flipX { get => _flipX; set { if (_flipX != value) { image.RotateFlip(RotateFlipType.RotateNoneFlipX); } _flipX = value; } }
         private bool _flipX { get; set; }
@@ -798,10 +798,38 @@ namespace STCEngine.Components
         [JsonIgnore] public BoxCollider connectedCollider { get; private set; }
         [JsonIgnore] private CircleCollider interactCollider;
 
+        [JsonIgnore] public bool state { get; set; } = true;
+        /// <summary>
+        /// Leave empty to not change sprite
+        /// </summary>
+        public string offSpriteImageSource { get; set; }
+        /// <summary>
+        /// Leave empty to not change sprite
+        /// </summary>
+        public string onSpriteImageSource { get; set; }
+        [JsonIgnore] public Image offSpriteImage { get { if (_offSpriteImage == null) { _offSpriteImage = Image.FromFile(offSpriteImageSource); } return _offSpriteImage; } set => _offSpriteImage = value; }
+        [JsonIgnore] private Image? _offSpriteImage;
+        [JsonIgnore] public Image onSpriteImage { get { if (_onSpriteImage == null) { _onSpriteImage = Image.FromFile(onSpriteImageSource); } return _onSpriteImage; } set => _onSpriteImage = value; }
+        [JsonIgnore] private Image? _onSpriteImage;
+
+
         [JsonConstructor] public ToggleCollider() { }
 
         public void Interact() //toggles the hitbox
         {
+            Sprite sprite;
+            if ((sprite = gameObject.GetComponent<Sprite>()) != null && !(offSpriteImageSource == null || offSpriteImageSource == ""))
+            {
+                if (state) //opened -> closed
+                {
+                    sprite.image = offSpriteImage;
+                }
+                else //closed -> opened
+                {
+                    sprite.image = onSpriteImage;
+                }
+                state = !state;
+            }
             connectedCollider.enabled = !connectedCollider.enabled;
         }
         public void StopInteract() { }
@@ -842,6 +870,20 @@ namespace STCEngine.Components
             {
                 connectedCollider = box;
                 SetupInteractCollider(75);
+                
+                Sprite sprite;
+                if ((sprite = gameObject.GetComponent<Sprite>()) != null && !(offSpriteImageSource == null || offSpriteImageSource == ""))
+                {
+                    if (connectedCollider.enabled) //opened -> closed
+                    {
+                        sprite.image = onSpriteImage;
+                    }
+                    else //closed -> opened
+                    {
+                        sprite.image = offSpriteImage;
+                    }
+                    state = connectedCollider.enabled;
+                }
             }
         }
     }
@@ -951,7 +993,7 @@ namespace STCEngine.Components
                 newGameObject.GameObjectCreated();
                 return newGameObject;
             }
-            catch (Exception e) { Debug.LogError("GameObject couldn't be created from json file, error message: " + e.Message); }
+            catch (Exception e) { Debug.LogError("GameObject couldn't be created from json file, error message: " + e.Message + ", " + e.StackTrace); }
             return null;
         }
         /// <summary>
@@ -964,6 +1006,7 @@ namespace STCEngine.Components
             try
             {
                 var newGameObject = JsonSerializer.Deserialize<GameObject>(jsonString, new JsonSerializerOptions { Converters = { new ComponentConverter() } });
+                
                 foreach (Component c in newGameObject.components)
                 {
                     c.gameObject = newGameObject;

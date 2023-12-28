@@ -3,13 +3,13 @@
     {
       "Type": "Transform",
       "position": {
-        "x": 400,
-        "y": 250
+        "x": 32,
+        "y": -412
       },
       "rotation": 0,
       "size": {
-        "x": 4,
-        "y": 4
+        "x": 3.5,
+        "y": 3.5
       },
       "enabled": true
     },

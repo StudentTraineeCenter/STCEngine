@@ -209,11 +209,11 @@ namespace STCEngine.Game
         public override void Update()
         {
             #region Player movement logic
-            if ((horizontalInput != 0 || verticalInput != 0) && playerAnim.currentlyPlayingAnimation?.name != "AttackAnimation") //moves the player according to user input
+            if ((horizontalInput != 0 || verticalInput != 0) && playerAnim?.currentlyPlayingAnimation?.name != "AttackAnimation") //moves the player according to user input
             {
                 MovePlayer(); 
             }
-            else if(playerAnim.currentlyPlayingAnimation?.name != "AttackAnimation" && playerAnim.currentlyPlayingAnimation?.name != "IdleAnimation") //if the player isnt moving or attacking, play idle animation
+            else if(playerAnim?.currentlyPlayingAnimation?.name != "AttackAnimation" && playerAnim?.currentlyPlayingAnimation?.name != "IdleAnimation") //if the player isnt moving or attacking, play idle animation
             {
                 playerAnim.Play("IdleAnimation");
             }

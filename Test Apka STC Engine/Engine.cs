@@ -786,17 +786,18 @@ namespace STCEngine.Engine
         public async Task LoadLevel(string directory)
         {
             changingScene = true;
+            int failedGameObjectsCount = 0;
             DirectoryInfo dir = new DirectoryInfo(directory);
             var userFiles = dir.GetFiles("*.json"); var engineFiles = new DirectoryInfo("Assets/Engine Resources").GetFiles("*.json");
             foreach (FileInfo file in userFiles)
             {
-                GameObject.CreateGameObjectFromJSONFile(file.FullName);
+                failedGameObjectsCount += GameObject.CreateGameObjectFromJSONFile(file.FullName) == null ? 1 : 0 ;
             }
             foreach (FileInfo engineFile in engineFiles) 
             {
-                GameObject.CreateGameObjectFromJSONFile(engineFile.FullName);
+                failedGameObjectsCount += GameObject.CreateGameObjectFromJSONFile(engineFile.FullName) == null ? 1 : 0;
             }
-            while (registeredGameObjects.Count < userFiles.Length + engineFiles.Length) //wait until loaded
+            while (registeredGameObjects.Count < userFiles.Length + engineFiles.Length - failedGameObjectsCount) //wait until loaded
             {
                 await Task.Delay(25);
             }
