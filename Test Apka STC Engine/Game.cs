@@ -51,7 +51,7 @@ namespace STCEngine.Game
 
         public override async void OnLoad(bool initializeUIs = true)
         {
-            //:)
+            //test splitnuti na platformer
             Debug.LogInfo("OnLoad started");
             if (MainGameInstance == null) //first time loading
             {
