@@ -16,7 +16,7 @@ namespace STCEngine.Engine
     /// </summary>
     public abstract class EngineClass
     {
-        public readonly bool testDebug = true;
+        public readonly bool testDebug = false;
 
         public Vector2 screenSize { get => new Vector2(window.ClientSize.Width, window.ClientSize.Height); set { RescaleUI(window, oldWindowSize, value); window.ClientSize = value; oldWindowSize = window.ClientSize; } }
         private Size oldWindowSize;
