@@ -130,8 +130,9 @@ namespace STCEngine.Game
             #region Player movement logic
             MovePlayer();
             background.transform.position = cameraPosition + Vector2.up * 50;
-            if ((horizontalInput != 0 || verticalInput != 0) && playerAnim?.currentlyPlayingAnimation?.name != "AttackAnimation") //moves the player according to user input
+            if ((horizontalInput != 0 || verticalInput != 0) && playerAnim?.currentlyPlayingAnimation?.name != "AttackAnimation" && playerAnim?.currentlyPlayingAnimation?.name != "MoveAnimation") //moves the player according to user input
             {
+                playerAnim.Play("RunAnimation");
             }
             else if(playerAnim?.currentlyPlayingAnimation?.name != "AttackAnimation" && playerAnim?.currentlyPlayingAnimation?.name != "IdleAnimation") //if the player isnt moving or attacking, play idle animation
             {
@@ -179,29 +180,29 @@ namespace STCEngine.Game
             }
             #endregion
 
-            //#region Combat logic
+            #region Combat logic
 
             ////moving enemies
             //MoveEnemies();
 
-            ////hit detection
-            //if (playerCol.IsColliding("EnemyHurtbox", true, out Collider? enemyHurtbox, registeredEnemyHurtboxes)) //player hit by an enemy
-            //{
-            //    if (playerStats.TakeDamage(enemyHurtbox.gameObject.GetComponent<CombatStats>().damage)) { PlayerDeath(); }//deals damage and checks whether the player died
-            //    //change health bar
-            //}
-            //if (playerAttackHurtbox.enabled) //--------------------------------------------------------------- player hitting an enemy
-            //{
-            //    if (playerAttackHurtbox.IsColliding("EnemyHitbox", true, out Collider? enemyHitbox, registeredEnemyHitboxes))
-            //    {
-            //        CombatStats enemyStats = enemyHitbox.gameObject.GetComponent<CombatStats>();
+            //hit detection
+            if (playerCol.IsColliding("EnemyHurtbox", true, out Collider? enemyHurtbox, registeredEnemyHurtboxes)) //player hit by an enemy
+            {
+                if (playerStats.TakeDamage(enemyHurtbox.gameObject.GetComponent<CombatStats>().damage)) { PlayerDeath(); }//deals damage and checks whether the player died
+                //change health bar
+            }
+            if (playerAttackHurtbox.enabled) //--------------------------------------------------------------- player hitting an enemy
+            {
+                if (playerAttackHurtbox.IsColliding("EnemyHitbox", true, out Collider? enemyHitbox, registeredEnemyHitboxes))
+                {
+                    CombatStats enemyStats = enemyHitbox.gameObject.GetComponent<CombatStats>();
 
-            //        if (enemyStats.TakeDamage(playerStats.damage)) { NPCDeath(enemyStats); } //deals damage and checks whether the entity died
-            //    }
-            //}
+                    if (enemyStats.TakeDamage(playerStats.damage)) { NPCDeath(enemyStats); } //deals damage and checks whether the entity died
+                }
+            }
 
 
-            //#endregion
+            #endregion
         }
 
         /// <summary>

@@ -6,15 +6,15 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v6.0": {
-      "Test Apka STC Engine/1.0.0": {
+      "STCEngine/1.0.0": {
         "runtime": {
-          "Test Apka STC Engine.dll": {}
+          "STCEngine.dll": {}
         }
       }
     }
   },
   "libraries": {
-    "Test Apka STC Engine/1.0.0": {
+    "STCEngine/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
