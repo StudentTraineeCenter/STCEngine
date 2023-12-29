@@ -318,7 +318,9 @@ namespace STCEngine.Components
             
         }
     }
-
+    /// <summary>
+    /// Info about an item stored in an inventory
+    /// </summary>
     public class ItemInInventory
     {
         public int itemCount { get; set; }

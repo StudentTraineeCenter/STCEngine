@@ -239,7 +239,7 @@ namespace STCEngine.Components
         }
     }
     /// <summary>
-    /// A part of the NPC dialogue system to be used in a Dialogue to continue with a specific DialoguePart
+    /// A part of the NPC dialogue system to be used in a Dialogue to continue with a specific Dialogue
     /// </summary>
     public class Response
     {

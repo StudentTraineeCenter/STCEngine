@@ -113,16 +113,16 @@ namespace STCEngine.Components
         }
     }
     /// <summary>
-    /// A component responsible for rendering UI elements, essentially a basic sprite but handled differently while rendering
+    /// A component responsible for rendering overlay UI elements
     /// </summary>
     public class UISprite : Component
     {
         public override string Type { get; } = nameof(UISprite);
         [JsonIgnore] private Image? _image;
         [JsonIgnore] public Image image { get { if (_image == null) { _image = Image.FromFile(fileSourceDirectory); } return _image; } set => _image = value; }
-        public ScreenAnchor screenAnchor { get; set; } = ScreenAnchor.TopLeft;
-        public PivotPointAnchor pivotPointAnchor { get; set; } = PivotPointAnchor.TopLeft;
-        public Vector2 screenAnchorOffset
+        public Anchor screenAnchor { get; set; } = Anchor.TopLeft;
+        public Anchor pivotPointAnchor { get; set; } = Anchor.TopLeft;
+        [JsonIgnore] public Vector2 screenAnchorOffset
         {
             get
             {
@@ -152,7 +152,7 @@ namespace STCEngine.Components
                 }
             }
         }
-        public Vector2 pivotPointOffset
+        [JsonIgnore] public Vector2 pivotPointOffset
         {
             get
             {
@@ -187,7 +187,7 @@ namespace STCEngine.Components
         public int orderInUILayer { get => _orderInUILayer; set { EngineClass.ChangeUISpriteRenderOrder(gameObject, value); _orderInUILayer = value; } }//higher numbers render on top of lower numbers
         private int _orderInUILayer { get; set; }
         public string fileSourceDirectory { get; set; }
-        public UISprite(string fileSourceDirectory, ScreenAnchor screenAnchor, PivotPointAnchor pivotPointAnchor, Vector2 offset, int orderInLayer = int.MaxValue)
+        public UISprite(string fileSourceDirectory, Anchor screenAnchor, Anchor pivotPointAnchor, Vector2 offset, int orderInLayer = int.MaxValue)
         {
             this.offset = offset;
             this.screenAnchor = screenAnchor;
@@ -195,7 +195,7 @@ namespace STCEngine.Components
             this.image = Image.FromFile(fileSourceDirectory);
             this._orderInUILayer = orderInLayer;
         }
-        public UISprite(string fileSourceDirectory, ScreenAnchor screenAnchor, PivotPointAnchor pivotPointAnchor, int orderInLayer = int.MaxValue)
+        public UISprite(string fileSourceDirectory, Anchor screenAnchor, Anchor pivotPointAnchor, int orderInLayer = int.MaxValue)
         {
             this.screenAnchor = screenAnchor;
             this.fileSourceDirectory = fileSourceDirectory;
@@ -222,11 +222,12 @@ namespace STCEngine.Components
         /// <summary>
         /// Determines to what part of the screen this UI element sticks to
         /// </summary>
-        public enum ScreenAnchor { TopLeft, TopCentre, TopRight, MiddleLeft, MiddleCentre, MiddleRight, LeftBottom, MiddleBottom, RightBottom }
+        //public enum Anchor { TopLeft, TopCentre, TopRight, MiddleLeft, MiddleCentre, MiddleRight, LeftBottom, MiddleBottom, RightBottom }
         /// <summary>
+        /// 
         /// Determines from where inside this UI element the position is taken from
         /// </summary>
-        public enum PivotPointAnchor { TopLeft, TopCentre, TopRight, MiddleLeft, MiddleCentre, MiddleRight, LeftBottom, MiddleBottom, RightBottom }
+        public enum Anchor { TopLeft, TopCentre, TopRight, MiddleLeft, MiddleCentre, MiddleRight, LeftBottom, MiddleBottom, RightBottom }
     }
     /// <summary>
     /// A component responsible for rendering a grid of images
@@ -520,6 +521,7 @@ namespace STCEngine.Components
         public bool isTrigger { get; set; } //whether it stops movement upon collision
         public Vector2 offset { get; set; }
         public string tag { get; set; }
+        public bool debugDraw { get; set; }
 
         /// <summary>
         /// Checks if this collider is coliding with the given collider for all registered colliders or the given collider list
@@ -565,7 +567,7 @@ namespace STCEngine.Components
         public Vector2 size { get; set; }
 
 
-        public bool debugDraw { get; private set; }
+        
         /// <summary>
         /// Creates the box collider of the given size and with a given offset from gameObjects position 
         /// </summary>
@@ -681,7 +683,6 @@ namespace STCEngine.Components
         public int radius { get; set; }
 
 
-        public bool debugDraw { get; private set; }
         /// <summary>
         /// Creates the box collider of the given size and with a given offset from gameObjects position 
         /// </summary>
