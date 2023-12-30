@@ -26,7 +26,7 @@ namespace STCEngine.Engine
         private static System.Windows.Forms.Timer animationTimer = new System.Windows.Forms.Timer();
         private static System.Windows.Forms.Timer gameLoopTimer = new System.Windows.Forms.Timer();
         public static bool paused;
-        private bool changingScene { get => _changingScene; set { if (loadingSceneText.InvokeRequired) { loadingSceneText.Invoke(new Action(() => loadingSceneText.Visible = value)); Debug.Log("Showing text"); } else { loadingSceneText.Visible = value; } _changingScene = value; } }//has to be like this because of threading
+        private bool changingScene { get => _changingScene; set { if (loadingSceneText.InvokeRequired) { loadingSceneText.Invoke(new Action(() => loadingSceneText.Visible = value)); } else { loadingSceneText.Visible = value; } _changingScene = value; } }//has to be like this because of threading
         private bool _changingScene;
 
         public static InventoryItemSlots playerInventoryUI = new InventoryItemSlots(), otherInventoryUI = new InventoryItemSlots();
@@ -772,7 +772,6 @@ namespace STCEngine.Engine
                 runningAnimations.Clear();
                 animationsToRun.Clear();
                 animationsToStop.Clear();
-                Debug.Log("Attempting to clear scene...");
             }
             Debug.LogInfo("Scene Cleared");
             changingScene = false;
@@ -801,7 +800,7 @@ namespace STCEngine.Engine
             {
                 await Task.Delay(25);
             }
-            Debug.Log($"Level {directory} Succesfully loaded");
+            Debug.LogInfo($"Level {directory} Succesfully loaded");
             changingScene = false;
             
         }

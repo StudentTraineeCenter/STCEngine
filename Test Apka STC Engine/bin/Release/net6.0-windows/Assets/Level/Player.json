@@ -32,7 +32,7 @@
     },
     {
       "Type": "Sprite",
-      "orderInLayer": 0,
+      "orderInLayer": 10,
       "fileSourceDirectory": "Assets/Player/Idle/PlayerIdle1.png",
       "enabled": true
     },

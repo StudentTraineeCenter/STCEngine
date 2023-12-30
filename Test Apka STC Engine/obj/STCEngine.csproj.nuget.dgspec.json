@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Martin\\source\\repos\\STCEngine\\Test Apka STC Engine\\STCEngine.csproj": {}
+    "C:\\Users\\Martin\\Source\\Repos\\STCEngineRPG\\Test Apka STC Engine\\STCEngine.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Martin\\source\\repos\\STCEngine\\Test Apka STC Engine\\STCEngine.csproj": {
+    "C:\\Users\\Martin\\Source\\Repos\\STCEngineRPG\\Test Apka STC Engine\\STCEngine.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Martin\\source\\repos\\STCEngine\\Test Apka STC Engine\\STCEngine.csproj",
+        "projectUniqueName": "C:\\Users\\Martin\\Source\\Repos\\STCEngineRPG\\Test Apka STC Engine\\STCEngine.csproj",
         "projectName": "STCEngine",
-        "projectPath": "C:\\Users\\Martin\\source\\repos\\STCEngine\\Test Apka STC Engine\\STCEngine.csproj",
+        "projectPath": "C:\\Users\\Martin\\Source\\Repos\\STCEngineRPG\\Test Apka STC Engine\\STCEngine.csproj",
         "packagesPath": "C:\\Users\\Martin\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Martin\\source\\repos\\STCEngine\\Test Apka STC Engine\\obj\\",
+        "outputPath": "C:\\Users\\Martin\\Source\\Repos\\STCEngineRPG\\Test Apka STC Engine\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Martin\\AppData\\Roaming\\NuGet\\NuGet.Config",

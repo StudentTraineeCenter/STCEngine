@@ -31,24 +31,23 @@
         "x": 0,
         "y": 0
       },
-      "tag": null,
+      "tag": "wall",
       "enabled": true
     },
     {
       "Type": "Inventory",
-      "items": [],
-      "enabled": true
-    },
-    {
-      "Type": "CircleCollider",
-      "radius": 75,
-      "debugDraw": true,
-      "isTrigger": true,
-      "offset": {
-        "x": 0,
-        "y": 0
-      },
-      "tag": "Interactible",
+      "items": [        
+        {
+          "itemCount": 3,
+          "itemName": "Slimeball",
+          "fileSourceDirectory": "Assets/Items/Slimeball.png"
+        },
+        {
+          "itemCount": 1,
+          "itemName": "Cobweb",
+          "fileSourceDirectory": "Assets/Items/Cobweb.png"
+        }
+    ],
       "enabled": true
     }
   ],
