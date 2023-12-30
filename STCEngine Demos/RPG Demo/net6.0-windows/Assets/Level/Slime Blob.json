@@ -1,0 +1,25 @@
+{
+  "components": [
+    {
+      "Type": "Transform",
+      "position": {
+        "x": 608,
+        "y": 32
+      },
+      "rotation": 0,
+      "size": {
+        "x": 4,
+        "y": 4
+      },
+      "enabled": true
+    },
+    {
+      "Type": "Sprite",
+      "orderInLayer": 2,
+      "fileSourceDirectory": "Assets/SlimeBlob.png",
+      "enabled": true
+    }
+  ],
+  "name": "Slime Blob 1",
+  "isActive": true
+}

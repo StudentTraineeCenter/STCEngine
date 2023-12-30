@@ -1,0 +1,46 @@
+{
+  "components": [
+    {
+      "Type": "Transform",
+      "position": {
+        "x": 288,
+        "y": -162
+      },
+      "rotation": 0,
+      "size": {
+        "x": 4,
+        "y": 4
+      },
+      "enabled": true
+    },
+    {
+      "Type": "BoxCollider",
+      "size": {
+        "x": 64,
+        "y": 64
+      },
+      "debugDraw": true,
+      "isTrigger": false,
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "tag": "wall",
+      "enabled": true
+    },
+    {
+      "Type": "ToggleCollider",
+      "offSpriteImageSource": "Assets/OpenDoor.png",
+      "onSpriteImageSource": "Assets/Door.png",
+      "enabled": true
+    },
+    {
+      "Type": "Sprite",
+      "orderInLayer": 4,
+      "fileSourceDirectory": "Assets/Door.png",
+      "enabled": true
+    }
+  ],
+  "name": "Dvere Dum 1",
+  "isActive": true
+}

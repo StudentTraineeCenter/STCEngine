@@ -1,0 +1,39 @@
+{
+  "components": [
+    {
+      "Type": "Transform",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "rotation": 0,
+      "size": {
+        "x": 17.666666,
+        "y": 0.5
+      },
+      "enabled": true
+    },
+    {
+      "Type": "UISprite",
+      "screenAnchor": 0,
+      "pivotPointAnchor": 0,
+      "screenAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "pivotPointOffset": {
+        "x": -282.66666,
+        "y": -8
+      },
+      "offset": {
+        "x": 30,
+        "y": 35
+      },
+      "orderInUILayer": 1,
+      "fileSourceDirectory": "Assets/Engine Resources/HealthBarUIFill.png",
+      "enabled": true
+    }
+  ],
+  "name": "Health UI",
+  "isActive": true
+}
