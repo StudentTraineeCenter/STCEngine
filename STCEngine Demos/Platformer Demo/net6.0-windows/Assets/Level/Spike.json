@@ -1,0 +1,39 @@
+{
+  "components": [
+    {
+      "Type": "Transform",
+      "position": {
+        "x": -250,
+        "y": -60
+      },
+      "rotation": 0,
+      "size": {
+        "x": 1,
+        "y": 1
+      },
+      "enabled": true
+    },
+    {
+      "Type": "Sprite",
+      "orderInLayer": 2,
+      "fileSourceDirectory": "Assets/Spike.png",
+      "enabled": true
+    },
+    {
+      "Type": "CombatStats",
+      "isPlayerStats": false,
+      "health": 2147000000,
+      "damage": 100,
+      "movementSpeed": 0,
+      "agroRange": 0,
+      "deagroRange": 0,
+      "immuneTime": 2147000000,
+      "knockbackMultiplier": 0,
+      "staggerTime": 0,
+      "enabled": true
+    }
+    
+  ],
+  "name": "Spike",
+  "isActive": true
+}

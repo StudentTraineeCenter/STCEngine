@@ -1,0 +1,95 @@
+{
+  "components": [
+    {
+      "Type": "Transform",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "rotation": 0,
+      "size": {
+        "x": 1,
+        "y": 1
+      },
+      "enabled": true
+    },
+    {
+      "Type": "BoxCollider",
+      "size": {
+        "x": 660,
+        "y": 80
+      },
+      "debugDraw": true,
+      "isTrigger": false,
+      "offset": {
+        "x": -20,
+        "y": 202
+      },
+      "tag": "Ground",
+      "enabled": true
+    },
+    {
+      "Type": "BoxCollider",
+      "size": {
+        "x": 150,
+        "y": 80
+      },
+      "debugDraw": true,
+      "isTrigger": false,
+      "offset": {
+        "x": -216,
+        "y": 8
+      },
+      "tag": "Ground",
+      "enabled": true
+    },
+    {
+      "Type": "BoxCollider",
+      "size": {
+        "x": 80,
+        "y": 80
+      },
+      "debugDraw": true,
+      "isTrigger": false,
+      "offset": {
+        "x": 331,
+        "y": 72
+      },
+      "tag": "Ground",
+      "enabled": true
+    },
+    {
+      "Type": "BoxCollider",
+      "size": {
+        "x": 80,
+        "y": 80
+      },
+      "debugDraw": true,
+      "isTrigger": false,
+      "offset": {
+        "x": 460,
+        "y": -50
+      },
+      "tag": "Ground",
+      "enabled": true
+    },
+    {
+      "Type": "BoxCollider",
+      "size": {
+        "x": 340,
+        "y": 80
+      },
+      "debugDraw": true,
+      "isTrigger": false,
+      "offset": {
+        "x": 140,
+        "y": -180
+      },
+      "tag": "Ground",
+      "enabled": true
+    }
+    
+  ],
+  "name": "Ground",
+  "isActive": true
+}
