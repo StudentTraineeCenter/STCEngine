@@ -19,7 +19,7 @@ DONE			??	NPC Stats
 DONE			NPC Dialogues
 DONE		8. Fight system/Farmareni
 DONE		9. Savovani/loadeni ingame
-			10. health UI
+DONE		10. health UI
 			11. Vic itemu, quests, level, polish
 				Mob drops
 				Quest rewards
