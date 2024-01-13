@@ -5,4 +5,6 @@ The "STCEngine Demos" directory contains two demos to demonstrate the basic func
 Simple level editing is possible by changing the JOSN files in the "Assets" folder in the same folder as is the .exe file of the demo you wish to edit.
 Game logic modification is possible by editing the "Test Apka STC Engine/Game.cs" script and building the application.
 
+This branch contains the source code for the platformer demo, if you wish to see the RPGs source code, switch to the main branch.
+
 Thank you for checking this out! :)
