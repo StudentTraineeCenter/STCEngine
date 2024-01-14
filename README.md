@@ -6,7 +6,7 @@ The engine allows the user to create a simple 2D game using premade "Components"
 More components may be added in the future, for example physics simulation.
 ## Installation
 1. Navigate to the place where you want the app to be downloaded in Command Prompt.
-2. Clone the repository using `git clone https://github.com/StudentTraineeCenter/STCEngine.git`
+2. Clone the repository using `git clone https://github.com/StudentTraineeCenter/STCEngine.git` or `git clone -b Platformer https://github.com/StudentTraineeCenter/STCEngine.git`
 
 ## Demos
 The `STCEngine Demos` directory contains two demos to demonstrate the basic functionality, as well as a Czech user manual on controls and level editing.
