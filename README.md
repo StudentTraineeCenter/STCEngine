@@ -1,6 +1,6 @@
 # STCEngine
-This is a 2D game engine made for a graduate thesis for the STC program. It allows the user to create a simple 2D game and easily modify the level using JSON. It is mostly made for RPGs, but other genres are possible as well.
-
+This is a 2D game engine made for a graduate thesis for the STC program. It allows the user to create a simple 2D game and easily modify the level using JSON. It is mostly made for RPGs, but other genres are possible as well.  
+The repository contains two demos, a user manual and the source code for one of the demos.
 # Demos
 The "STCEngine Demos" directory contains two demos to demonstrate the basic functionality, as well as a Czech user manual on controls and level editing.
 To start a demo, run "STCEngine Demos/RPG Demo/net6.0-windows/STCEngine.exe"  
