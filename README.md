@@ -22,7 +22,7 @@ Platformer gravity and jumping:
 
 
 # Modification
-Simple level editing is possible by changing the JOSN files in the "Assets" folder in the same folder as is the .exe file of the demo you wish to edit. Details on how to create GameObjects is in the user manual at "STCEngine Demos/Uživatelská příručka.docx".  
+Simple level editing is possible by changing the JSON files in the "Assets" folder in the same folder as is the .exe file of the demo you wish to edit. Details on how to create GameObjects is in the user manual at "STCEngine Demos/Uživatelská příručka.docx".  
   
 Example of a JSON GameObject configuration:  
 ![image](https://github.com/StudentTraineeCenter/STCEngine/assets/146582539/5188959a-f96a-48e9-aa0c-386f364a3e90)
