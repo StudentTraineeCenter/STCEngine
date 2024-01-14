@@ -2,7 +2,8 @@
 This is a 2D game engine made for a graduate thesis for the STC program. It allows the user to create a simple 2D game and easily modify the level using JSON. It is mostly made for RPGs, but other genres are possible as well.  
 The repository contains two demos, a user manual and the source code for one of the demos.
 # Features
-The engine allows the user to create a simple 2D game using premade "Components" attached to "GameObjects" written in JSON. To further modify the game logic, the user has to edit the game script. (more information in the Modification section)
+The engine allows the user to create a simple 2D game using premade "Components" attached to "GameObjects" written in JSON. To further modify the game logic, the user has to edit the game script. (more information in the Modification section)  
+More components may be added in the future, for example physics simulation.
 # Demos
 The "STCEngine Demos" directory contains two demos to demonstrate the basic functionality, as well as a Czech user manual on controls and level editing.
 To start a demo, run "STCEngine Demos/RPG Demo/net6.0-windows/STCEngine.exe"  
